@@ -89,11 +89,10 @@ int CVUniverse::GetHighestEnergyPionCandidateIndex(
     int current_idx = pion_candidate_idxs[iter];
     double current_tpi = -997.;
     if (current_idx == CCNuPionIncConsts::kIsVertexPion) {
-      //std::cerr << "GetHighestEnergyPionCandidateIndex: pion_idx = -1.\n"
-      //             "In the future this will be the code for a vertex pion.\n";
-      //std::exit(2);
-      double bogus_range = 1.e10;
-      current_tpi = GetTpiUntracked(bogus_range);
+      std::cerr << "GetHighestEnergyPionCandidateIndex: pion_idx = -1.\n"
+                   "In the future this will be the code for a vertex pion.\n";
+      std::exit(2);
+      // current_tpi = universe.GetVertexTpi(current_idx);
     } else {
       current_tpi = GetTpi(current_idx);
       if (current_tpi > largest_tpi) {
@@ -518,8 +517,6 @@ double CVUniverse::GetCalRecoilEnergy() const {
 // Apply an additive, ad hoc correction to the CalRecoilENoPi
 double CVUniverse::GetCalRecoilEnergyNoPi_Corrected(
     const double ecal_nopi) const {
-  if (GetPionCandidates().size() == 0) return ecal_nopi;
-
   // I've shown that low-t (likely coherent) events don't need the
   // correction. 20210102_ErecStudies, slides 46-48.
   RecoPionIdx best_pion =
@@ -557,10 +554,8 @@ double CVUniverse::GetCalRecoilEnergyNoPi_Corrected(
 // Used to determined whether we should try to use the correction or not.
 double CVUniverse::GetCalRecoilEnergyNoPi_DefaultSpline() const {
   double nopi_recoilE = GetCalRecoilEnergy_DefaultSpline();
-  if (GetPionCandidates().size() !=0) {
-    for (const auto& pi_idx : GetPionCandidates()) {
-      nopi_recoilE -= GetCalEpi(pi_idx);
-    }
+  for (const auto& pi_idx : GetPionCandidates()) {
+    nopi_recoilE -= GetCalEpi(pi_idx);
   }
   return nopi_recoilE;
 }
@@ -581,12 +576,10 @@ double CVUniverse::GetCalRecoilEnergy_DefaultSpline() const {
 
 // This is what the response universe calls our tracked recoil energy
 double CVUniverse::GetNonCalRecoilEnergy() const {
-//#ifdef NDEBUG
-  if (GetPionCandidates().empty()) {
-    return 0.;
-  }
-    //std::cout << "CVU::GetETrackedRecoilEnergy WARNING: no pion candidates!\n";
-//#endif
+#ifdef NDEBUG
+  if (GetPionCandidates().empty())
+    std::cout << "CVU::GetETrackedRecoilEnergy WARNING: no pion candidates!\n";
+#endif
 
   double etracks = 0.;
 

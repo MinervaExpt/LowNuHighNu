@@ -1,11 +1,14 @@
 #ifndef Michel_H
 #define Michel_H
 
-#include <ctime>
-
 #include "CVUniverse.h"
+#include "MichelEvent.h"  // trackless::MichelEvent
 
 namespace endpoint {
+class Michel;
+
+typedef std::map<int, Michel> MichelMap;
+
 bool IsQualityMatchedMichel_Fit(double fit_dist, double fit_cut);
 bool IsQualityMatchedMichel_NoFit(double nofit_dist, double nofit_cut);
 bool IsQualityMatchedMichel_OneView(double ov_dist, double ov_cut);
@@ -44,8 +47,6 @@ class Michel {
   EMatchCategory match_category;
   double fit_distance;
 };
-
-typedef std::map<int, Michel> MichelMap;
 
 Michel::Michel(const CVUniverse& univ, int i, int v)
     : idx(i),
@@ -203,16 +204,15 @@ MichelMap GetQualityMichels(const CVUniverse& univ) {
     // pass match quality cuts.
     if (current_michel.match_category == Michel::kNoMatch) continue;
 
-    // SKIP VERTEX MICHEL -- this is trackless:: namespace territory now. I wash
-    // my hands. Skip michels matched this way.
+    // SKIP VERTEX MICHEL -- this is trackless:: namespace territory now. I wash my
+    // hands. Skip michels matched this way.
     //
     // For the record, the previous method was to only consider it if the fit
     // category was better than kNoFit.
-    if (vtx == 0) {
+    if (vtx==0) {
       continue;
     }
-    assert(current_michel.had_idx > 0 &&
-           "endpoint::GetQualityMichels found a vertex michel");
+    assert(current_michel.had_idx > 0 && "endpoint::GetQualityMichels found a vertex michel");
 
     // ENDPOINT MICHELS
 
@@ -245,5 +245,10 @@ MichelMap GetQualityMichels(const CVUniverse& univ) {
 
 }  // namespace endpoint
 
+namespace trackless {
+// Create Michel objects for each Michel candidate. Add the good ones to the
+// MichelEvent container.
+MichelEvent GetQualityMichels(const CVUniverse& univ) { return MichelEvent(); }
+}  // namespace trackless
 
 #endif
