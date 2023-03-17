@@ -41,8 +41,12 @@ void runEffPurTable(int signal_definition_int = 0, const char* plist = "ALL") {
   bool do_data = true, do_mc = true, do_truth = true;
   bool do_systematics = false, is_grid = false;
   bool use_xrootd = false;
-  std::string data_file_list = GetPlaylistFile(plist, false, use_xrootd);
-  std::string mc_file_list = GetPlaylistFile(plist, true, use_xrootd);
+  //std::string data_file_list = GetPlaylistFile(plist, false, use_xrootd);
+  //std::string mc_file_list = GetPlaylistFile(plist, true, use_xrootd);
+  bool is_mc = false;
+  std::string data_file_list = GetTestPlaylist(is_mc);
+  is_mc = true;
+  std::string mc_file_list = GetTestPlaylist(is_mc);
   CCPi::MacroUtil util(signal_definition_int, mc_file_list, data_file_list,
                        plist, do_truth, is_grid, do_systematics);
   util.PrintMacroConfiguration(macro);
