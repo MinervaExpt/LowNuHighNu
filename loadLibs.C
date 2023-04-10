@@ -8,7 +8,7 @@
 void loadIncludes(bool verbose_cvu) {
   const char* cvu_flags = verbose_cvu ? "kf" : "kfg";
   TString path(
-      TString::Format("%s/cc-ch-pip-ana/includes/", gSystem->Getenv("TOPDIR")));
+      TString::Format("%s/LowNuHighNu/includes/", gSystem->Getenv("TOPDIR")));
   // std::cout << "path " << path << "\n";
   TString oldpath = gSystem->GetIncludePath();
   oldpath += " -I";
