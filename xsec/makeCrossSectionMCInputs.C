@@ -115,21 +115,23 @@ std::vector<Variable*> GetOnePiVariables(bool include_truth_vars = true) {
               &CVUniverse::GetEhadTrue);
   ehad_true->m_is_true = true;
 
-  std::vector<Var*> variables = {tpi,         tpi_mbr, thetapi_deg, pmu,
-                                 thetamu_deg, enu,     q2,          wexp,
-                                 wexp_fit,    ptmu,    pzmu,        ehad};
+  // std::vector<Var*> variables = {tpi,         tpi_mbr, thetapi_deg, pmu,
+  //                                thetamu_deg, enu,     q2,          wexp,
+  //                                wexp_fit,    ptmu,    pzmu,        ehad};
+
+  std::vector<Var*> variables = {pmu,wexp,wexp_fit};
 
   if (include_truth_vars) {
-    variables.push_back(tpi_true);
-    variables.push_back(thetapi_deg_true);
+    //variables.push_back(tpi_true);
+    //variables.push_back(thetapi_deg_true);
     variables.push_back(pmu_true);
-    variables.push_back(thetamu_deg_true);
-    variables.push_back(enu_true);
-    variables.push_back(q2_true);
+    //variables.push_back(thetamu_deg_true);
+    //variables.push_back(enu_true);
+    //variables.push_back(q2_true);
     variables.push_back(wexp_true);
-    variables.push_back(ptmu_true);
-    variables.push_back(pzmu_true);
-    variables.push_back(ehad_true);
+    //variables.push_back(ptmu_true);
+    //variables.push_back(pzmu_true);
+    //variables.push_back(ehad_true);
   }
 
   return variables;
@@ -271,6 +273,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   // const bool use_xrootd = false;
   mc_file_list = input_file.empty()
                      ? GetPlaylistFile(plist, is_mc /*, use_xrootd*/)
+                     //? GetTestPlaylist(is_mc /*, use_xrootd*/)
                      : input_file;
 
   // INIT MACRO UTILITY

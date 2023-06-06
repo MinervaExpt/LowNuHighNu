@@ -26,7 +26,7 @@ void loadIncludes(bool verbose_cvu) {
   gSystem->CompileMacro("CohDiffractiveSystematics.cxx", "k");
 }
 
-void loadLibs(bool verbose_cvu = true) {
+void loadLibs(bool verbose_cvu = false) {
   // MnvH1D hides approximately everything, so just turn off the pages
   // of compiler warnings. It would have been easier to do this by
   // using SetFlagsDebug(), but those flags get put before the default

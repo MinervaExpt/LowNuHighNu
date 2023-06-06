@@ -26,8 +26,8 @@ std::string GetPlaylistFile(std::string plist, bool is_mc,
 }
 
 std::string GetTestPlaylist(bool is_mc) {
-  return is_mc ? "/minerva/app/users/bmesserl/MATAna/cc-ch-pip-ana/cache/ME1A_mc_p3_beta.txt" :
-                 "/minerva/app/users/bmesserl/MATAna/cc-ch-pip-ana/cache/ME1A_data_p3_beta.txt";
+  return is_mc ? "/minerva/app/users/finer/MATAna/LowNuHighNu/cache/ME1A_mc_test_playlist.txt" :
+                 "/minerva/app/users/finer/MATAna/LowNuHighNu/cache/ME1A_data_test_playlist.txt";
 
 }
 

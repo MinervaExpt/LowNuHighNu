@@ -253,10 +253,13 @@ void crossSectionDataFromFile(int signal_definition_int = 0,
   //============================================================================
 
   // I/O
-  TFile fin("MCXSecInputs_0110_ME1A_0_2023-02-13.root", "READ");
+  //TFile fin("MCXSecInputs_0110_ME1A_0_2023-02-13.root", "READ");
+  //TFile fin("MCXSecInputs_0110_ME1L_0_2023-04-10.root", "READ");
+  TFile fin("MCXSecInputs_0110_ME1L_0_2023-06-05.root", "READ");
   std::cout << "Reading input from " << fin.GetName() << endl;
 
-  TFile fout("DataXSecInputs_2023-02-14.root", "RECREATE");
+  //TFile fout("DataXSecInputs_2023-02-14.root", "RECREATE");
+  TFile fout("DataXSecInputs_2023-04-10.root", "RECREATE");
   std::cout << "Output file is " << fout.GetName() << "\n";
 
   std::cout << "Copying all hists from fin to fout\n";
@@ -267,8 +270,8 @@ void crossSectionDataFromFile(int signal_definition_int = 0,
   // systematics
   std::string data_file_list = GetPlaylistFile(plist, false);
   std::string mc_file_list = GetPlaylistFile("ME1A", true);
-  // std::string data_file_list = GetTestPlaylist(false);
-  // std::string mc_file_list = GetTestPlaylist(true);
+  //std::string data_file_list = GetTestPlaylist(false);
+  //std::string mc_file_list = GetTestPlaylist(true);
 
   // Macro Utility
   const std::string macro("CrossSectionDataFromFile");
@@ -322,34 +325,34 @@ void crossSectionDataFromFile(int signal_definition_int = 0,
 
   SaveDataHistsToFile(fout, variables);
 
-  //============================================================================
-  // Tune Sideband
-  //============================================================================
-  // Hists to store the sideband tune/fit parameters/weights
-  PlotUtils::HistWrapper<CVUniverse> hw_loW_fit_wgt =
-      PlotUtils::HistWrapper<CVUniverse>("h_loW_fit_wgt",
-                                         "W Sideband Fit Weight -- low W", 1,
-                                         0., 15., util.m_error_bands);
+  // //============================================================================
+  // // Tune Sideband
+  // //============================================================================
+  // // Hists to store the sideband tune/fit parameters/weights
+  // PlotUtils::HistWrapper<CVUniverse> hw_loW_fit_wgt =
+  //     PlotUtils::HistWrapper<CVUniverse>("h_loW_fit_wgt",
+  //                                        "W Sideband Fit Weight -- low W", 1,
+  //                                        0., 15., util.m_error_bands);
 
-  PlotUtils::HistWrapper<CVUniverse> hw_midW_fit_wgt =
-      PlotUtils::HistWrapper<CVUniverse>("h_midW_fit_wgt",
-                                         "W Sideband Fit Weight -- mid W", 1,
-                                         0., 15., util.m_error_bands);
+  // PlotUtils::HistWrapper<CVUniverse> hw_midW_fit_wgt =
+  //     PlotUtils::HistWrapper<CVUniverse>("h_midW_fit_wgt",
+  //                                        "W Sideband Fit Weight -- mid W", 1,
+  //                                        0., 15., util.m_error_bands);
 
-  PlotUtils::HistWrapper<CVUniverse> hw_hiW_fit_wgt =
-      PlotUtils::HistWrapper<CVUniverse>("h_hiW_fit_wgt",
-                                         "W Sideband Fit Weight -- high W", 1,
-                                         0., 15., util.m_error_bands);
+  // PlotUtils::HistWrapper<CVUniverse> hw_hiW_fit_wgt =
+  //     PlotUtils::HistWrapper<CVUniverse>("h_hiW_fit_wgt",
+  //                                        "W Sideband Fit Weight -- high W", 1,
+  //                                        0., 15., util.m_error_bands);
 
-  // Sideband tune
-  // Fill the fit parameter hists (by reference)
-  DoWSidebandTune(util, GetVar(variables, sidebands::kFitVarString),
-                  hw_loW_fit_wgt, hw_midW_fit_wgt, hw_hiW_fit_wgt);
+  // // Sideband tune
+  // // Fill the fit parameter hists (by reference)
+  // DoWSidebandTune(util, GetVar(variables, sidebands::kFitVarString),
+  //                 hw_loW_fit_wgt, hw_midW_fit_wgt, hw_hiW_fit_wgt);
 
-  // Write fit weights
-  hw_loW_fit_wgt.hist->Write("loW_fit_wgt");
-  hw_midW_fit_wgt.hist->Write("midW_fit_wgt");
-  hw_hiW_fit_wgt.hist->Write("hiW_fit_wgt");
+  // // Write fit weights
+  // hw_loW_fit_wgt.hist->Write("loW_fit_wgt");
+  // hw_midW_fit_wgt.hist->Write("midW_fit_wgt");
+  // hw_hiW_fit_wgt.hist->Write("hiW_fit_wgt");
 
   //============================================================================
   // In a loop over variables...
@@ -370,11 +373,28 @@ void crossSectionDataFromFile(int signal_definition_int = 0,
     // We'll need the true version of this variable later on. Get it now.
     Variable* true_var = GetVar(variables, var->Name() + std::string("_true"));
 
-    //============================================================================
-    // Scale BG
-    // i.e. apply W sideband fit to the BG in the signal region.
-    //============================================================================
-    ScaleBG(var, util, hw_loW_fit_wgt, hw_midW_fit_wgt, hw_hiW_fit_wgt);
+    // //============================================================================
+    // // Scale BG
+    // // i.e. apply W sideband fit to the BG in the signal region.
+    // //============================================================================
+    // ScaleBG(var, util, hw_loW_fit_wgt, hw_midW_fit_wgt, hw_hiW_fit_wgt);
+
+    // SKIP TUNING STEPS ALTOGETHER (KLUDGE BELOW)
+    // tuned bg component = clone (untuned component)
+    PlotUtils::MnvH1D* tuned_bg_loW =
+        (PlotUtils::MnvH1D*)var->m_hists.m_bg_loW.hist->Clone(uniq());
+    PlotUtils::MnvH1D* tuned_bg_midW =
+        (PlotUtils::MnvH1D*)var->m_hists.m_bg_midW.hist->Clone(uniq());
+    PlotUtils::MnvH1D* tuned_bg_hiW =
+        (PlotUtils::MnvH1D*)var->m_hists.m_bg_hiW.hist->Clone(uniq());
+
+    // SUM TUNED COMPONENTS
+    // total tuned bg = sum of tuned components
+    PlotUtils::MnvH1D* tuned_bg = (PlotUtils::MnvH1D*)tuned_bg_loW->Clone(uniq());
+    tuned_bg->Add(tuned_bg_midW);
+    tuned_bg->Add(tuned_bg_hiW);
+
+    var->m_hists.m_tuned_bg = tuned_bg;
 
     // POT scale the tuned BG
     PlotUtils::MnvH1D* tuned_POTscaled_bg =
