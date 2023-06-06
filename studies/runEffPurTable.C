@@ -1,7 +1,7 @@
 #ifndef runEffPurTable_C
 #define runEffPurTable_C
 
-#include "ccpion_common.h"  // GetPlaylistFile
+#include "playlist_methods.h"  // GetPlaylistFile
 #include "includes/CCPiEvent.h"
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h"  // typedefs EventCount

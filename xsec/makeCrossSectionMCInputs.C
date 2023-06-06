@@ -4,7 +4,7 @@
 #include <cassert>
 #include <ctime>
 
-#include "ccpion_common.h"  // GetPlaylistFile
+#include "playlist_methods.h"  // GetPlaylistFile
 #include "includes/Binning.h"
 #include "includes/CCPiEvent.h"
 #include "includes/CVUniverse.h"

@@ -20,7 +20,7 @@
 #include "TList.h"
 #include "TPad.h"
 #include "TStyle.h"
-#include "ccpion_common.h"        // GetTestPlaylist
+#include "playlist_methods.h"        // GetTestPlaylist
 #include "includes/Constants.h"   // CVHW, UniverseMap
 #include "includes/Histograms.h"  // LoadHWFromFile
 #include "includes/MacroUtil.h"

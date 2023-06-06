@@ -6,7 +6,7 @@
 #include "PlotUtils/MnvH1D.h"
 #include "PlotUtils/TargetUtils.h"
 #include "TFile.h"
-#include "ccpion_common.h"  // GetPlaylistFile
+#include "playlist_methods.h"  // GetPlaylistFile
 #include "includes/MacroUtil.h"
 #include "includes/SignalDefinition.h"
 #include "includes/Variable.h"
