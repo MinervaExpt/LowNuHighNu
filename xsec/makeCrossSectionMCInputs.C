@@ -4,7 +4,6 @@
 #include <cassert>
 #include <ctime>
 
-#include "playlist_methods.h"  // GetPlaylistFile
 #include "includes/Binning.h"
 #include "includes/CCPiEvent.h"
 #include "includes/CVUniverse.h"
@@ -16,6 +15,7 @@
 #include "includes/TruthCategories/Sidebands.h"  // sidebands::kFitVarString, IsWSideband
 #include "includes/Variable.h"
 #include "includes/common_functions.h"  // GetVar, WritePOT
+#include "playlist_methods.h"           // GetPlaylistFile
 
 class Variable;
 class HadronVariable;
@@ -58,8 +58,9 @@ std::vector<Variable*> GetOnePiVariables(bool include_truth_vars = true) {
   Var* wexp = new Var("wexp", "W_{exp}", "MeV", CCPi::GetBinning("wexp"),
                       &CVUniverse::GetWexp);
 
-  Var* wexp_fit = new Var(sidebands::kFitVarString, wexp->m_hists.m_xlabel,
-                          wexp->m_units, CCPi::GetBinning("wexp_fit"), &CVUniverse::GetWexp);
+  Var* wexp_fit =
+      new Var(sidebands::kFitVarString, wexp->m_hists.m_xlabel, wexp->m_units,
+              CCPi::GetBinning("wexp_fit"), &CVUniverse::GetWexp);
 
   Var* ptmu = new Var("ptmu", "p^{T}_{#mu}", "MeV", CCPi::GetBinning("ptmu"),
                       &CVUniverse::GetPTmu);
@@ -133,14 +134,6 @@ std::vector<Variable*> GetOnePiVariables(bool include_truth_vars = true) {
   }
 
   return variables;
-}
-
-std::map<std::string, Variable*> GetOnePiVariables_Map(
-    bool include_truth_vars = true) {
-  std::map<std::string, Var*> var_map;
-  std::vector<Var*> var_vec = GetOnePiVariables(include_truth_vars);
-  for (auto v : var_vec) var_map[v->Name()] = v;
-  return var_map;
 }
 
 }  // namespace make_xsec_mc_inputs
@@ -227,14 +220,20 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
 
           // Already checked a vertical-only universe
           if (checked_cv) {
-            std::tie(event.m_passes_cuts, event.m_is_w_sideband, event.m_passes_all_cuts_except_w, event.m_reco_pion_candidate_idxs) = cv_cuts_info.GetAll();
-            event.m_highest_energy_pion_idx = GetHighestEnergyPionCandidateIndex(event);
+            std::tie(event.m_passes_cuts, event.m_is_w_sideband,
+                     event.m_passes_all_cuts_except_w,
+                     event.m_reco_pion_candidate_idxs) = cv_cuts_info.GetAll();
+            event.m_highest_energy_pion_idx =
+                GetHighestEnergyPionCandidateIndex(event);
           }
-        // Universe shifts something laterally
+          // Universe shifts something laterally
         } else {
           PassesCutsInfo cuts_info = PassesCuts(event);
-          std::tie(event.m_passes_cuts, event.m_is_w_sideband, event.m_passes_all_cuts_except_w, event.m_reco_pion_candidate_idxs) = cuts_info.GetAll();
-          event.m_highest_energy_pion_idx = GetHighestEnergyPionCandidateIndex(event);
+          std::tie(event.m_passes_cuts, event.m_is_w_sideband,
+                   event.m_passes_all_cuts_except_w,
+                   event.m_reco_pion_candidate_idxs) = cuts_info.GetAll();
+          event.m_highest_energy_pion_idx =
+              GetHighestEnergyPionCandidateIndex(event);
         }
 
         // The universe needs to know its pion candidates in order to calculate
