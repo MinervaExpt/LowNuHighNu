@@ -4,10 +4,14 @@
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h" // namespace CCNuPionIncConsts
 
-enum SignalDefinition { kOnePi, kOnePiNoW, kNPi, kNPiNoW, kNSignalDefTypes };
+enum SignalDefinition { kLowNu, kHighNu, kOnePi, kOnePiNoW, kNPi, kNPiNoW, kNSignalDefTypes };
 
 double GetWCutValue(SignalDefinition signal_definition) {
   switch (signal_definition) {
+    case kLowNu:
+      return 1000.; // placeholder
+    case kHighNu:
+      return 1100.; // placeholder
     case kOnePi:
       return 1400.;
     case kNPi:
@@ -199,7 +203,7 @@ bool XYVtxIsSignal(const CVUniverse& univ) {
 // ROB -- DON'T BOTHER READING THIS STUFF
 
 // ---> MONEY FUNCTION  <----
-bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kOnePi) {
+bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kLowNu) {
   int n_signal_pions = NSignalPions(univ);
   const std::map<std::string, int> particles = GetParticleTopology(
       univ.GetVec<int>("mc_FSPartPDG"), univ.GetVec<double>("mc_FSPartE"));
@@ -218,6 +222,8 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kOnePi) {
   }
 
   switch (sig_def) {
+    case kLowNu:
+    case kHighNu:
     case kOnePi:
     case kOnePiNoW:
       if (n_signal_pions == 1 && univ.GetInt("truth_N_pi0") == 0 &&
@@ -238,6 +244,10 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kOnePi) {
 
 std::string GetSignalName(SignalDefinition sig_def) {
   switch (sig_def) {
+    case kLowNu:
+      return "#nu_{#mu} Tracker #rightarrow #mu^{-} [Low Nu placeholder]";
+    case kHighNu:
+      return "#nu_{#mu} Tracker #rightarrow #mu^{-} [High Nu placeholder]";
     case kOnePi:
       return "#nu_{#mu} Tracker #rightarrow #mu^{-} 1#pi^{+} X  (W < 1.4 GeV)";
     case kOnePiNoW:
@@ -253,6 +263,10 @@ std::string GetSignalName(SignalDefinition sig_def) {
 
 std::string GetSignalFileTag(SignalDefinition sig_def) {
   switch (sig_def) {
+    case kLowNu:
+      return "LowNu";
+    case kHighNu:
+      return "HighNu";
     case kOnePi:
       return "1Pi";
     case kOnePiNoW:

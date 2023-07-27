@@ -136,6 +136,81 @@ std::vector<Variable*> GetOnePiVariables(bool include_truth_vars = true) {
   return variables;
 }
 
+std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
+  const int nadphibins = 16;
+  const double adphimin = -CCNuPionIncConsts::PI;
+  const double adphimax = CCNuPionIncConsts::PI;
+
+  Var* pmu = new Var("pmu", "p_{#mu}", "MeV", CCPi::GetBinning("pmu"),
+                     &CVUniverse::GetPmu);
+
+  Var* thetamu_deg =
+      new Var("thetamu_deg", "#theta_{#mu}", "deg",
+              CCPi::GetBinning("thetamu_deg"), &CVUniverse::GetThetamuDeg);
+
+  Var* enu = new Var("enu", "E_{#nu}", "MeV", CCPi::GetBinning("enu"),
+                     &CVUniverse::GetEnu);
+
+  Var* q2 = new Var("q2", "Q^{2}", "MeV^{2}", CCPi::GetBinning("q2"),
+                    &CVUniverse::GetQ2);
+
+  Var* ptmu = new Var("ptmu", "p^{T}_{#mu}", "MeV", CCPi::GetBinning("ptmu"),
+                      &CVUniverse::GetPTmu);
+
+  Var* pzmu = new Var("pzmu", "p^{z}_{#mu}", "MeV", CCPi::GetBinning("pzmu"),
+                      &CVUniverse::GetPZmu);
+
+  // True Variables
+  bool is_true = true;
+  Var* pmu_true =
+      new Var("pmu_true", "p_{#mu} True", pmu->m_units,
+              pmu->m_hists.m_bins_array, &CVUniverse::GetPmuTrue, is_true);
+
+  Var* thetamu_deg_true =
+      new Var("thetamu_deg_true", "#theta_{#mu} True", thetamu_deg->m_units,
+              thetamu_deg->m_hists.m_bins_array, &CVUniverse::GetThetamuTrueDeg,
+              is_true);
+
+  Var* enu_true =
+      new Var("enu_true", "E_{#nu} True", enu->m_units,
+              enu->m_hists.m_bins_array, &CVUniverse::GetEnuTrue, is_true);
+
+  Var* q2_true =
+      new Var("q2_true", "Q^{2} True", q2->m_units, q2->m_hists.m_bins_array,
+              &CVUniverse::GetQ2True, is_true);
+
+  Var* ptmu_true =
+      new Var("ptmu_true", "pt_{#mu} True", "MeV", ptmu->m_hists.m_bins_array,
+              &CVUniverse::GetPTmuTrue, is_true);
+
+  Var* pzmu_true =
+      new Var("pzmu_true", "pz_{#mu} True", "MeV", pzmu->m_hists.m_bins_array,
+              &CVUniverse::GetPZmuTrue, is_true);
+
+  // Ehad variables
+  Var* ehad = new Var("ehad", "ehad", "MeV", CCPi::GetBinning("ehad"),
+                      &CVUniverse::GetEhad);
+  Var* ehad_true =
+      new Var("ehad_true", "ehad True", "MeV", ehad->m_hists.m_bins_array,
+              &CVUniverse::GetEhadTrue);
+  ehad_true->m_is_true = true;
+
+  std::vector<Var*> variables = {pmu,     thetamu_deg, enu,         q2,
+                                 ptmu,    pzmu,        ehad};
+
+  if (include_truth_vars) {
+    variables.push_back(pmu_true);
+    variables.push_back(thetamu_deg_true);
+    variables.push_back(enu_true);
+    variables.push_back(q2_true);
+    variables.push_back(ptmu_true);
+    variables.push_back(pzmu_true);
+    variables.push_back(ehad_true);
+  }
+
+  return variables;
+}
+
 }  // namespace make_xsec_mc_inputs
 
 std::vector<Variable*> GetAnalysisVariables(SignalDefinition signal_definition,
@@ -144,6 +219,12 @@ std::vector<Variable*> GetAnalysisVariables(SignalDefinition signal_definition,
   switch (signal_definition) {
     case kOnePi:
       variables = make_xsec_mc_inputs::GetOnePiVariables(include_truth_vars);
+      break;
+    case kLowNu:
+      variables = make_xsec_mc_inputs::GetLowNuHighNuVariables(include_truth_vars);
+      break;
+    case kHighNu:
+      variables = make_xsec_mc_inputs::GetLowNuHighNuVariables(include_truth_vars);
       break;
     default:
       std::cerr << "Variables for other SDs not yet implemented.\n";
