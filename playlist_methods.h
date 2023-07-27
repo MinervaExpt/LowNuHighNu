@@ -11,7 +11,7 @@
 std::string GetPlaylistFile(std::string plist, bool is_mc,
                             bool use_xrootd = true) {
   // const std::string processing_date = "20200713"; // new short tracking branches
-  const std::string processing_date = "20211115";  // new recoil energy branches
+  const std::string processing_date = "production_p3";  // new recoil energy branches
   //  const std::string processing_date = "test"; // For test with small MAD tuplas
   const std::string is_mc_str = is_mc ? "mc" : "data";
   std::transform(plist.begin(), plist.end(), plist.begin(), ::toupper);
@@ -28,8 +28,8 @@ std::string GetPlaylistFile(std::string plist, bool is_mc,
 }
 
 std::string GetTestPlaylist(bool is_mc) {
-  return is_mc ? "/minerva/app/users/bmesserl/MATAna/cc-ch-pip-ana/cache/ME1A_mc_p3_beta.txt" :
-                 "/minerva/app/users/bmesserl/MATAna/cc-ch-pip-ana/cache/ME1A_data_p3_beta.txt";
+  return is_mc ? "/minerva/app/users/finer/MATAna/LowNuHighNu/cache/ME1A_mc_test_playlist.txt" :
+                 "/minerva/app/users/finer/MATAna/LowNuHighNu/cache/ME1A_data_test_playlist.txt";
 }
 
 #endif  // playlist_methods_h
