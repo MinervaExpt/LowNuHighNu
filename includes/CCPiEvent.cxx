@@ -57,15 +57,15 @@ void ccpi_event::FillRecoEvent(const CCPiEvent& event,
   if (event.m_passes_cuts) {
     ccpi_event::FillSelected(event, variables);
   }
-  // Fill W Sideband
-  if (event.m_is_w_sideband) {
-    ccpi_event::FillWSideband(event, variables);
-  }
+  // // Fill W Sideband
+  // if (event.m_is_w_sideband) {
+  //   ccpi_event::FillWSideband(event, variables);
+  // }
 
-  // Fill W Sideband Study
-  if (event.m_passes_all_cuts_except_w && event.m_universe->ShortName() == "cv") {
-    ccpi_event::FillWSideband_Study(event, variables);
-  }
+  // // Fill W Sideband Study
+  // if (event.m_passes_all_cuts_except_w && event.m_universe->ShortName() == "cv") {
+  //   ccpi_event::FillWSideband_Study(event, variables);
+  // }
 
   // Fill Migration
   if (event.m_is_mc && event.m_is_signal && event.m_passes_cuts) {
