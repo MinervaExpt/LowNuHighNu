@@ -1,0 +1,15 @@
+NTargetsChecks.C     - number of targets, target utils, validations of your xsec normalization step
+fix_q2_plot.C        – n/a
+makeDataMCWarp.C     – n/a
+plotting_functions.h – header for plotting - specific to this dir
+runAnisoTest.C       - n/a
+runBackgrounds.C     - stacked plots of BGs -- need to define your stacked breakdown categories in includes/TruthCategories
+runCutTest.C         - ?
+runCutVariables.C    - N-1 cut studies, stacked vars, see above note about defining categories
+runEffPurTable.C     - important
+runMuonVars.C        - not specifically applicable, but good example of type of study that can be performed
+runRecoilEnergy.C    - not specifically applicable, but good example of type of study that can be performed
+runSidebands.C       - n/a
+runStudyTemplate.C   - event loop template --> Good starting point for understanding what all inputs are needed for a study
+runTestCoherent.C    - n/a
+runWeightCheck.C     - probably simple and no plots?
