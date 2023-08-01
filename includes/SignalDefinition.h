@@ -211,10 +211,10 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kLowNu) {
       ZVtxIsSignal(univ) && XYVtxIsSignal(univ) &&
       univ.GetInt("mc_incoming") == 14 &&
       univ.GetThetalepTrue() < CCNuPionIncConsts::kThetamuMaxCutVal &&
-      0. < univ.GetWexpTrue() && univ.GetWexpTrue() < GetWCutValue(sig_def) &&
+      //0. < univ.GetWexpTrue() && univ.GetWexpTrue() < GetWCutValue(sig_def) &&
       // && n_signal_pions > 0
       // && NOtherParticles(univ) == 0
-      particles.at("piplus_range") == 1 && Is1PiPlus(particles) &&
+      //particles.at("piplus_range") == 1 && Is1PiPlus(particles) &&
       CCNuPionIncConsts::kPmuMinCutVal < univ.GetPmuTrue() &&
       univ.GetPmuTrue() < CCNuPionIncConsts::kPmuMaxCutVal) {
   } else {
