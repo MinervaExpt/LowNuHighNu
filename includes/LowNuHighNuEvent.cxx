@@ -238,8 +238,7 @@ void lownuhighnu_event::FillEfficiencyDenominator(
     const LowNuHighNuEvent& event, const std::vector<Variable*>& variables) {
   for (auto var : variables) {
     if (!var->m_is_true) continue;
-    TruePionIdx idx = GetHighestEnergyTruePionIndex(event);
-    double fill_val = var->GetValue(*event.m_universe, idx);
+    double fill_val = var->GetValue(*event.m_universe);
     try {
       var->m_hists.m_effden.FillUniverse(*event.m_universe, fill_val,
                                          event.m_weight);
