@@ -142,7 +142,7 @@ double CVUniverse::GetThetamuDeg() const {
 
 // event-wide
 double CVUniverse::GetEhad() const {
-  return GetCalRecoilEnergy() + GetTrackRecoilEnergy();
+  return GetCalRecoilEnergy();// RDF delete this // + GetTrackRecoilEnergy();
 }
 double CVUniverse::GetEnu() const { return GetEmu() + GetEhad(); }
 
@@ -508,11 +508,13 @@ double CVUniverse::GetCalEpi(int iProng) const {
 
 // Untracked recoil energy
 double CVUniverse::GetCalRecoilEnergy() const {
-  const double ecal_nopi = GetCalRecoilEnergyNoPi_DefaultSpline();
-  if (ecal_nopi > 1000)
-    return GetCalRecoilEnergy_CCPiSpline();
-  else
-    return GetCalRecoilEnergyNoPi_Corrected(ecal_nopi);
+  // RDF delete this //
+  //const double ecal_nopi = GetCalRecoilEnergyNoPi_DefaultSpline();
+  //if (ecal_nopi > 1000)
+  //  return GetCalRecoilEnergy_CCPiSpline();
+  //else
+  //  return GetCalRecoilEnergyNoPi_Corrected(ecal_nopi);
+  return GetCalRecoilEnergy_CCIncSpline();
 }
 
 // Apply an additive, ad hoc correction to the CalRecoilENoPi
