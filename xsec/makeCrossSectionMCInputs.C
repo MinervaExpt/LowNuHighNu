@@ -5,7 +5,8 @@
 #include <ctime>
 
 #include "includes/Binning.h"
-#include "includes/CCPiEvent.h"
+//#include "includes/CCPiEvent.h"
+#include "includes/LowNuHighNuEvent.h"
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h"
 #include "includes/Cuts.h"
@@ -278,13 +279,15 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         //  universe->PrintArachneLink();
 
         // calls GetWeight
-        CCPiEvent event(is_mc, is_truth, util.m_signal_definition, universe);  
+        //CCPiEvent event(is_mc, is_truth, util.m_signal_definition, universe);  
+        LowNuHighNuEvent event(is_mc, is_truth, util.m_signal_definition, universe);  
 
         //===============
         // FILL TRUTH
         //===============
         if (type == kTruth) {
-          ccpi_event::FillTruthEvent(event, variables);
+          //ccpi_event::FillTruthEvent(event, variables);
+          lownuhighnu_event::FillTruthEvent(event, variables);
           continue;
         }
 
@@ -329,7 +332,8 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         //===============
         // FILL RECO
         //===============
-        ccpi_event::FillRecoEvent(event, variables);
+        //ccpi_event::FillRecoEvent(event, variables);
+        lownuhighnu_event::FillRecoEvent(event, variables);
       }  // universes
     }    // error bands
   }      // events
