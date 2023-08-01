@@ -24,6 +24,7 @@ void loadIncludes(bool verbose_cvu) {
   gSystem->CompileMacro("HadronVariable.cxx", "k");
   gSystem->CompileMacro("MacroUtil.cxx", "k");
   gSystem->CompileMacro("CCPiEvent.cxx", cvu_flags);
+  gSystem->CompileMacro("LowNuHighNuEvent.cxx", cvu_flags);
   gSystem->CompileMacro("WSidebandFitter.cxx", "k");
   gSystem->CompileMacro("CohDiffractiveSystematics.cxx", "k");
 }
