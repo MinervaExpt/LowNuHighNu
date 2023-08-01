@@ -55,7 +55,7 @@ void lownuhighnu_event::FillRecoEvent(const LowNuHighNuEvent& event,
                                const std::vector<Variable*>& variables) {
   // Fill selection -- total, signal-only, and bg-only
   if (event.m_passes_cuts) {
-    lownuhighnuevent::FillSelected(event, variables);
+    lownuhighnu_event::FillSelected(event, variables);
   }
   // // Fill W Sideband
   // if (event.m_is_w_sideband) {
@@ -116,7 +116,7 @@ void lownuhighnu_event::FillTruthEvent(const LowNuHighNuEvent& event,
 // ** sig + bg (true and reco vars, data and mc)
 // ** signal only (true vars, for eff num & closure)
 // ** bg only (reco and true vars)
-void lownuhighnuevent::FillSelected(const LowNuHighNuEvent& event,
+void lownuhighnu_event::FillSelected(const LowNuHighNuEvent& event,
                               const std::vector<Variable*>& variables) {
   for (auto var : variables) {
     // Sanity Checks

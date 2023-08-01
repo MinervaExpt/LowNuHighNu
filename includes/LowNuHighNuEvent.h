@@ -56,7 +56,7 @@ RecoPionIdx GetHighestEnergyPionCandidateIndex(const LowNuHighNuEvent&);
 SignalBackgroundType GetSignalBackgroundType(const LowNuHighNuEvent&);
 
 // Helper Fill Histo Functions
-namespace lownuhighnuevent {
+namespace lownuhighnu_event {
 // Xsec analysis fill functions
 void FillSelected(const LowNuHighNuEvent&, const std::vector<Variable*>&);
 void FillRecoEvent(const LowNuHighNuEvent&, const std::vector<Variable*>&);
