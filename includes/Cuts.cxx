@@ -326,6 +326,7 @@ bool WexpCut(const CVUniverse& univ, SignalDefinition signal_definition) {
     case kOnePiNoW:
     case kNPiNoW:
       return true;
+  case kInclusive:
     default:
       std::cout << "WexpCut SIGNAL DEF ERROR";
       return false;

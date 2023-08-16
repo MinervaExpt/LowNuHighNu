@@ -4,24 +4,27 @@
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h" // namespace CCNuPionIncConsts
 
-enum SignalDefinition { kLowNu, kHighNu, kOnePi, kOnePiNoW, kNPi, kNPiNoW, kNSignalDefTypes };
+enum SignalDefinition { kInclusive,kLowNu, kHighNu, kOnePi, kOnePiNoW, kNPi, kNPiNoW, kNSignalDefTypes };
 
 double GetWCutValue(SignalDefinition signal_definition) {
   switch (signal_definition) {
-    case kLowNu:
-      return 1000.; // placeholder
-    case kHighNu:
-      return 1100.; // placeholder
-    case kOnePi:
-      return 1400.;
-    case kNPi:
-      return 2000.;
-    case kOnePiNoW:
-    case kNPiNoW:
-      return 120000.;
-    default:
-      std::cout << "ERROR GetWCutValue" << std::endl;
-      return -1.;
+  case kLowNu:
+    return 1000.; // placeholder
+  case kHighNu:
+    return 1100.; // placeholder
+  case kOnePi:
+    return 1400.;
+  case kNPi:
+    return 2000.;
+  case kOnePiNoW:
+    
+  case kNPiNoW:
+    return 120000.;
+  case kInclusive:
+    return 10.;
+  default:
+    std::cout << "ERROR GetWCutValue" << std::endl;
+    return -1.;
   }
 }
 
@@ -202,8 +205,8 @@ bool XYVtxIsSignal(const CVUniverse& univ) {
 }
 // ROB -- DON'T BOTHER READING THIS STUFF
 
-// ---> MONEY FUNCTION  <----
-bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kLowNu) {
+// ---> IMPORTANT FUNCTION  <----
+bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
   int n_signal_pions = NSignalPions(univ);
   const std::map<std::string, int> particles = GetParticleTopology(
       univ.GetVec<int>("mc_FSPartPDG"), univ.GetVec<double>("mc_FSPartE"));
@@ -234,13 +237,14 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kLowNu) {
     case kNPi:
     case kNPiNoW:
       return true;
-
+  case kInclusive:
+    return true;
     default:
       std::cout << "IsSignal Error Unknown Signal Definition!" << std::endl;
       return false;
   }
 }
-// ---> MONEY FUNCTION  <----
+// ---> IMPORTANT FINAL FUNCTION  <----
 
 std::string GetSignalName(SignalDefinition sig_def) {
   switch (sig_def) {
@@ -256,7 +260,9 @@ std::string GetSignalName(SignalDefinition sig_def) {
       return "#nu_{#mu} Tracker #rightarrow #mu^{-} 1#pi^{+} X  (W < 1.8 GeV)";
     case kNPiNoW:
       return "#nu_{#mu} Tracker #rightarrow #mu^{-} 1#pi^{+} X";
-    default:
+  case kInclusive:
+    return "#nu_{#mu} Tracker #rightarrow #mu^{-} X";
+  default:
       return "UNKNOWN SIGNAL";
   }
 }
@@ -275,6 +281,8 @@ std::string GetSignalFileTag(SignalDefinition sig_def) {
       return "NPi";
     case kNPiNoW:
       return "NPiNoW";
+  case kInclusive:
+    return "Inclusive";
     default:
       return "UNKNOWN SIGNAL";
   }
