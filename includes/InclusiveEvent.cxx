@@ -69,11 +69,6 @@ void inclusive_event::FillRecoEvent(const InclusiveEvent& event,
 
   // Fill Migration
   if (event.m_is_mc && event.m_is_signal && event.m_passes_cuts) {
-    if (HasVar(variables, "tpi") && HasVar(variables, "tpi_true"))
-      FillMigration(event, variables, std::string("tpi"));
-    if (HasVar(variables, "thetapi_deg") &&
-        HasVar(variables, "thetapi_deg_true"))
-      FillMigration(event, variables, std::string("thetapi_deg"));
     if (HasVar(variables, "pmu") && HasVar(variables, "pmu_true"))
       FillMigration(event, variables, std::string("pmu"));
     if (HasVar(variables, "pzmu") && HasVar(variables, "pzmu_true"))
@@ -93,12 +88,6 @@ void inclusive_event::FillRecoEvent(const InclusiveEvent& event,
       FillMigration(event, variables, std::string("ehad"));
     if (HasVar(variables, "cosadtheta") && HasVar(variables, "cosadtheta_true"))
       FillMigration(event, variables, std::string("cosadtheta"));
-    if (HasVar(variables, "adphi") && HasVar(variables, "adphi_true"))
-      FillMigration(event, variables, std::string("adphi"));
-    if (HasVar(variables, "pimuAngle") && HasVar(variables, "pimuAngle_true"))
-      FillMigration(event, variables, std::string("pimuAngle"));
-    if (HasVar(variables, "PT") && HasVar(variables, "PT_true"))
-      FillMigration(event, variables, std::string("PT"));
   }
 }
 
@@ -322,19 +311,14 @@ std::pair<EventCount, EventCount> inclusive_event::FillCounters(
   EventCount signal = s;
   EventCount bg = b;
 
-  endpoint::MichelMap endpoint_michels;
-  trackless::MichelEvent<CVUniverse> vtx_michels;
-  bool pass = true;
+   bool pass = true;
   for (auto i_cut : kCutsVector) {
     if (event.m_is_truth != IsPrecut(i_cut)) continue;
 
     bool passes_this_cut = true;
     std::tie(passes_this_cut, endpoint_michels, vtx_michels) =
         PassesCut(*event.m_universe, i_cut, event.m_is_mc,
-                  event.m_signal_definition, endpoint_michels, vtx_michels);
-
-    event.m_universe->SetPionCandidates(
-        GetHadIdxsFromMichels(endpoint_michels, vtx_michels));
+                  event.m_signal_definition);
 
     pass = pass && passes_this_cut;
 
@@ -361,13 +345,7 @@ void inclusive_event::FillCutVars(InclusiveEvent& event,
 
   if (universe->ShortName() != "cv") return;
 
-  endpoint::MichelMap endpoint_michels;
-  endpoint_michels.clear();
-
-  trackless::MichelEvent<CVUniverse> vtx_michels;
-  // vtx_michels.clear();
-
-  // loop cuts
+   // loop cuts
   bool pass = true;
   for (unsigned int i = 0; i < kCutsVector.size(); ++i) {
     ECuts cut = (ECuts)kCutsVector[i];
@@ -377,89 +355,17 @@ void inclusive_event::FillCutVars(InclusiveEvent& event,
     } catch (const std::out_of_range& e) {
       next_cut = (ECuts)(-1);
     }
-    event.m_reco_pion_candidate_idxs.clear();
-
+ 
     bool passes_this_cut = true;
-    std::tie(passes_this_cut, endpoint_michels, vtx_michels) =
-        PassesCut(*universe, cut, is_mc, sd, endpoint_michels, vtx_michels);
+    std::tie(passes_this_cut) =
+        PassesCut(*universe, cut, is_mc, sd);
 
     pass = pass && passes_this_cut;
     if (!pass) continue;
 
-    // fill container of pion candidate idxs
-    for (auto m : endpoint_michels)
-      event.m_reco_pion_candidate_idxs.push_back(m.second.had_idx);
-
-    // Get the highest energy pion candidate
-    // This quantity is only well-defined after you've made the
-    // AtLeastOneMichel cut. This cut identifies our pion candidates and their
-    // associated idxs.
-    int pion_idx = -200;
-    if (cut == kAtLeastOneMichel || cut == kLLR || cut == kNode ||
-        cut == kIsoProngs || cut == kPionMult) {
-      pion_idx = GetHighestEnergyPionCandidateIndex(event);
-      event.m_highest_energy_pion_idx = pion_idx;
-    }
-
     // Fill Wexp for each cut
     if (HasVar(variables, Form("wexp%d", i)))
       FillStackedHists(event, GetVar(variables, Form("wexp%d", i)));
-
-    // N Hadron Tracks
-    if (next_cut == kAtLeastOnePionCandidateTrack &&
-        HasVar(variables, "n_had_tracks")) {
-      int fill_val = universe->GetInt("MasterAnaDev_hadron_number");
-      FillStackedHists(event, GetVar(variables, "n_had_tracks"), fill_val);
-    }
-    // Wexp
-    if (next_cut == kWexp && HasVar(variables, "wexp_cut")) {
-      FillStackedHists(event, GetVar(variables, "wexp_cut"));
-    }
-    // N michels
-    if (next_cut == kAtLeastOneMichel && HasVar(variables, "michel_count")) {
-      double fill_val = endpoint::GetQualityMichels(*universe).size();
-      FillStackedHists(event, GetVar(variables, "michel_count"), fill_val);
-      // if (fill_val == 0 && event.m_is_signal)
-      //  universe->PrintArachneLink();
-    }
-    // New Tracking Variables -- check before LLR cut
-    if (next_cut == kLLR) {
-      if (HasVar(variables, "n_short_tracks"))
-        FillStackedHists(event, GetVar(variables, "n_short_tracks"));
-      if (HasVar(variables, "n_long_tracks"))
-        FillStackedHists(event, GetVar(variables, "n_long_tracks"));
-      if (HasVar(variables, "fit_vtx_x"))
-        FillStackedHists(event, GetVar(variables, "fit_vtx_x"));
-      if (HasVar(variables, "fit_vtx_y"))
-        FillStackedHists(event, GetVar(variables, "fit_vtx_y"));
-      if (HasVar(variables, "fit_vtx_z"))
-        FillStackedHists(event, GetVar(variables, "fit_vtx_z"));
-      if (HasVar(variables, "track_reco_meth"))
-        FillStackedHists(event, GetVar(variables, "track_reco_meth"));
-      if (HasVar(variables, "n_nodes"))
-        FillStackedHists(event, GetVar(variables, "n_nodes"));
-    }
-    // LLR
-    if (next_cut == kLLR && HasVar(variables, "llr")) {
-      FillStackedHists(event, GetVar(variables, "llr"));
-    }
-    // Node
-    if (next_cut == kNode && HasVar(variables, "enode01")) {
-      FillStackedHists(event, GetVar(variables, "enode01"));
-      FillStackedHists(event, GetVar(variables, "enode2"));
-      FillStackedHists(event, GetVar(variables, "enode3"));
-      FillStackedHists(event, GetVar(variables, "enode4"));
-      FillStackedHists(event, GetVar(variables, "enode5"));
-    }
-    // N Isolated Prongs
-    if (next_cut == kIsoProngs && HasVar(variables, "n_iso_prongs")) {
-      FillStackedHists(event, GetVar(variables, "n_iso_prongs"));
-    }
-    // Pion Multiplicity
-    if (next_cut == kPionMult && HasVar(variables, "n_pions")) {
-      int fill_val = endpoint_michels.size();
-      FillStackedHists(event, GetVar(variables, "n_pions"), fill_val);
-    }
 
     if (i == kCutsVector.size() - 1) {
       if (HasVar(variables, "wexp"))
@@ -470,10 +376,6 @@ void inclusive_event::FillCutVars(InclusiveEvent& event,
         FillStackedHists(event, GetVar(variables, "ptmu"));
       if (HasVar(variables, "pzmu"))
         FillStackedHists(event, GetVar(variables, "pzmu"));
-      if (HasVar(variables, "tpi"))
-        FillStackedHists(event, GetVar(variables, "tpi"));
-      if (HasVar(variables, "tpi_mbr"))
-        FillStackedHists(event, GetVar(variables, "tpi_mbr"));
       if (HasVar(variables, "enu"))
         FillStackedHists(event, GetVar(variables, "enu"));
       if (HasVar(variables, "enu"))
@@ -482,18 +384,8 @@ void inclusive_event::FillCutVars(InclusiveEvent& event,
         FillStackedHists(event, GetVar(variables, "q2"));
       if (HasVar(variables, "thetamu_deg"))
         FillStackedHists(event, GetVar(variables, "thetamu_deg"));
-      if (HasVar(variables, "thetapi_deg"))
-        FillStackedHists(event, GetVar(variables, "thetapi_deg"));
       if (HasVar(variables, "ehad"))
         FillStackedHists(event, GetVar(variables, "ehad"));
-      if (HasVar(variables, "cosadtheta"))
-        FillStackedHists(event, GetVar(variables, "cosadtheta"));
-      if (HasVar(variables, "adphi"))
-        FillStackedHists(event, GetVar(variables, "adphi"));
-      if (HasVar(variables, "pimuAngle"))
-        FillStackedHists(event, GetVar(variables, "pimuAngle"));
-      if (HasVar(variables, "PT"))
-        FillStackedHists(event, GetVar(variables, "PT"));
     }
   }  // end cuts loop
 }
@@ -507,51 +399,6 @@ void inclusive_event::FillStackedHists(const InclusiveEvent& event, Variable* v,
                                   double fill_val) {
   if (!event.m_is_mc && v->m_is_true) return;
 
-  const RecoPionIdx pion_idx = event.m_highest_energy_pion_idx;
-  if (fill_val == -999.) fill_val = v->GetValue(*event.m_universe, pion_idx);
-
-  if (!event.m_is_mc) {
-    v->m_hists.m_selection_data->Fill(fill_val);
-    return;
-  }
-
-  v->GetStackComponentHist(GetFSParticleType(*event.m_universe))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(GetChannelType(*event.m_universe))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(GetHadronType(*event.m_universe, pion_idx))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(GetNPionsType(*event.m_universe))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(GetNPi0Type(*event.m_universe))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(GetNPipType(*event.m_universe))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(
-       GetSignalBackgroundType(*event.m_universe, event.m_signal_definition))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(
-       GetWSidebandType(*event.m_universe, event.m_signal_definition))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(
-       GetMesonBackgroundType(*event.m_universe, event.m_signal_definition))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(
-       GetWBackgroundType(*event.m_universe, event.m_signal_definition))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(
-       GetTruthWType(*event.m_universe, event.m_signal_definition))
-      ->Fill(fill_val, event.m_weight);
 
   v->GetStackComponentHist(
        GetCoherentType(*event.m_universe, event.m_signal_definition))

@@ -21,7 +21,7 @@ class CVUniverse;
 //==============================================================================
 // Typedefs, enums, colors, constants
 //==============================================================================
-struct PassesCutsInfo {
+struct PassesPionCutsInfo {
   bool passes_all_cuts;
   bool is_w_sideband;
   bool passes_all_cuts_except_w;
@@ -30,6 +30,16 @@ struct PassesCutsInfo {
     return {passes_all_cuts, is_w_sideband, passes_all_cuts_except_w, pion_candidate_idxs};
   };
 };
+
+struct PassesInclCutsInfo {
+  bool passes_incl_cuts;
+  bool is_dis_signal;
+  bool is_lowwhighq2_sideband;
+  bool is_lowq2highw_sideband;
+    return {passes_incl_cuts, is_dis_signal, is_lowwhighq2_sideband, is_lowq2highw_sideband};
+  };
+};
+
 
 enum ECuts {
   kNoCuts,
@@ -74,7 +84,7 @@ typedef std::map<std::string, std::vector<CVUniverse*>> UniverseMap;
 
 //==============================================================================
 
-namespace CCNuPionIncConsts {
+namespace Constants {
 const int N_LAT_UNIVERSES = 60;
 const double CHARGED_PION_MASS = 139.569;
 const double CHARGED_KAON_MASS = 493.677;
