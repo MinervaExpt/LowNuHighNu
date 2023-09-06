@@ -79,7 +79,7 @@ std::vector<int> GetHadIdxsFromMichels(
 // NEW! Return passes_all_cuts, is_w_sideband, and pion_candidate_indices
 // Passes All Cuts v3 (latest and greatest)
 // return tuple {passes_all_cuts, is_w_sideband, pion_candidate_idxs}
-PassesCutsInfo PassesCuts(CVUniverse& universe, const bool is_mc,
+PassesCutsInfo PassesPionCuts(CVUniverse& universe, const bool is_mc,
                           const SignalDefinition signal_definition,
                           std::vector<ECuts> cuts) {
   //============================================================================
@@ -125,9 +125,22 @@ PassesCutsInfo PassesCuts(CVUniverse& universe, const bool is_mc,
     passes_all_cuts =
         passes_all_cuts_except_w && WexpCut(universe, signal_definition);
 
-  return PassesCutsInfo{passes_all_cuts, is_w_sideband,
+  return PassesCutsPionInfo{passes_all_cuts, is_w_sideband,
                         passes_all_cuts_except_w, pion_candidate_idxs};
 }
+
+
+PassesInclCutsInfo PassesInclCuts(CVUniverse& universe, const bool is_mc,
+			      const SignalDefinition signal_definition,
+			      std::vector<ECuts> cuts) {
+  //============================================================================
+  bool passes_incl_cuts = true;
+  bool is_w_sideband = passes_all_cuts_except_w &&
+    (universe.GetWexp() >= sidebands::kSidebandCutVal);
+  return {passes_incl_cuts, is_dis_signal, is_lowwhighq2_sideband, is_lowq2highw_sideband};
+
+}
+
 
 //==============================================================================
 // Passes INDIVIDUAL Cut
@@ -332,6 +345,8 @@ bool WexpCut(const CVUniverse& univ, SignalDefinition signal_definition) {
       return false;
   }
 }
+
+
 
 // cut on max number of iso prongs
 // PrimaryBlobProngTool::makeShowerBlobProngs
