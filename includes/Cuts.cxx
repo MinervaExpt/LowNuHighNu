@@ -79,7 +79,7 @@ std::vector<int> GetHadIdxsFromMichels(
 // NEW! Return passes_all_cuts, is_w_sideband, and pion_candidate_indices
 // Passes All Cuts v3 (latest and greatest)
 // return tuple {passes_all_cuts, is_w_sideband, pion_candidate_idxs}
-PassesCutsInfo PassesPionCuts(CVUniverse& universe, const bool is_mc,
+PassesPionCutsInfo PassesPionCuts(CVUniverse& universe, const bool is_mc,
                           const SignalDefinition signal_definition,
                           std::vector<ECuts> cuts) {
   //============================================================================
@@ -130,7 +130,8 @@ PassesCutsInfo PassesPionCuts(CVUniverse& universe, const bool is_mc,
 }
 
 
-PassesInclCutsInfo PassesInclCuts(CVUniverse& universe, const bool is_mc,
+//PassesInclCutsInfo PassesInclCuts(CVUniverse& universe, const bool is_mc,
+PassesCutsInfo PassesInclCuts(CVUniverse& universe, const bool is_mc,
 			      const SignalDefinition signal_definition,
 			      std::vector<ECuts> cuts) {
   //============================================================================

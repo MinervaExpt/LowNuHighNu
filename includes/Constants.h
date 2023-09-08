@@ -31,7 +31,8 @@ struct PassesPionCutsInfo {
   };
 };
 
-struct PassesInclCutsInfo {
+//struct PassesInclCutsInfo {
+struct PassesCutsInfo {
   bool passes_incl_cuts;
   bool is_dis_signal;
   bool is_lowwhighq2_sideband;
