@@ -15,7 +15,6 @@ class Variable;
 // * is signal
 // * event weight
 // * is mc, is truth
-// * vector of candidate pion indices
 // * signal definition currently being used
 // * whether and what kind of w sideband it is
 // And it owns a pointer to the corresponding CVUniverse.
@@ -36,8 +35,6 @@ struct LowNuHighNuEvent {
   const bool m_is_truth;
   const SignalDefinition m_signal_definition;
   CVUniverse* m_universe;
-  std::vector<RecoPionIdx>
-      m_reco_pion_candidate_idxs;  // initialized empty, filled by PassesCuts
   bool m_is_signal;
   double m_weight;
   WSidebandType m_w_type;
@@ -46,13 +43,11 @@ struct LowNuHighNuEvent {
   bool m_passes_cuts;
   bool m_is_w_sideband;
   bool m_passes_all_cuts_except_w;
-  RecoPionIdx m_highest_energy_pion_idx;  // GetHighestEnergyPionCandidateIndex
 };
 
 // Helper Functions
 // bool IsWSideband(LowNuHighNuEvent&);
 PassesCutsInfo PassesCuts(const LowNuHighNuEvent&);
-RecoPionIdx GetHighestEnergyPionCandidateIndex(const LowNuHighNuEvent&);
 SignalBackgroundType GetSignalBackgroundType(const LowNuHighNuEvent&);
 
 // Helper Fill Histo Functions

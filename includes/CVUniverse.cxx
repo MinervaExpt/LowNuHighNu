@@ -43,7 +43,6 @@ void CVUniverse::PrintArachneLink() const {
 double CVUniverse::GetDummyVar() const { return -999.; }
 double CVUniverse::GetDummyHadVar(const int x) const { return -999.; }
 
-
 //==============================================================================
 // Analysis Variables
 //==============================================================================
@@ -64,7 +63,7 @@ double CVUniverse::GetThetamuDeg() const {
 
 // event-wide
 double CVUniverse::GetEhad() const {
-  return GetCalRecoilEnergy();// RDF delete this // + GetTrackRecoilEnergy();
+  return GetCalRecoilEnergy();
 }
 double CVUniverse::GetEnu() const { return GetEmu() + GetEhad(); }
 
@@ -78,10 +77,23 @@ double CVUniverse::Getq0() const { return Calcq0(GetEnu(), GetEmu()); }
 
 double CVUniverse::Getq3() const { return Calcq3(GetQ2(), GetEnu(), GetEmu()); }
 
+<<<<<<< HEAD
 
 //==============================================================================
 // Truth
 //==============================================================================
+=======
+//==============================================================================
+// Truth
+//==============================================================================
+// Need a function that gets truth tracked energy, total E for pions, just KE
+// for protons.
+double CVUniverse::GetAllTrackEnergyTrue() const {
+  double etracks = 0;
+  // std::cout << "\n";
+  return etracks;
+}
+>>>>>>> rob-dev
 
 double CVUniverse::GetEmuTrue() const { return GetElepTrue(); }
 
@@ -90,7 +102,6 @@ double CVUniverse::GetIntVtxXTrue() const { return GetVecElem("mc_vtx", 0); }
 double CVUniverse::GetIntVtxYTrue() const { return GetVecElem("mc_vtx", 1); }
 
 double CVUniverse::GetIntVtxZTrue() const { return GetVecElem("mc_vtx", 2); }
-
 
 double CVUniverse::GetPTmuTrue() const {
   return GetPlepTrue() * sin(GetThetalepTrue());
@@ -126,10 +137,45 @@ double CVUniverse::GetWexpTrue() const {
 //==============================
 // Ehad (GetErecoil) Variables
 //==============================
-
+// Untracked recoil energy
 double CVUniverse::GetCalRecoilEnergy() const {
   return GetCalRecoilEnergy_CCIncSpline(); //AEN This really only works for the tracker now 
 }
+
+// Total recoil with CCPi spline correction.
+// Spline measured from: CC, 1pi+, 1mu, NBaryons,
+// True W exp < 1.4 GeV, thmu_true < 20 deg, 35 < tpi < 350 MeV, Minos match
+// RecoilUtils->calcRecoilEFromClusters(event, muonProng,
+// "NukeCCPion_TwoTrack_Nu_Tracker");
+double CVUniverse::GetCalRecoilEnergy_CCPiSpline() const {
+  return GetDouble("MasterAnaDev_hadron_recoil_two_track");
+}
+
+// RecoilUtils->calcRecoilEFromClusters(event, muonProng, "Default" );
+double CVUniverse::GetCalRecoilEnergy_DefaultSpline() const {
+  return GetDouble("MasterAnaDev_hadron_recoil_default");
+}
+
+// RDF: This is a placeholder; required because the Response systematics expect
+// a function with this name to exist
+// This is what the response universe calls our tracked recoil energy
+double CVUniverse::GetNonCalRecoilEnergy() const {
+  return 0.; 
+}
+
+//==============================
+// ehad old variables
+//==============================
+
+// Ehad CCInclusive Spline Variables
+// Ehad ccinclusive splines -- doesn't account for pion
+double CVUniverse::GetCalRecoilEnergy_CCIncSpline() const {
+  return GetDouble("MasterAnaDev_hadron_recoil_CCInc");
+}
+
+//==============================
+// ehad truth variables
+//==============================
 
 double CVUniverse::GetEhadTrue() const { return GetEnuTrue() - GetElepTrue(); }
 
@@ -177,7 +223,6 @@ bool CVUniverse::IsInPlastic() const {
   return true;
 }
 
-
 double CVUniverse::GetFitVtxX() const {
   return GetVecElem("MasterAnaDev_vtx", 0);
 }  // cm?
@@ -190,10 +235,12 @@ double CVUniverse::GetFitVtxZ() const {
   return GetVecElem("MasterAnaDev_vtx", 2);
 }  // cm?
 
-
 double CVUniverse::GetWexpFResidual() const {
   return GetWexp() / GetWexpTrue() - 1.;
   // return GetWexp()/GetWgenie() - 1.;
+
+int CVUniverse::GetNhadrons() const {
+  return GetInt("MasterAnaDev_hadron_number");
 }
 
 //==============================================================================
@@ -218,11 +265,10 @@ double CVUniverse::GetWeight() const {
   double wgt_rpa = 1., wgt_lowq2 = 1.;
   double wgt_genie = 1., wgt_mueff = 1.;
   double wgt_anisodd = 1.;
-  double wgt_michel = 1.;
   double wgt_diffractive = 1.;
   double wgt_mk = 1.;
   double wgt_target = 1.;
-  double wgt_fsi = 1., wgt_coh = 1., wgt_geant = 1.,
+  double wgt_fsi = 1., wgt_geant = 1.,
          wgt_sbfit = 1. /* This weight depends of the sidebands, Will we applay
                            this weight?*/
       ;
@@ -255,12 +301,13 @@ double CVUniverse::GetWeight() const {
 
   // New Weights added taking as reference Aaron's weights
 
+  wgt_fsi = GetFSIWeight(0);
 
   wgt_geant = GetGeantHadronWeight();
 
   return wgt_genie * wgt_flux * wgt_2p2h * wgt_rpa * wgt_lowq2 * wgt_mueff *
-         wgt_anisodd * wgt_michel * wgt_diffractive * wgt_mk * wgt_target *
-         wgt_fsi * wgt_coh * wgt_geant * wgt_sbfit;
+         wgt_anisodd * wgt_diffractive * wgt_mk * wgt_target *
+         wgt_fsi * wgt_geant * wgt_sbfit;
 }
 
 //==============================================================================

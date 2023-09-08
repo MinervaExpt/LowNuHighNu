@@ -8,9 +8,10 @@ enum HadronType {
   kKaon, kSigma, kMuon,*/ kOther, kNHadronTypes
 };
 
-HadronType GetHadronType(const CVUniverse& universe, RecoPionIdx hadron_id) {
-  int pdg = universe.GetVecElem("MasterAnaDev_hadron_tm_PDGCode", hadron_id);
-  int destruct_code = universe.GetVecElem("MasterAnaDev_hadron_tm_destructCode", hadron_id);
+//HadronType GetHadronType(const CVUniverse& universe, RecoPionIdx hadron_id) {
+HadronType GetHadronType(const CVUniverse& universe) {
+  int pdg = universe.GetVecElem("MasterAnaDev_hadron_tm_PDGCode", 1);
+  int destruct_code = universe.GetVecElem("MasterAnaDev_hadron_tm_destructCode", 1);
   //std::cout << hadron_id << " " << pdg << " " <<  destruct_code << std::endl;
     //double frac = universe.GetVecElem("MasterAnaDev_hadron_tm_fraction", hadron_id);
     //if (frac < 0.5) 
