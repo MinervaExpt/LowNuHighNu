@@ -36,6 +36,7 @@ struct PassesInclCutsInfo {
   bool is_dis_signal;
   bool is_lowwhighq2_sideband;
   bool is_lowq2highw_sideband;
+  std::tuple<bool,bool,bool,bool> GetAll(){
     return {passes_incl_cuts, is_dis_signal, is_lowwhighq2_sideband, is_lowq2highw_sideband};
   };
 };
@@ -83,8 +84,20 @@ typedef PlotUtils::Hist2DWrapper<CVUniverse> CVH2DW;
 typedef std::map<std::string, std::vector<CVUniverse*>> UniverseMap;
 
 //==============================================================================
-
 namespace Constants {
+
+  const double CHARGED_PION_MASS = 139.569;
+  const double CHARGED_KAON_MASS = 493.677;
+  const double MUON_MASS = 105.659;
+  const double PROTON_MASS = 938.3;
+  const double PI = 3.14159265358979323846;
+
+
+}
+
+
+
+namespace CCNuPionIncConsts {
 const int N_LAT_UNIVERSES = 60;
 const double CHARGED_PION_MASS = 139.569;
 const double CHARGED_KAON_MASS = 493.677;
