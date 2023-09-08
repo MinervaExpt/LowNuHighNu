@@ -15,7 +15,6 @@ void loadIncludes(bool verbose_cvu) {
   oldpath += " -I";
   oldpath += path;
   gSystem->SetIncludePath(oldpath);
-  gSystem->CompileMacro("MichelTrackless.cxx", "k");
   gSystem->CompileMacro("CVUniverse.cxx", cvu_flags);
   gSystem->CompileMacro("Cuts.cxx", cvu_flags);
   gSystem->CompileMacro("StackedHistogram.cxx", "k");
@@ -23,10 +22,7 @@ void loadIncludes(bool verbose_cvu) {
   gSystem->CompileMacro("Variable.cxx", "k");
   gSystem->CompileMacro("HadronVariable.cxx", "k");
   gSystem->CompileMacro("MacroUtil.cxx", "k");
-  gSystem->CompileMacro("CCPiEvent.cxx", cvu_flags);
   gSystem->CompileMacro("LowNuHighNuEvent.cxx", cvu_flags);
-  gSystem->CompileMacro("WSidebandFitter.cxx", "k");
-  gSystem->CompileMacro("CohDiffractiveSystematics.cxx", "k");
 }
 
 void loadLibs(bool verbose_cvu = true) {

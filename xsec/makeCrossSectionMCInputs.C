@@ -26,116 +26,6 @@ class HadronVariable;
 //==============================================================================
 namespace make_xsec_mc_inputs {
 typedef Variable Var;
-typedef HadronVariable HVar;
-
-std::vector<Variable*> GetOnePiVariables(bool include_truth_vars = true) {
-  const int nadphibins = 16;
-  const double adphimin = -CCNuPionIncConsts::PI;
-  const double adphimax = CCNuPionIncConsts::PI;
-
-  HVar* tpi = new HVar("tpi", "T_{#pi}", "MeV", CCPi::GetBinning("tpi"),
-                       &CVUniverse::GetTpi);
-
-  HVar* tpi_mbr = new HVar("tpi_mbr", "T_{#pi} (MBR)", tpi->m_units,
-                           CCPi::GetBinning("tpi"), &CVUniverse::GetTpiMBR);
-
-  HVar* thetapi_deg =
-      new HVar("thetapi_deg", "#theta_{#pi}", "deg",
-               CCPi::GetBinning("thetapi_deg"), &CVUniverse::GetThetapiDeg);
-
-  Var* pmu = new Var("pmu", "p_{#mu}", "MeV", CCPi::GetBinning("pmu"),
-                     &CVUniverse::GetPmu);
-
-  Var* thetamu_deg =
-      new Var("thetamu_deg", "#theta_{#mu}", "deg",
-              CCPi::GetBinning("thetamu_deg"), &CVUniverse::GetThetamuDeg);
-
-  Var* enu = new Var("enu", "E_{#nu}", "MeV", CCPi::GetBinning("enu"),
-                     &CVUniverse::GetEnu);
-
-  Var* q2 = new Var("q2", "Q^{2}", "MeV^{2}", CCPi::GetBinning("q2"),
-                    &CVUniverse::GetQ2);
-
-  Var* wexp = new Var("wexp", "W_{exp}", "MeV", CCPi::GetBinning("wexp"),
-                      &CVUniverse::GetWexp);
-
-  Var* wexp_fit =
-      new Var(sidebands::kFitVarString, wexp->m_hists.m_xlabel, wexp->m_units,
-              CCPi::GetBinning("wexp_fit"), &CVUniverse::GetWexp);
-
-  Var* ptmu = new Var("ptmu", "p^{T}_{#mu}", "MeV", CCPi::GetBinning("ptmu"),
-                      &CVUniverse::GetPTmu);
-
-  Var* pzmu = new Var("pzmu", "p^{z}_{#mu}", "MeV", CCPi::GetBinning("pzmu"),
-                      &CVUniverse::GetPZmu);
-
-  // True Variables
-  bool is_true = true;
-  HVar* tpi_true =
-      new HVar("tpi_true", "T_{#pi} True", tpi->m_units,
-               tpi->m_hists.m_bins_array, &CVUniverse::GetTpiTrue, is_true);
-
-  HVar* thetapi_deg_true =
-      new HVar("thetapi_deg_true", "#theta_{#pi} True", thetapi_deg->m_units,
-               thetapi_deg->m_hists.m_bins_array,
-               &CVUniverse::GetThetapiTrueDeg, is_true);
-
-  Var* pmu_true =
-      new Var("pmu_true", "p_{#mu} True", pmu->m_units,
-              pmu->m_hists.m_bins_array, &CVUniverse::GetPmuTrue, is_true);
-
-  Var* thetamu_deg_true =
-      new Var("thetamu_deg_true", "#theta_{#mu} True", thetamu_deg->m_units,
-              thetamu_deg->m_hists.m_bins_array, &CVUniverse::GetThetamuTrueDeg,
-              is_true);
-
-  Var* enu_true =
-      new Var("enu_true", "E_{#nu} True", enu->m_units,
-              enu->m_hists.m_bins_array, &CVUniverse::GetEnuTrue, is_true);
-
-  Var* q2_true =
-      new Var("q2_true", "Q^{2} True", q2->m_units, q2->m_hists.m_bins_array,
-              &CVUniverse::GetQ2True, is_true);
-
-  Var* wexp_true =
-      new Var("wexp_true", "W_{exp} True", wexp->m_units,
-              wexp->m_hists.m_bins_array, &CVUniverse::GetWexpTrue, is_true);
-
-  Var* ptmu_true =
-      new Var("ptmu_true", "pt_{#mu} True", "MeV", ptmu->m_hists.m_bins_array,
-              &CVUniverse::GetPTmuTrue, is_true);
-
-  Var* pzmu_true =
-      new Var("pzmu_true", "pz_{#mu} True", "MeV", pzmu->m_hists.m_bins_array,
-              &CVUniverse::GetPZmuTrue, is_true);
-
-  // Ehad variables
-  Var* ehad = new Var("ehad", "ehad", "MeV", CCPi::GetBinning("ehad"),
-                      &CVUniverse::GetEhad);
-  Var* ehad_true =
-      new Var("ehad_true", "ehad True", "MeV", ehad->m_hists.m_bins_array,
-              &CVUniverse::GetEhadTrue);
-  ehad_true->m_is_true = true;
-
-  std::vector<Var*> variables = {tpi,         tpi_mbr, thetapi_deg, pmu,
-                                 thetamu_deg, enu,     q2,          wexp,
-                                 wexp_fit,    ptmu,    pzmu,        ehad};
-
-  if (include_truth_vars) {
-    variables.push_back(tpi_true);
-    variables.push_back(thetapi_deg_true);
-    variables.push_back(pmu_true);
-    variables.push_back(thetamu_deg_true);
-    variables.push_back(enu_true);
-    variables.push_back(q2_true);
-    variables.push_back(wexp_true);
-    variables.push_back(ptmu_true);
-    variables.push_back(pzmu_true);
-    variables.push_back(ehad_true);
-  }
-
-  return variables;
-}
 
 std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
   const int nadphibins = 16;
@@ -218,9 +108,6 @@ std::vector<Variable*> GetAnalysisVariables(SignalDefinition signal_definition,
                                             bool include_truth_vars = false) {
   std::vector<Variable*> variables;
   switch (signal_definition) {
-    case kOnePi:
-      variables = make_xsec_mc_inputs::GetOnePiVariables(include_truth_vars);
-      break;
     case kLowNu:
       variables = make_xsec_mc_inputs::GetLowNuHighNuVariables(include_truth_vars);
       break;
@@ -279,14 +166,12 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         //  universe->PrintArachneLink();
 
         // calls GetWeight
-        //CCPiEvent event(is_mc, is_truth, util.m_signal_definition, universe);  
         LowNuHighNuEvent event(is_mc, is_truth, util.m_signal_definition, universe);  
 
         //===============
         // FILL TRUTH
         //===============
         if (type == kTruth) {
-          //ccpi_event::FillTruthEvent(event, variables);
           lownuhighnu_event::FillTruthEvent(event, variables);
           continue;
         }
@@ -305,26 +190,15 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
 
           // Already checked a vertical-only universe
           if (checked_cv) {
-            std::tie(event.m_passes_cuts, event.m_is_w_sideband,
-                     event.m_passes_all_cuts_except_w,
-                     event.m_reco_pion_candidate_idxs) = cv_cuts_info.GetAll();
-            event.m_highest_energy_pion_idx =
-                GetHighestEnergyPionCandidateIndex(event);
+            event.m_passes_cuts = cv_cuts_info.GetAll();
           }
           // Universe shifts something laterally
         } else {
           PassesCutsInfo cuts_info = PassesCuts(event);
-          std::tie(event.m_passes_cuts, event.m_is_w_sideband,
-                   event.m_passes_all_cuts_except_w,
-                   event.m_reco_pion_candidate_idxs) = cuts_info.GetAll();
-          event.m_highest_energy_pion_idx =
-              GetHighestEnergyPionCandidateIndex(event);
+          event.m_passes_cuts = cuts_info.GetAll();
         }
 
-        // The universe needs to know its pion candidates in order to calculate
-        // recoil/hadronic energy.
-        universe->SetPionCandidates(event.m_reco_pion_candidate_idxs);
-
+        // RDF: Still need this in its current location? Or can be moved upstream?
         // Need to re-call this because the node cut efficiency systematic
         // needs a pion candidate to calculate its weight.
         event.m_weight = universe->GetWeight();
@@ -332,7 +206,6 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         //===============
         // FILL RECO
         //===============
-        //ccpi_event::FillRecoEvent(event, variables);
         lownuhighnu_event::FillRecoEvent(event, variables);
       }  // universes
     }    // error bands

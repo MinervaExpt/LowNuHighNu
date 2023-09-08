@@ -8,23 +8,7 @@ const std::vector<ECuts> kCutsVector = {kNoCuts,
                                         kPrecuts,
                                         kVtx,
                                         kMinosMuon,
-                                        //kAtLeastOnePionCandidateTrack,
-                                        //kAtLeastOneMichel,
-                                        //kLLR,
-                                        //kNode,
-                                        //kWexp,
-                                        //kIsoProngs,
-                                        //kPionMult,
                                         kPmu};
-
-// Remove W cut from cuts vector
-const std::vector<ECuts> GetWSidebandCuts() {
-  std::vector<ECuts> w_sideband_cuts = kCutsVector;
-  w_sideband_cuts.erase(
-      std::remove(w_sideband_cuts.begin(), w_sideband_cuts.end(), kWexp),
-      w_sideband_cuts.end());
-  return w_sideband_cuts;
-}
 
 // Gaudi tool cuts - only work when checking truth tuple
 bool IsPrecut(ECuts c) {
@@ -68,41 +52,11 @@ std::string GetCutName(ECuts cut) {
     case kMinosMuon:
       return "MINOS Muon";
 
-    case kWexp:
-      return "$W_{experimental}$";
-
-    case kIsoProngs:
-      return "$<$2 Isolated Prongs";
-
-    case kNPionCandidates:
-      return "$\\pi$ candidate";
-
-    case kAtLeastOneMichel:
-      return "$>$= 1 Michel";
-
-    case kAtLeastOnePionCandidateTrack:
-      return "$>$= 1 Hadron Track";
-
-    case kNode:
-      return "Node";
-
-    case kPionMult:
-      return "Pion Multiplicity";
-
-    case kLLR:
-      return "LLR PID";
-
     case kAllCuts:
       return "Total";
 
-    case kTrackQuality:
-      return "General Track Quality";
-
     case kPmu:
       return "1.5 GeV $<$ Pmu $<$ 20 GeV";
-
-    case kAtLeastOnePionCandidate:
-      return "At Least One Pion";
 
     default:
       std::cout << "ERROR: GetCutName unknown cut!" << std::endl;

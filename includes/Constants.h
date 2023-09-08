@@ -23,11 +23,8 @@ class CVUniverse;
 //==============================================================================
 struct PassesCutsInfo {
   bool passes_all_cuts;
-  bool is_w_sideband;
-  bool passes_all_cuts_except_w;
-  std::vector<int> pion_candidate_idxs;
-  std::tuple<bool, bool, bool, vector<int>> GetAll() {
-    return {passes_all_cuts, is_w_sideband, passes_all_cuts_except_w, pion_candidate_idxs};
+  bool GetAll() {
+    return passes_all_cuts;
   };
 };
 
@@ -42,29 +39,13 @@ enum ECuts {
   kMinosMatch,
   kMinosCharge,
   kMinosMuon,
-  kNProngs,
-  kWexp,
-  kNPionCandidates,
-  kPionCandidateQuality,
-  kAtLeastOnePionCandidateTrack,
-  kNode,
-  kPionMult,
-  kAtLeastOneMichel,
-  kLLR,
-  kIsoProngs,
   kPmu,
-  kAtLeastOnePionCandidate,
-  kTrackQuality,
   kAllCuts,
 };
 
 enum EDataMCTruth { kData, kMC, kTruth, kNDataMCTruthTypes };
 
 typedef std::map<ECuts, double> EventCount;
-
-// Don't mix up true/reco hadron containers
-typedef int TruePionIdx;
-typedef int RecoPionIdx;
 
 typedef PlotUtils::MnvH1D MH1D;
 typedef PlotUtils::HistWrapper<CVUniverse> CVHW;

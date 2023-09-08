@@ -44,85 +44,6 @@ double CVUniverse::GetDummyVar() const { return -999.; }
 double CVUniverse::GetDummyHadVar(const int x) const { return -999.; }
 
 //==============================================================================
-// Get and set pion candidates
-//==============================================================================
-TruePionIdx CVUniverse::GetHighestEnergyTruePionIndex() const {
-  std::vector<double> tpi_vec = GetTpiTrueVec();  // pip and pim
-  const int n_true_pions = GetNChargedPionsTrue();
-  // if (n_true_pions != tpi_vec.size()) {
-  //  std::cerr << "GetHighestEnergyTruePionIndex Error: True pion size
-  //  mismatch\n"; std::exit(1);
-  //}
-
-  TruePionIdx reigning_idx = -1;
-  double reigning_tpi = 0;
-  for (TruePionIdx idx = 0; idx < n_true_pions; ++idx) {
-    if (tpi_vec[idx] > reigning_tpi && GetPiChargeTrue(idx) > 0.) {
-      reigning_idx = idx;
-      reigning_tpi = tpi_vec[idx];
-    }
-  }
-
-  // This solution below doesn't account for pion charge.
-  // see cache/AlgTests for some better attempts at std::alg/lambda solutions
-  // TruePionIdx reigning_idx = distance(tpi_vec, max_element(tpi_vec.begin(),
-  // tpi_vec.end()));
-
-  return reigning_idx;
-}
-
-// -2 --> empty input pion candidates vector
-// -1 --> vertex pion
-// >= 0 --> index of tracked hadron
-// ** No pions with KE > 0 --> fail
-// ** TODO what happens when MBR and original method disagree
-int CVUniverse::GetHighestEnergyPionCandidateIndex(
-    const std::vector<int>& pion_candidate_idxs) const {
-  if (pion_candidate_idxs.empty()) {
-    return CCNuPionIncConsts::kEmptyPionCandidateVector;  // == -2
-  }
-
-  const int dummy_idx = -99;
-  int largest_tpi_idx = dummy_idx;
-  double largest_tpi = 0.;
-  for (uint iter = 0; iter < pion_candidate_idxs.size(); ++iter) {
-    int current_idx = pion_candidate_idxs[iter];
-    double current_tpi = -997.;
-    if (current_idx == CCNuPionIncConsts::kIsVertexPion) {
-      //std::cerr << "GetHighestEnergyPionCandidateIndex: pion_idx = -1.\n"
-      //             "In the future this will be the code for a vertex pion.\n";
-      //std::exit(2);
-      double bogus_range = 1.e10;
-      current_tpi = GetTpiUntracked(bogus_range);
-    } else {
-      current_tpi = GetTpi(current_idx);
-      if (current_tpi > largest_tpi) {
-        largest_tpi_idx = current_idx;
-        largest_tpi = current_tpi;
-      }
-    }
-  }
-  if (largest_tpi_idx == dummy_idx) {
-    // return pion_candidate_idxs[0];
-#ifndef NDEBUG
-    std::cerr << "GetHighestEnergyPionCandidateIndex: no pion with KE > 0!\n";
-#endif
-    return -3;
-  }
-  return largest_tpi_idx;
-}
-
-std::vector<RecoPionIdx> CVUniverse::GetPionCandidates() const {
-  return m_pion_candidates;
-}
-
-void CVUniverse::SetPionCandidates(std::vector<RecoPionIdx> c) {
-  m_pion_candidates = c;
-  SetNonCalIndices(c);  // for part response syst -- particle(s) that we've
-                        // reco-ed by tracking and not by calorimetry
-}
-
-//==============================================================================
 // Analysis Variables
 //==============================================================================
 // muon
@@ -142,7 +63,7 @@ double CVUniverse::GetThetamuDeg() const {
 
 // event-wide
 double CVUniverse::GetEhad() const {
-  return GetCalRecoilEnergy();// RDF delete this // + GetTrackRecoilEnergy();
+  return GetCalRecoilEnergy();
 }
 double CVUniverse::GetEnu() const { return GetEmu() + GetEhad(); }
 
@@ -156,219 +77,13 @@ double CVUniverse::Getq0() const { return Calcq0(GetEnu(), GetEmu()); }
 
 double CVUniverse::Getq3() const { return Calcq3(GetQ2(), GetEnu(), GetEmu()); }
 
-// pion
-// The output 1.1 means L, the ouput 2.1 means R and the 0 means
-// that it is coplanar
-double CVUniverse::GetALR(RecoPionIdx hadron) const {
-  TVector3 NeuDir(0., 0., 1.);
-  TVector3 MuDir(GetPXmu(), GetPYmu(), GetPZmu());
-  TVector3 PiDir(GetVecElem("MasterAnaDev_pion_Px", hadron),
-                 GetVecElem("MasterAnaDev_pion_Py", hadron),
-                 GetVecElem("MasterAnaDev_pion_Pz", hadron));
-  TVector3 PlaneDir = NeuDir.Cross(MuDir);
-  double proy = PlaneDir.Dot(PiDir);
-  if (proy == 0) return 0.1;
-  if (proy < 0)
-    return 1.1;
-  else
-    return 2.1;
-}
-
-double CVUniverse::GetAdlerCosTheta(RecoPionIdx hadron) const {
-  double mumom = GetPmu();
-  double pimom = GetVecElem("MasterAnaDev_pion_P", hadron);
-  double Enu = GetEnu();
-  TVector3 NeuDir(0., 0.057564027, 0.998341817);
-  TVector3 MuDir(GetPXmu(), GetPYmu(), GetPZmu());
-  MuDir = MuDir.Unit();
-  TVector3 PiDir(GetVecElem("MasterAnaDev_pion_Px", hadron),
-                 GetVecElem("MasterAnaDev_pion_Py", hadron),
-                 GetVecElem("MasterAnaDev_pion_Pz", hadron));
-  PiDir = PiDir.Unit();
-  TVector3 AdAngle = AdlerAngle(2, mumom /*GeV*/, pimom /*GeV*/, NeuDir, MuDir,
-                                PiDir, Enu /*GeV*/);
-  return cos(AdAngle[1]);
-}
-
-double CVUniverse::GetAdlerPhi(RecoPionIdx hadron) const {
-  double mumom = GetPmu();
-  double pimom = GetVecElem("MasterAnaDev_pion_P", hadron);
-  double Enu = GetEnu();
-  TVector3 NeuDir(0., 0.057564027, 0.998341817);
-  TVector3 MuDir(GetPXmu(), GetPYmu(), GetPZmu());
-  MuDir = MuDir.Unit();
-  TVector3 PiDir(GetVecElem("MasterAnaDev_pion_Px", hadron),
-                 GetVecElem("MasterAnaDev_pion_Py", hadron),
-                 GetVecElem("MasterAnaDev_pion_Pz", hadron));
-  PiDir = PiDir.Unit();
-  TVector3 AdAngle = AdlerAngle(2, mumom /*GeV*/, pimom /*GeV*/, NeuDir, MuDir,
-                                PiDir, Enu /*GeV*/);
-  return AdAngle[2];
-}
-
-// dEdx tool w assumption that track is pion
-double CVUniverse::GetEpi(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_E", hadron);
-}
-
-double CVUniverse::GetPT(RecoPionIdx hadron) const {
-  TVector3 pT_mu(GetPXmu(), GetPYmu(), 0);
-  TVector3 pT_pi(GetVecElem("MasterAnaDev_pion_Px", hadron),
-                 GetVecElem("MasterAnaDev_pion_Py", hadron), 0);
-  TVector3 pT = pT_mu + pT_pi;
-  return pT.Mag();
-}
-
-double CVUniverse::GetPXpi(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_Px", hadron);
-}
-
-double CVUniverse::GetPYpi(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_Py", hadron);
-}
-
-double CVUniverse::GetPZpi(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_Pz", hadron);
-}
-
-double CVUniverse::GetPpi(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_P", hadron);
-}
-
-double CVUniverse::GetThetapi(RecoPionIdx hadron) const {
-  if (hadron == -1) {
-    std::cerr << "CVU::GetThetapi: pion_idx = -1.\n"
-                 "In the future this will be the code for a vertex pion.\n"
-                 "In that case, this function won't make sense.\n";
-    throw hadron;
-  }
-  return FixAngle(GetVecElem("MasterAnaDev_pion_theta", hadron));
-}
-
-double CVUniverse::GetThetapiDeg(RecoPionIdx hadron) const {
-  return ConvertRadToDeg(GetThetapi(hadron));
-}
-
-double CVUniverse::GetTpi(RecoPionIdx hadron) const {
-  if (hadron == -1) {
-    std::cerr << "CVU::GetTpi: pion_idx = -1.\n"
-                 "In the future this will be the code for a vertex pion.\n";
-    throw hadron;
-  }
-  // return (GetVecElem("MasterAnaDev_hadron_pion_E", hadron)
-  //          - CCNuPionIncConsts::CHARGED_PION_MASS)/0.96;
-  double Epi = GetVecElem("MasterAnaDev_pion_E", hadron);
-  if (Epi == 0) {
-    return GetTpiMBR(hadron);  // TODO maybe do from momentum instead
-                               // Not sure what this fail mode means.
-    // std::cout << "CVUniverse::GetTpi: warning Epi < 0\n";
-    // return 0;
-  }
-  return Epi - CCNuPionIncConsts::CHARGED_PION_MASS;
-}
-
-double CVUniverse::GetTpiMBR(RecoPionIdx hadron) const {
-  if (hadron == -1) {
-    std::cerr << "CVU::GetTpiMBR: pion_idx = -1.\n"
-                 "In the future this will be the code for a vertex pion.\n"
-                 "In that case, this function won't make sense.\n";
-    throw hadron;
-  }
-  double TLA = GetVecElem("hadron_track_length_area", hadron);
-  return 2.3112 * TLA + 37.03;
-}
-
-double CVUniverse::GetpimuAngle(
-    RecoPionIdx hadron) const {  // Angle beetwen P_pi and P_mu (degrees)
-  TVector3 p_mu(GetPXmu(), GetPYmu(), GetPZmu());
-  TVector3 p_pi(GetVecElem("MasterAnaDev_pion_Px", hadron),
-                GetVecElem("MasterAnaDev_pion_Py", hadron),
-                GetVecElem("MasterAnaDev_pion_Pz", hadron));
-  double PidotMu = p_pi.Dot(p_mu);
-  double Pmu = p_mu.Mag(), Ppi = p_pi.Mag();
-  return ConvertRadToDeg(acos((PidotMu) / (Pmu * Ppi)));
-}
-
-double CVUniverse::Gett(RecoPionIdx h) const {
-  if (h < 0) {
-    std::cerr << "CVU::Gett: pion_idx < 0.\n"
-                 "This indicates no pion track, so you shouldn't be here.\n";
-    throw h;
-  }
-  ROOT::Math::PxPyPzEVector mu4v = GetMuon4V();
-  return Calct(GetPXpi(h), GetPYpi(h), GetPZpi(h), GetEpi(h), mu4v.Px(),
-               mu4v.Py(), mu4v.Pz(), GetEmu());
-}
-
 //==============================================================================
 // Truth
 //==============================================================================
-// The output 1 means L, the ouput 2 means R and the 0 means
-// that it is coplanar
-double CVUniverse::GetALRTrue(TruePionIdx idx) const {
-  TVector3 NeuDir(GetVecElem("mc_incomingPartVec", 0),
-                  GetVecElem("mc_incomingPartVec", 1),
-                  GetVecElem("mc_incomingPartVec", 2));
-  TVector3 MuDir(GetPXmuTrue(), GetPYmuTrue(), GetPZmuTrue());
-  TVector3 PiDir(GetVecElem("truth_pi_px", idx), GetVecElem("truth_pi_py", idx),
-                 GetVecElem("truth_pi_pz", idx));
-  TVector3 PlaneDir = NeuDir.Cross(MuDir);
-  double proy = PlaneDir.Dot(PiDir);
-  if (proy == 0) return 0.1;
-  if (proy < 0)
-    return 1.1;
-  else
-    return 2.1;
-}
-
-double CVUniverse::GetAdlerCosThetaTrue(TruePionIdx idx) const {
-  double mumom = GetPlepTrue();
-  double Enu = GetEnuTrue();
-  TVector3 NeuDir(GetVecElem("mc_incomingPartVec", 0),
-                  GetVecElem("mc_incomingPartVec", 1),
-                  GetVecElem("mc_incomingPartVec", 2));
-  NeuDir = NeuDir.Unit();
-  TVector3 MuDir(GetPXmuTrue(), GetPYmuTrue(), GetPZmuTrue());
-  MuDir = MuDir.Unit();
-  TVector3 PiDir(GetVecElem("truth_pi_px", idx), GetVecElem("truth_pi_py", idx),
-                 GetVecElem("truth_pi_pz", idx));
-  double pimom = PiDir.Mag();
-  PiDir = PiDir.Unit();
-  TVector3 AdAngle = AdlerAngle(2, mumom /*GeV*/, pimom /*GeV*/, NeuDir, MuDir,
-                                PiDir, Enu /*GeV*/);
-  return cos(AdAngle[1]);
-}
-
-double CVUniverse::GetAdlerPhiTrue(TruePionIdx idx) const {
-  double mumom = GetPlepTrue();
-  double Enu = GetEnuTrue();
-  TVector3 NeuDir(GetVecElem("mc_incomingPartVec", 0),
-                  GetVecElem("mc_incomingPartVec", 1),
-                  GetVecElem("mc_incomingPartVec", 2));
-  NeuDir = NeuDir.Unit();
-  TVector3 MuDir(GetPXmuTrue(), GetPYmuTrue(), GetPZmuTrue());
-  MuDir = MuDir.Unit();
-  TVector3 PiDir(GetVecElem("truth_pi_px", idx), GetVecElem("truth_pi_py", idx),
-                 GetVecElem("truth_pi_pz", idx));
-  double pimom = PiDir.Mag();
-  PiDir = PiDir.Unit();
-  TVector3 AdAngle = AdlerAngle(2, mumom /*GeV*/, pimom /*GeV*/, NeuDir, MuDir,
-                                PiDir, Enu /*GeV*/);
-  return AdAngle[2];
-}
-
 // Need a function that gets truth tracked energy, total E for pions, just KE
 // for protons.
 double CVUniverse::GetAllTrackEnergyTrue() const {
   double etracks = 0;
-  for (const auto& pi_idx : GetPionCandidates()) {
-    etracks += GetVecElem("MasterAnaDev_hadron_tm_beginKE", pi_idx);
-    // std::cout << GetVecElem("MasterAnaDev_hadron_tm_PDGCode", pi_idx) << " ";
-    if (abs(GetVecElem("MasterAnaDev_hadron_tm_PDGCode", pi_idx)) ==
-        211)  // TODO may want to only not add pion mass when is proton or
-              // neutron
-      etracks += CCNuPionIncConsts::CHARGED_PION_MASS;
-  }
   // std::cout << "\n";
   return etracks;
 }
@@ -380,14 +95,6 @@ double CVUniverse::GetIntVtxXTrue() const { return GetVecElem("mc_vtx", 0); }
 double CVUniverse::GetIntVtxYTrue() const { return GetVecElem("mc_vtx", 1); }
 
 double CVUniverse::GetIntVtxZTrue() const { return GetVecElem("mc_vtx", 2); }
-
-double CVUniverse::GetPTTrue(TruePionIdx idx) const {
-  TVector3 pT_mu(GetPXmuTrue(), GetPYmuTrue(), 0);
-  TVector3 pT_pi(GetVecElem("truth_pi_px", idx), GetVecElem("truth_pi_py", idx),
-                 0);
-  TVector3 pT = pT_mu + pT_pi;
-  return pT.Mag();
-}
 
 double CVUniverse::GetPTmuTrue() const {
   return GetPlepTrue() * sin(GetThetalepTrue());
@@ -415,22 +122,6 @@ double CVUniverse::GetThetamuTrueDeg() const {
   return ConvertRadToDeg(GetThetamuTrue());
 }
 
-// input: truth index. output: may be pip or pim.
-double CVUniverse::GetThetapiTrue(TruePionIdx idx) const {
-  double t_pi_theta = GetVecElem("truth_pi_theta_wrtbeam", idx);
-  if (t_pi_theta == -9.0) {
-    std::cerr << "CVU::GetThetapiTrue: Default angle.\n"
-                 "Tried to access truth pion angle for a nonexistent "
-                 "truth pion trajectory.\n";
-    throw t_pi_theta;
-  }
-  return FixAngle(t_pi_theta);
-}
-
-double CVUniverse::GetThetapiTrueDeg(TruePionIdx idx) const {
-  return ConvertRadToDeg(GetThetapiTrue(idx));
-}
-
 // Get TRUE Hadron Quantities (always MeV, radians)
 // NOTE: These 'truth_pi_*' containers all have 20 elements
 // Their non-default elements correspond to all of and only the CHARGED
@@ -440,129 +131,18 @@ double CVUniverse::GetThetapiTrueDeg(TruePionIdx idx) const {
 // Be careful with these functions. Make sure you understand the input
 // and output.
 // input: truth index. output: may be pip or pim.
-double CVUniverse::GetTpiTrue(TruePionIdx idx) const {
-  double t_pi_E = GetVecElem("truth_pi_E", idx);
-  if (t_pi_E == -1.) {
-    std::cerr << "CVU::GetTpiTrue: Default energy.\n"
-                 "Tried to access truth pion energy for a nonexistent "
-                 "truth pion trajectory.\n";
-    throw t_pi_E;
-  }
-  return t_pi_E - CCNuPionIncConsts::CHARGED_PION_MASS;
-}
-
 double CVUniverse::GetWexpTrue() const {
   return CalcWexp(GetQ2True(), GetEhadTrue());
 }
 
 double CVUniverse::GetWgenie() const { return GetDouble("mc_w"); }
 
-double CVUniverse::GetpimuAngleTrue(
-    TruePionIdx idx) const {  // Angle beetwen P_pi and P_mu (degrees)
-  TVector3 p_mu(GetPXmuTrue(), GetPYmuTrue(), GetPZmuTrue());
-  TVector3 p_pi(GetVecElem("truth_pi_px", idx), GetVecElem("truth_pi_py", idx),
-                GetVecElem("truth_pi_pz", idx));
-  double PidotMu = p_pi.Dot(p_mu);
-  double Pmu = p_mu.Mag(), Ppi = p_pi.Mag();
-  return ConvertRadToDeg(acos((PidotMu) / (Pmu * Ppi)));
-}
-
-int CVUniverse::GetNChargedPionsTrue() const {
-  return GetInt("truth_N_pip") + GetInt("truth_N_pim");
-}
-
-// input: truth index. output: may be pip or pim.
-int CVUniverse::GetPiChargeTrue(TruePionIdx idx) const {
-  int t_pi_charge = GetVecElem("truth_pi_charge", idx);
-  if (t_pi_charge == 0) {
-    std::cerr << "CVU::GetPiChargeTrue: Default charge.\n"
-                 "Tried to access truth pion charge for a nonexistent "
-                 "truth pion trajectory.\n";
-    throw t_pi_charge;
-  }
-  return t_pi_charge;
-}
-
-// !!!!!! Vector filled with pip and pim !!!!!!!
-std::vector<double> CVUniverse::GetTpiTrueVec() const {
-  std::vector<double> ret;
-  const int n_true_pions = GetNChargedPionsTrue();
-  for (TruePionIdx idx = 0; idx < n_true_pions; ++idx) {
-    ret.push_back(GetTpiTrue(idx));
-  }
-  return ret;
-}
-
 //==============================
 // Ehad (GetErecoil) Variables
 //==============================
-// If the calorimetric energy is too great, abandon trying to calculate tracked
-// energy separately. This requires a coordinated effort from both functions.
-
-// Passive-corrected pion energy
-// NukeCCPion_pion_recoilE_passive =
-// m_caloUtils->applyCalConsts(hadronProng,"Default",true,true);
-double CVUniverse::GetCalEpi(int iProng) const {
-  return GetVecElem("MasterAnaDev_hadron_pion_E_recoil_corr", iProng);
-}
-
 // Untracked recoil energy
 double CVUniverse::GetCalRecoilEnergy() const {
-  // RDF delete this //
-  //const double ecal_nopi = GetCalRecoilEnergyNoPi_DefaultSpline();
-  //if (ecal_nopi > 1000)
-  //  return GetCalRecoilEnergy_CCPiSpline();
-  //else
-  //  return GetCalRecoilEnergyNoPi_Corrected(ecal_nopi);
   return GetCalRecoilEnergy_CCIncSpline();
-}
-
-// Apply an additive, ad hoc correction to the CalRecoilENoPi
-double CVUniverse::GetCalRecoilEnergyNoPi_Corrected(
-    const double ecal_nopi) const {
-  if (GetPionCandidates().size() == 0) return ecal_nopi;
-
-  // I've shown that low-t (likely coherent) events don't need the
-  // correction. 20210102_ErecStudies, slides 46-48.
-  RecoPionIdx best_pion =
-      GetHighestEnergyPionCandidateIndex(GetPionCandidates());
-
-  if (best_pion >= 0 && Gett(best_pion) < 125.e3) return ecal_nopi;
-
-  // Otherwise, do make the correction
-  double ecal_nopi_corrected = ecal_nopi;
-
-  TArrayD ecal_nopi_bins = CCPi::GetBinning("ecal_nopi");
-
-  const std::vector<double> corrections = {-0.060, -0.050, -0.210, -0.180,
-                                           -0.165, -0.180, -0.180, -0.180,
-                                           -0.195, -0.360, -0.400};
-
-  // Find the correction corresponding to the nominal ehad-nopi.
-  // Set the corrected value to be the (nominal - correction) (where the
-  // corrections are all negative, so in effect we're shifting everything
-  // UP)
-  for (int i_bin = 0; i_bin < ecal_nopi_bins.GetSize() - 1; ++i_bin) {
-    if (((1e3) * ecal_nopi_bins[i_bin] < ecal_nopi) &&
-        (ecal_nopi < (1e3) * ecal_nopi_bins[i_bin + 1])) {
-      if (ecal_nopi < 1000) {
-        ecal_nopi_corrected = ecal_nopi - (1e3) * corrections[i_bin];
-        break;
-      }
-    }
-  }
-
-  return ecal_nopi_corrected;
-}
-
-// Cal recoil energy minus calorimetrically-measured pion energy.
-// Used to determined whether we should try to use the correction or not.
-double CVUniverse::GetCalRecoilEnergyNoPi_DefaultSpline() const {
-  double nopi_recoilE = GetCalRecoilEnergy_DefaultSpline();
-  for (const auto& pi_idx : GetPionCandidates()) {
-    nopi_recoilE -= GetCalEpi(pi_idx);
-  }
-  return nopi_recoilE;
 }
 
 // Total recoil with CCPi spline correction.
@@ -579,48 +159,16 @@ double CVUniverse::GetCalRecoilEnergy_DefaultSpline() const {
   return GetDouble("MasterAnaDev_hadron_recoil_default");
 }
 
+// RDF: This is a placeholder; required because the Response systematics expect
+// a function with this name to exist
 // This is what the response universe calls our tracked recoil energy
 double CVUniverse::GetNonCalRecoilEnergy() const {
-  if (GetPionCandidates().empty()) {
-#ifndef NDEBUG
-    std::cout << "CVU::GetNonCalRecoilEnergy WARNING: no pion candidates!\n";
-#endif
-    return 0.;
-  }
-
-  double etracks = 0.;
-
-  const double ecal_nopi = GetCalRecoilEnergyNoPi_DefaultSpline();
-  if (ecal_nopi > 1000) {
-    etracks = 0;
-  } else {
-    for (const auto& pi_idx : GetPionCandidates()) {
-      // std::cout << GetVecElem("MasterAnaDev_hadron_tm_PDGCode", pi_idx) << "
-      // ";
-      etracks += GetEpi(pi_idx);
-    }
-    // std::cout << "\n";
-  }
-
-  return etracks;
-}
-
-// (Tracked) recoil energy, not determined from calorimetry
-double CVUniverse::GetTrackRecoilEnergy() const {
-  return GetNonCalRecoilEnergy();
+  return 0.; 
 }
 
 //==============================
 // ehad old variables
 //==============================
-// Old-school attempt at Ehad - Epi
-// Subtract dEdx-tool-pion-energy from Ehad-from-calcRecoilEFromClusters
-// ("CCInclusive" splines)
-double CVUniverse::GetCalRecoilEnergyNoPi_CCIncSpline() const {
-  double ecal_nopi = GetCalRecoilEnergy_CCIncSpline();
-  for (const auto& pi_idx : GetPionCandidates()) ecal_nopi -= GetEpi(pi_idx);
-  return ecal_nopi;
-}
 
 // Ehad CCInclusive Spline Variables
 // Ehad ccinclusive splines -- doesn't account for pion
@@ -631,31 +179,8 @@ double CVUniverse::GetCalRecoilEnergy_CCIncSpline() const {
 //==============================
 // ehad truth variables
 //==============================
-// Given reco pions – subtract their true matched energy from truth ehad = (enu
-// - emu)
-double CVUniverse::GetCalRecoilEnergyNoPiTrue() const {
-  double nopi_recoilE = GetEhadTrue();
-  for (const auto& pi_idx : GetPionCandidates())
-    nopi_recoilE -= GetEpiTrueMatched(pi_idx);
-  return nopi_recoilE;
-}
 
 double CVUniverse::GetEhadTrue() const { return GetEnuTrue() - GetElepTrue(); }
-
-// Given a reco track, get the track's truth E, assuming it's a pion
-double CVUniverse::GetEpiTrueMatched(RecoPionIdx hadron) const {
-  return GetTpiTrueMatched(hadron) + CCNuPionIncConsts::CHARGED_PION_MASS;
-}
-
-// Given a reco track, get the track's truth KE
-double CVUniverse::GetTpiTrueMatched(RecoPionIdx hadron) const {
-  // TruePionIdx true_index = -1;
-  // TruePionIdx true_index = GetVecElem("MasterAnaDev_hadron_tm_trackID",
-  // hadron); int true_pdg   = GetVecElem("MasterAnaDev_hadron_tm_PDGCode",
-  // hadron); if(true_pdg != 211) std::cout << "pion mis-identified as a " <<
-  // true_pdg << "!\n";
-  return GetVecElem("MasterAnaDev_hadron_tm_beginKE", hadron);
-}
 
 //==============================================================================
 // Cuts, Systematics, Studies
@@ -701,38 +226,6 @@ bool CVUniverse::IsInPlastic() const {
   return true;
 }
 
-double CVUniverse::GetEmichel(RecoPionIdx hadron) const {
-  return GetVecElem("has_michel_cal_energy", hadron);
-}
-
-double CVUniverse::GetEnode0(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_lastnode_Q0", hadron);
-}
-
-double CVUniverse::GetEnode1(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_lastnode_Q1", hadron);
-}
-
-double CVUniverse::GetEnode01(RecoPionIdx hadron) const {
-  return GetEnode0(hadron) + GetEnode1(hadron);
-}
-
-double CVUniverse::GetEnode2(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_lastnode_Q2", hadron);
-}
-
-double CVUniverse::GetEnode3(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_lastnode_Q3", hadron);
-}
-
-double CVUniverse::GetEnode4(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_lastnode_Q4", hadron);
-}
-
-double CVUniverse::GetEnode5(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_lastnode_Q5", hadron);
-}
-
 double CVUniverse::GetFitVtxX() const {
   return GetVecElem("MasterAnaDev_vtx", 0);
 }  // cm?
@@ -745,86 +238,8 @@ double CVUniverse::GetFitVtxZ() const {
   return GetVecElem("MasterAnaDev_vtx", 2);
 }  // cm?
 
-double CVUniverse::GetLLRScore(RecoPionIdx hadron) const {
-  if (hadron == -1) {
-    std::cout << "CVU::GetLLRScore pion_idx = -1.\n"
-                 "In the future this will be the code for a vertex pion.\n"
-                 "In that case, this function won't make sense.\n";
-    throw hadron;
-  } else if (hadron < -1) {
-#ifndef NDEBUG
-    std::cerr << "CVU::GetLLRScore bogus pion_idx." << hadron << "\n";
-#endif
-    return -1;
-    // throw hadron;
-  }
-  return GetVecElem("MasterAnaDev_hadron_piFit_scoreLLR", hadron);
-}
-
-double CVUniverse::GetLargestIsoProngSep() const {
-  std::vector<double> sep_vec = GetVec<double>("iso_prong_separation");
-  return *std::max_element(sep_vec.begin(), sep_vec.end());
-}
-
-double CVUniverse::GetLargestPrimProngSep() const {
-  std::vector<double> sep_vec = GetVec<double>("prong_separation");
-  return *std::max_element(sep_vec.begin(), sep_vec.end());
-}
-
-double CVUniverse::GetTpiFResidual(const int hadron, const bool MBR) const {
-
-  // ALERT 2023-03-10
-  // Christian reports that in fact
-  // true_index = GetVecElem("MasterAnaDev_hadron_tm_trackID", hadron) - 1;
-  // I don't use true_index here, but if I do in the future I need to check it!
-
-  double T_reco = !MBR ? GetTpi(hadron) : GetTpiMBR(hadron);
-  int true_index = -1;
-  true_index = GetVecElem("MasterAnaDev_hadron_tm_trackID", hadron);
-  double T_true = GetVecElem("MasterAnaDev_hadron_tm_beginKE", hadron);
-  double fresid =
-      (!std::isfinite(T_reco / T_true) || (std::abs(T_reco / T_true)) > 10000)
-          ? 0.96
-          : T_reco / T_true - 1.;
-  int true_pdg = GetVecElem("MasterAnaDev_hadron_tm_PDGCode", hadron);
-  return fresid;
-}
-
-double CVUniverse::GetWexpFResidual() const {
-  return GetWexp() / GetWexpTrue() - 1.;
-  // return GetWexp()/GetWgenie() - 1.;
-}
-
-double CVUniverse::GetdEdxScore(RecoPionIdx hadron) const {
-  if (hadron == -1) {
-    std::cout << "CVU::GetdEdxScore: pion_idx = -1.\n"
-                 "In the future this will be the code for a vertex pion.\n"
-                 "In that case, this function won't make sense.\n";
-    throw hadron;
-  }
-  return GetVecElem("MasterAnaDev_hadron_piFit_score1", hadron);
-}
-
-int CVUniverse::GetNAnchoredLongTracks() const {
-  return GetInt("n_anchored_long_trk_prongs");
-}
-
-int CVUniverse::GetNAnchoredShortTracks() const {
-  return GetInt("n_anchored_short_trk_prongs");
-}
-
-int CVUniverse::GetNIsoProngs() const { return GetDouble("iso_prongs_count"); }
-
-int CVUniverse::GetNNodes(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_pion_nNodes", hadron);
-}
-
 int CVUniverse::GetNhadrons() const {
   return GetInt("MasterAnaDev_hadron_number");
-}
-
-int CVUniverse::GetTrackReconstructionMethod(RecoPionIdx hadron) const {
-  return GetVecElem("MasterAnaDev_hadron_1stTrackPatRec", hadron);
 }
 
 //==============================================================================
@@ -878,11 +293,10 @@ double CVUniverse::GetWeight() const {
   double wgt_rpa = 1., wgt_lowq2 = 1.;
   double wgt_genie = 1., wgt_mueff = 1.;
   double wgt_anisodd = 1.;
-  double wgt_michel = 1.;
   double wgt_diffractive = 1.;
   double wgt_mk = 1.;
   double wgt_target = 1.;
-  double wgt_fsi = 1., wgt_coh = 1., wgt_geant = 1.,
+  double wgt_fsi = 1., wgt_geant = 1.,
          wgt_sbfit = 1. /* This weight depends of the sidebands, Will we applay
                            this weight?*/
       ;
@@ -914,9 +328,6 @@ double CVUniverse::GetWeight() const {
   if (do_aniso_warping)
     wgt_anisodd = GetVecElem("truth_genie_wgt_Theta_Delta2Npi", 4);
 
-  // Michel efficiency
-  wgt_michel = GetMichelEfficiencyWeight();
-
   // Diffractive
   wgt_diffractive = GetDiffractiveWeight();
 
@@ -930,23 +341,11 @@ double CVUniverse::GetWeight() const {
 
   wgt_fsi = GetFSIWeight(0);
 
-  if (GetInt("mc_intType") == 4) {
-    int idx = (int)GetHighestEnergyTruePionIndex();
-    if (GetNChargedPionsTrue() > 1)
-      std::cout << " More that one charge pion in Coherent events "
-                << GetNChargedPionsTrue() << "Index "
-                << GetHighestEnergyTruePionIndex() << "\n";
-    double deg_theta_pi = GetThetapiTrueDeg(idx);
-    if (GetTpiTrue(idx) > 0.)
-      wgt_coh *= GetCoherentPiWeight(
-          deg_theta_pi, (GetTpiTrue(idx) + MinervaUnits::M_pion) / 1000);
-  }
-
   wgt_geant = GetGeantHadronWeight();
 
   return wgt_genie * wgt_flux * wgt_2p2h * wgt_rpa * wgt_lowq2 * wgt_mueff *
-         wgt_anisodd * wgt_michel * wgt_diffractive * wgt_mk * wgt_target *
-         wgt_fsi * wgt_coh * wgt_geant * wgt_sbfit;
+         wgt_anisodd * wgt_diffractive * wgt_mk * wgt_target *
+         wgt_fsi * wgt_geant * wgt_sbfit;
 }
 
 //==============================================================================

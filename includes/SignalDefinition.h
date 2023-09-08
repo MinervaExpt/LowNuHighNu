@@ -4,7 +4,7 @@
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h" // namespace CCNuPionIncConsts
 
-enum SignalDefinition { kLowNu, kHighNu, kOnePi, kOnePiNoW, kNPi, kNPiNoW, kNSignalDefTypes };
+enum SignalDefinition { kLowNu, kHighNu, kNSignalDefTypes };
 
 double GetWCutValue(SignalDefinition signal_definition) {
   switch (signal_definition) {
@@ -12,13 +12,6 @@ double GetWCutValue(SignalDefinition signal_definition) {
       return 1000.; // placeholder
     case kHighNu:
       return 1100.; // placeholder
-    case kOnePi:
-      return 1400.;
-    case kNPi:
-      return 2000.;
-    case kOnePiNoW:
-    case kNPiNoW:
-      return 120000.;
     default:
       std::cout << "ERROR GetWCutValue" << std::endl;
       return -1.;
@@ -131,54 +124,6 @@ std::map<string, int> GetParticleTopology(
   return genie_n;
 }
 
-// Given the particle topology of GetParticleTopology, is this signal?
-// From Aaron
-bool Is1PiPlus(const std::map<std::string, int>& particles) {
-  //  if( incoming =! 14 || current =! 1 ) return false;
-
-  // which particles are part of your signal (those you count, those you want
-  // any) Don't need two variables, just here to keep bookkeeping straight
-  TString counted_signal("muons piplus piplus_range pions mesons");
-  TString any_baryon("protons neutrons nucleons heavy_baryons nuclei");
-
-  // Count bkgd particles
-  int n_bg = 0;
-  for (auto p : particles) {
-    std::string particle = p.first;
-    int count = p.second;
-    if (counted_signal.Contains(particle) || any_baryon.Contains(particle))
-      continue;
-    n_bg += count;
-  }
-
-  // SIGNAL
-  // 1 mu, 1 pi+, no other mesons
-  if (particles.at("muons") == 1 && particles.at("piplus") == 1 &&
-      particles.at("pions") == particles.at("piplus") &&
-      particles.at("mesons") == particles.at("piplus") && n_bg == 0)
-    return true;  // any number of baryons, nothing else
-
-  return false;
-}
-
-// Number of abs(pdg) == 211 true TG4Trajectories which also:
-// (1) are pip, (2) satisfy a KE restriction
-int NSignalPions(const CVUniverse& univ) {
-  int n_signal_pions = 0;
-  int n_true_pions = univ.GetNChargedPionsTrue();
-  for (TruePionIdx idx = 0; idx < n_true_pions; ++idx) {
-    double t_pi = univ.GetTpiTrue(idx);
-    double theta_pi = univ.GetThetapiTrue(idx);
-    if (univ.GetPiChargeTrue(idx) > 0 &&
-        t_pi > CCNuPionIncConsts::kTpiLoCutVal &&
-        t_pi < CCNuPionIncConsts::kTpiHiCutVal
-        //&& (theta_pi < 1.39626 || 1.74533 < theta_pi))
-    )
-      ++n_signal_pions;
-  }
-  return n_signal_pions;
-}
-
 int NOtherParticles(const CVUniverse& univ) {
   int n_other_particles = 0;
   n_other_particles = univ.GetInt("truth_N_chargedK") +
@@ -204,7 +149,6 @@ bool XYVtxIsSignal(const CVUniverse& univ) {
 
 // ---> MONEY FUNCTION  <----
 bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kLowNu) {
-  int n_signal_pions = NSignalPions(univ);
   const std::map<std::string, int> particles = GetParticleTopology(
       univ.GetVec<int>("mc_FSPartPDG"), univ.GetVec<double>("mc_FSPartE"));
   if (univ.GetInt("mc_current") == 1 && univ.GetBool("truth_is_fiducial") &&
@@ -212,7 +156,6 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kLowNu) {
       univ.GetInt("mc_incoming") == 14 &&
       univ.GetThetalepTrue() < CCNuPionIncConsts::kThetamuMaxCutVal &&
       //0. < univ.GetWexpTrue() && univ.GetWexpTrue() < GetWCutValue(sig_def) &&
-      // && n_signal_pions > 0
       // && NOtherParticles(univ) == 0
       //particles.at("piplus_range") == 1 && Is1PiPlus(particles) &&
       CCNuPionIncConsts::kPmuMinCutVal < univ.GetPmuTrue() &&
@@ -223,20 +166,12 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kLowNu) {
 
   switch (sig_def) {
     case kLowNu:
+      return true;
     case kHighNu:
-    case kOnePi:
-    case kOnePiNoW:
-      if (n_signal_pions == 1 && univ.GetInt("truth_N_pi0") == 0 &&
-          univ.GetInt("truth_N_pim") == 0)
-        return true;
-      else
-        return false;
-    case kNPi:
-    case kNPiNoW:
       return true;
 
     default:
-      std::cout << "IsSignal Error Unknown Signal Definition!" << std::endl;
+      std::cout << "IsSignal Error Unknown Signal Definition! I think that my sig_def is:" << sig_def << "." << std::endl;
       return false;
   }
 }
@@ -248,14 +183,6 @@ std::string GetSignalName(SignalDefinition sig_def) {
       return "#nu_{#mu} Tracker #rightarrow #mu^{-} [Low Nu placeholder]";
     case kHighNu:
       return "#nu_{#mu} Tracker #rightarrow #mu^{-} [High Nu placeholder]";
-    case kOnePi:
-      return "#nu_{#mu} Tracker #rightarrow #mu^{-} 1#pi^{+} X  (W < 1.4 GeV)";
-    case kOnePiNoW:
-      return "#nu_{#mu} Tracker #rightarrow #mu^{-} 1#pi^{+} X";
-    case kNPi:
-      return "#nu_{#mu} Tracker #rightarrow #mu^{-} 1#pi^{+} X  (W < 1.8 GeV)";
-    case kNPiNoW:
-      return "#nu_{#mu} Tracker #rightarrow #mu^{-} 1#pi^{+} X";
     default:
       return "UNKNOWN SIGNAL";
   }
@@ -267,14 +194,6 @@ std::string GetSignalFileTag(SignalDefinition sig_def) {
       return "LowNu";
     case kHighNu:
       return "HighNu";
-    case kOnePi:
-      return "1Pi";
-    case kOnePiNoW:
-      return "1PiNoW";
-    case kNPi:
-      return "NPi";
-    case kNPiNoW:
-      return "NPiNoW";
     default:
       return "UNKNOWN SIGNAL";
   }
