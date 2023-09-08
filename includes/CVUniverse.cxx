@@ -77,12 +77,6 @@ double CVUniverse::Getq0() const { return Calcq0(GetEnu(), GetEmu()); }
 
 double CVUniverse::Getq3() const { return Calcq3(GetQ2(), GetEnu(), GetEmu()); }
 
-<<<<<<< HEAD
-
-//==============================================================================
-// Truth
-//==============================================================================
-=======
 //==============================================================================
 // Truth
 //==============================================================================
@@ -93,7 +87,6 @@ double CVUniverse::GetAllTrackEnergyTrue() const {
   // std::cout << "\n";
   return etracks;
 }
->>>>>>> rob-dev
 
 double CVUniverse::GetEmuTrue() const { return GetElepTrue(); }
 
@@ -235,10 +228,6 @@ double CVUniverse::GetFitVtxZ() const {
   return GetVecElem("MasterAnaDev_vtx", 2);
 }  // cm?
 
-double CVUniverse::GetWexpFResidual() const {
-  return GetWexp() / GetWexpTrue() - 1.;
-  // return GetWexp()/GetWgenie() - 1.;
-
 int CVUniverse::GetNhadrons() const {
   return GetInt("MasterAnaDev_hadron_number");
 }
@@ -247,6 +236,36 @@ int CVUniverse::GetNhadrons() const {
 // Weights
 //==============================================================================
 
+double CVUniverse::GetAnisoDeltaDecayWarpWeight() const {
+  return GetVecElem("truth_genie_wgt_Theta_Delta2Npi", 4);
+}
+
+// Note, this assumes you're not using the diffractive model in GENIE
+// As of 03/2021, we don't really trust our diffractive model, so
+// as a rough approximation, weight every coherent event
+// (diffractive is coherent on hydrogen) by 1.4368.
+// Coherent xsec scales by A^(1/3), and 1/(12^(1/3)) = 0.4368
+double CVUniverse::GetDiffractiveWeight() const {
+  if (GetInt("mc_intType") != 4) return 1.;
+  // Note: diffractive should be applied only to plastic. This approximates that
+  // if( PlotUtils::TargetUtils::Get().InCarbon3VolMC( GetVecElem("mc_vtx",0),
+  //                                 GetVecElem("mc_vtx",1),
+  //                                 GetVecElem("mc_vtx",2) ) ) return 1.;
+  // if( GetInt("mc_nucleiZ") != 6 ) 1.;
+  if (!IsInPlastic() && !PlotUtils::TargetUtils::Get().InWaterTargetMC(
+                            GetIntVtxXTrue(), GetIntVtxYTrue(),
+                            GetIntVtxZTrue(), GetInt("mc_targetZ")))
+    return 1.;
+
+  return 1.4368;
+}
+
+double CVUniverse::GetGenieWarpWeight() const {
+  double wgt = GetVecElem("truth_genie_wgt_MaRES", 4);
+  wgt = 1 + (wgt - 1) *
+                2;  // double the size of the shift from 1 (e.g. 1.1 --> 1.2)
+  return wgt;
+}
 
 double CVUniverse::GetLowQ2PiWeight(double q2, std::string channel) const {
   if (!PlotUtils::IsCCRes(*this))

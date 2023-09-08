@@ -249,7 +249,7 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         // FILL TRUTH
         //===============
         if (type == kTruth) {
-          lownuhighnu_event::FillTruthEvent(event, variables);
+          //lownuhighnu_event::FillTruthEvent(event, variables);
 	        inclusive_event::FillTruthEvent(event,variables);
           continue;
         }
