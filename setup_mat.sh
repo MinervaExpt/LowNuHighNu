@@ -13,14 +13,14 @@ setup cmake v3_7_1
 
 source /cvmfs/minerva.opensciencegrid.org/minerva/setup/setup_minerva_products.sh
 
-export TOPDIR=/minerva/app/users/finer/MATAna/
-CMTUSER=/minerva/app/users/finer/cmtuser
-W=/minerva/app/users/finer/MATAna/LowNuHighNu
-d=/pnfs/minerva/scratch/users/finer
-D=/pnfs/minerva/persistent/users/finer/LowNuHighNu/2023-06-05
-b=/minerva/data/users/finer/
-m=/minerva/app/users/finer/MATAna/MAT/
-mm=/minerva/app/users/finer/MATAna/MAT-MINERvA/
+export TOPDIR=/minerva/app/users/$USER/MATAna/
+CMTUSER=/minerva/app/users/$USER/cmtuser
+W=/minerva/app/users/$USER/MATAna/LowNuHighNu
+d=/pnfs/minerva/scratch/users/$USER
+D=/pnfs/minerva/persistent/users/$USER/LowNuHighNu/2023-06-05
+b=/minerva/data/users/$USER/
+m=/minerva/app/users/$USER/MATAna/MAT/
+mm=/minerva/app/users/$USER/MATAna/MAT-MINERvA/
 
 cd $W
 
