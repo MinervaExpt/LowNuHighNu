@@ -4,3 +4,6 @@ cache/
 *.so
 *.pcm
 *.root
+*.#*
+*#
+*~
