@@ -6,6 +6,7 @@
 
 #include "includes/Binning.h"
 //#include "includes/CCPiEvent.h"
+#include "includes/LowNuHighNuEvent.h"
 #include "includes/InclusiveEvent.h"
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h"
@@ -243,14 +244,14 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
 
         // calls GetWeight
         //LowNuHighNuEvent event(is_mc, is_truth, util.m_signal_definition, universe);  
-	      InclusiveEvent event(is_mc, is_truth, util.m_signal_definition, universe);
+        InclusiveEvent event(is_mc, is_truth, util.m_signal_definition, universe);
 
         //===============
         // FILL TRUTH
         //===============
         if (type == kTruth) {
           //lownuhighnu_event::FillTruthEvent(event, variables);
-	        inclusive_event::FillTruthEvent(event,variables);
+          inclusive_event::FillTruthEvent(event,variables);
           continue;
         }
 
