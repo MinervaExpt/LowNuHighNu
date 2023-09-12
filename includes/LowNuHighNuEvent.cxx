@@ -56,11 +56,6 @@ void lownuhighnu_event::FillRecoEvent(const LowNuHighNuEvent& event,
 
   // Fill Migration
   if (event.m_is_mc && event.m_is_signal && event.m_passes_cuts) {
-    if (HasVar(variables, "tpi") && HasVar(variables, "tpi_true"))
-      FillMigration(event, variables, std::string("tpi"));
-    if (HasVar(variables, "thetapi_deg") &&
-        HasVar(variables, "thetapi_deg_true"))
-      FillMigration(event, variables, std::string("thetapi_deg"));
     if (HasVar(variables, "pmu") && HasVar(variables, "pmu_true"))
       FillMigration(event, variables, std::string("pmu"));
     if (HasVar(variables, "pzmu") && HasVar(variables, "pzmu_true"))
@@ -80,12 +75,6 @@ void lownuhighnu_event::FillRecoEvent(const LowNuHighNuEvent& event,
       FillMigration(event, variables, std::string("ehad"));
     if (HasVar(variables, "cosadtheta") && HasVar(variables, "cosadtheta_true"))
       FillMigration(event, variables, std::string("cosadtheta"));
-    if (HasVar(variables, "adphi") && HasVar(variables, "adphi_true"))
-      FillMigration(event, variables, std::string("adphi"));
-    if (HasVar(variables, "pimuAngle") && HasVar(variables, "pimuAngle_true"))
-      FillMigration(event, variables, std::string("pimuAngle"));
-    if (HasVar(variables, "PT") && HasVar(variables, "PT_true"))
-      FillMigration(event, variables, std::string("PT"));
   }
 }
 
@@ -357,10 +346,6 @@ void lownuhighnu_event::FillCutVars(LowNuHighNuEvent& event,
         FillStackedHists(event, GetVar(variables, "ptmu"));
       if (HasVar(variables, "pzmu"))
         FillStackedHists(event, GetVar(variables, "pzmu"));
-      if (HasVar(variables, "tpi"))
-        FillStackedHists(event, GetVar(variables, "tpi"));
-      if (HasVar(variables, "tpi_mbr"))
-        FillStackedHists(event, GetVar(variables, "tpi_mbr"));
       if (HasVar(variables, "enu"))
         FillStackedHists(event, GetVar(variables, "enu"));
       if (HasVar(variables, "enu"))
@@ -369,18 +354,8 @@ void lownuhighnu_event::FillCutVars(LowNuHighNuEvent& event,
         FillStackedHists(event, GetVar(variables, "q2"));
       if (HasVar(variables, "thetamu_deg"))
         FillStackedHists(event, GetVar(variables, "thetamu_deg"));
-      if (HasVar(variables, "thetapi_deg"))
-        FillStackedHists(event, GetVar(variables, "thetapi_deg"));
       if (HasVar(variables, "ehad"))
         FillStackedHists(event, GetVar(variables, "ehad"));
-      if (HasVar(variables, "cosadtheta"))
-        FillStackedHists(event, GetVar(variables, "cosadtheta"));
-      if (HasVar(variables, "adphi"))
-        FillStackedHists(event, GetVar(variables, "adphi"));
-      if (HasVar(variables, "pimuAngle"))
-        FillStackedHists(event, GetVar(variables, "pimuAngle"));
-      if (HasVar(variables, "PT"))
-        FillStackedHists(event, GetVar(variables, "PT"));
     }
   }  // end cuts loop
 }
@@ -406,18 +381,6 @@ void lownuhighnu_event::FillStackedHists(const LowNuHighNuEvent& event, Variable
 
   v->GetStackComponentHist(GetChannelType(*event.m_universe))
       ->Fill(fill_val, event.m_weight);
-
-  //v->GetStackComponentHist(GetHadronType(*event.m_universe))
-  //    ->Fill(fill_val, event.m_weight);
-
-  //v->GetStackComponentHist(GetNPionsType(*event.m_universe))
-  //    ->Fill(fill_val, event.m_weight);
-
-  //v->GetStackComponentHist(GetNPi0Type(*event.m_universe))
-  //    ->Fill(fill_val, event.m_weight);
-
-  //v->GetStackComponentHist(GetNPipType(*event.m_universe))
-  //    ->Fill(fill_val, event.m_weight);
 
   v->GetStackComponentHist(
        GetSignalBackgroundType(*event.m_universe, event.m_signal_definition))
