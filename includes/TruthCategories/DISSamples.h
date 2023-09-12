@@ -24,8 +24,8 @@ enum SampleType
 // This is separate from the question of whether we float or fix each category.
 // For that question, see the implementation of the fitter.
 SampleType GetTrueSampleType(const CVUniverse& universe, 
-			     const SignalDefinition signal_definition, 
-			     const int n_categories = 4) {
+           const SignalDefinition signal_definition, 
+           const int n_categories = 4) {
   //  if (n_categories != 2 && n_categories != 3)
   //    throw std::invalid_argument("GetWSidebandType: n_categories is 2 or 3");
   
