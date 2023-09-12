@@ -72,7 +72,6 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
   virtual double GetThetamuTrue() const;
   virtual double GetThetamuTrueDeg() const;
   virtual double GetWexpTrue() const;
-  virtual double GetWgenie() const;
 
   //==============================
   // Ehad (GetErecoil) Variables
