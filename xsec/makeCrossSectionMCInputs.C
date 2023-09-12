@@ -110,35 +110,35 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
     const double adphimax = CCNuPionIncConsts::PI;
     
     Var* pmu = new Var("pmu", "p_{#mu}", "MeV", CCPi::GetBinning("pmu"),
-		       &CVUniverse::GetPmu);
+                       &CVUniverse::GetPmu);
     
     Var* thetamu_deg =
       new Var("thetamu_deg", "#theta_{#mu}", "deg",
-	      CCPi::GetBinning("thetamu_deg"), &CVUniverse::GetThetamuDeg);
+              CCPi::GetBinning("thetamu_deg"), &CVUniverse::GetThetamuDeg);
     
     Var* enu = new Var("enu", "E_{#nu}", "MeV", CCPi::GetBinning("enu"),
-		       &CVUniverse::GetEnu);
+                       &CVUniverse::GetEnu);
     
     Var* q2 = new Var("q2", "Q^{2}", "MeV^{2}", CCPi::GetBinning("q2"),
-		      &CVUniverse::GetQ2);
+                      &CVUniverse::GetQ2);
 
     Var* wexp = new Var("wexp", "W_{exp}", "MeV", CCPi::GetBinning("wexp"),
-			&CVUniverse::GetWexp);
+                        &CVUniverse::GetWexp);
     
     // Ehad variables                                                                                                                                                         
     Var* ehad = new Var("ehad", "ehad", "MeV", CCPi::GetBinning("ehad"),
-			&CVUniverse::GetEhad);
+                        &CVUniverse::GetEhad);
 
     bool is_true = true;
     Var* ehad_true =
       new Var("ehad_true", "ehad True", "MeV", ehad->m_hists.m_bins_array,
-	      &CVUniverse::GetEhadTrue);
+      &CVUniverse::GetEhadTrue);
     ehad_true->m_is_true = true;
     
     Var* thetamu_deg_true =
       new Var("thetamu_deg_true", "#theta_{#mu} True", thetamu_deg->m_units,
-	      thetamu_deg->m_hists.m_bins_array, &CVUniverse::GetThetamuTrueDeg,
-	      is_true);
+      thetamu_deg->m_hists.m_bins_array, &CVUniverse::GetThetamuTrueDeg,
+      is_true);
     
     Var* enu_true =
       new Var("enu_true", "E_{#nu} True", enu->m_units,
@@ -149,11 +149,11 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
               &CVUniverse::GetQ2True, is_true);
     Var* pmu_true =
       new Var("pmu_true", "p_{#mu} True", pmu->m_units,
-	      pmu->m_hists.m_bins_array, &CVUniverse::GetPmuTrue, is_true);
+      pmu->m_hists.m_bins_array, &CVUniverse::GetPmuTrue, is_true);
     
     Var* wexp_true =
       new Var("wexp_true", "W_{exp} True", wexp->m_units,
-	      wexp->m_hists.m_bins_array, &CVUniverse::GetWexpTrue, is_true);
+      wexp->m_hists.m_bins_array, &CVUniverse::GetWexpTrue, is_true);
     
     std::vector<Var*> variables = { pmu, thetamu_deg, enu, q2, wexp, ehad};
     
