@@ -315,6 +315,16 @@ double CVUniverse::GetWeight() const {
                   ? GetLowQ2PiWeight(CCNuPionIncShifts::kLowQ2PiChannel)
                   : 1.;
 
+  // aniso delta decay weight -- currently being used for warping
+  if (do_aniso_warping)
+    wgt_anisodd = GetVecElem("truth_genie_wgt_Theta_Delta2Npi", 4);
+
+  // Diffractive
+  wgt_diffractive = GetDiffractiveWeight();
+
+  // MK Weight
+  if (do_mk_warping) wgt_mk = GetMKWeight();
+
   // Target Mass
   wgt_target = GetTargetMassWeight();
 
