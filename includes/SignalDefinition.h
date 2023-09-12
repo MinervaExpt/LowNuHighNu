@@ -149,7 +149,7 @@ bool XYVtxIsSignal(const CVUniverse& univ) {
 }
 // ROB -- DON'T BOTHER READING THIS STUFF
 
-// ---> MONEY FUNCTION  <----
+// ---> IMPORTANT FINAL FUNCTION  <----
 //bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kLowNu) {
 bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
   const std::map<std::string, int> particles = GetParticleTopology(
@@ -172,8 +172,9 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
       return true;
     case kHighNu:
       return true;
-  case kInclusive:
-    return true;
+    case kInclusive:
+      return true;
+
     default:
       std::cout << "IsSignal Error Unknown Signal Definition! I think that my sig_def is:" << sig_def << "." << std::endl;
       return false;
@@ -187,9 +188,10 @@ std::string GetSignalName(SignalDefinition sig_def) {
       return "#nu_{#mu} Tracker #rightarrow #mu^{-} [Low Nu placeholder]";
     case kHighNu:
       return "#nu_{#mu} Tracker #rightarrow #mu^{-} [High Nu placeholder]";
-  case kInclusive:
-    return "#nu_{#mu} Tracker #rightarrow #mu^{-} X";
-  default:
+    case kInclusive:
+      return "#nu_{#mu} Tracker #rightarrow #mu^{-} X";
+
+    default:
       return "UNKNOWN SIGNAL";
   }
 }
@@ -200,8 +202,9 @@ std::string GetSignalFileTag(SignalDefinition sig_def) {
       return "LowNu";
     case kHighNu:
       return "HighNu";
-  case kInclusive:
-    return "Inclusive";
+    case kInclusive:
+      return "Inclusive";
+
     default:
       return "UNKNOWN SIGNAL";
   }
