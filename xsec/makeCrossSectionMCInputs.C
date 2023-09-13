@@ -30,8 +30,8 @@ typedef Variable Var;
 
 std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
   const int nadphibins = 16;
-  const double adphimin = -CCNuPionIncConsts::PI;
-  const double adphimax = CCNuPionIncConsts::PI;
+  const double adphimin = -Constants::PI;
+  const double adphimax = Constants::PI;
 
   Var* pmu = new Var("pmu", "p_{#mu}", "MeV", CCPi::GetBinning("pmu"),
                      &CVUniverse::GetPmu);
@@ -107,8 +107,8 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
 
   std::vector<Variable*> GetInclusiveVariables(bool include_truth_vars = true) {
     const int nadphibins = 16;
-    const double adphimin = -CCNuPionIncConsts::PI;
-    const double adphimax = CCNuPionIncConsts::PI;
+    const double adphimin = -Constants::PI;
+    const double adphimax = Constants::PI;
     
     Var* pmu = new Var("pmu", "p_{#mu}", "MeV", CCPi::GetBinning("pmu"),
                        &CVUniverse::GetPmu);
