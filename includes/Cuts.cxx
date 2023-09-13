@@ -19,7 +19,6 @@ includes/CutUtils.h
 //==============================================================================
 // Passes ALL Cuts
 //==============================================================================
-//PassesPionCutsInfo PassesPionCuts(CVUniverse& universe, const bool is_mc,
 PassesCutsInfo PassesCuts(CVUniverse& universe, const bool is_mc,
                           const SignalDefinition signal_definition,
                           std::vector<ECuts> cuts) {
@@ -34,13 +33,11 @@ PassesCutsInfo PassesCuts(CVUniverse& universe, const bool is_mc,
     passes_all_cuts = passes_all_cuts && passes_this_cut;
   }
 
-  //return PassesCutsPionInfo{passes_all_cuts, is_w_sideband,
-  //                      passes_all_cuts_except_w, pion_candidate_idxs};
   return PassesCutsInfo{passes_all_cuts};
 }
 
 
-//PassesInclCutsInfo PassesInclCuts(CVUniverse& universe, const bool is_mc,
+//PassesCutsInfoInclusive PassesCutsInclusive(CVUniverse& universe, const bool is_mc,
 //			      const SignalDefinition signal_definition,
 //			      std::vector<ECuts> cuts) {
 //  //============================================================================
@@ -51,7 +48,7 @@ PassesCutsInfo PassesCuts(CVUniverse& universe, const bool is_mc,
 //
 //}
 
-PassesCutsInfo PassesInclCuts(CVUniverse& universe, const bool is_mc,
+PassesCutsInfo PassesCutsInclusive(CVUniverse& universe, const bool is_mc,
 			      const SignalDefinition signal_definition,
 			      std::vector<ECuts> cuts) {
   //============================================================================
