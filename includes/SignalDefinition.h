@@ -150,8 +150,7 @@ bool XYVtxIsSignal(const CVUniverse& univ) {
 // ROB -- DON'T BOTHER READING THIS STUFF
 
 // ---> IMPORTANT FINAL FUNCTION  <----
-bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kLowNu) {
-//bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
+bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
   const std::map<std::string, int> particles = GetParticleTopology(
       univ.GetVec<int>("mc_FSPartPDG"), univ.GetVec<double>("mc_FSPartE"));
   if (univ.GetInt("mc_current") == 1 && univ.GetBool("truth_is_fiducial") &&
@@ -189,7 +188,7 @@ std::string GetSignalName(SignalDefinition sig_def) {
     case kHighNu:
       return "#nu_{#mu} Tracker #rightarrow #mu^{-} [High Nu placeholder]";
     case kInclusive:
-      return "#nu_{#mu} Tracker #rightarrow #mu^{-} X";
+      return "#nu_{#mu} Tracker #rightarrow #mu^{-} X [Inclusive]";
 
     default:
       return "UNKNOWN SIGNAL";
