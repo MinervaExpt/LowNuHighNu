@@ -28,6 +28,16 @@ struct PassesCutsInfo {
   };
 };
 
+struct PassesCutsInfoInclusive {
+  bool passes_incl_cuts;
+  bool is_dis_signal;
+  bool is_lowwhighq2_sideband;
+  bool is_lowq2highw_sideband;
+  std::tuple<bool,bool,bool,bool> GetAll(){
+    return {passes_incl_cuts, is_dis_signal, is_lowwhighq2_sideband, is_lowq2highw_sideband};
+  };
+};
+
 enum ECuts {
   kNoCuts,
   kGoodObjects,
