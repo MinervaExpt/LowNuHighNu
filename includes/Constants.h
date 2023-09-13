@@ -66,12 +66,9 @@ typedef std::map<std::string, std::vector<CVUniverse*>> UniverseMap;
 //==============================================================================
 namespace Constants {
 
-  const double CHARGED_PION_MASS = 139.569;
-  const double CHARGED_KAON_MASS = 493.677;
   const double MUON_MASS = 105.659;
   const double PROTON_MASS = 938.3;
   const double PI = 3.14159265358979323846;
-
 
 }
 
@@ -79,11 +76,6 @@ namespace Constants {
 
 namespace CCNuPionIncConsts {
 const int N_LAT_UNIVERSES = 60;
-const double CHARGED_PION_MASS = 139.569;
-const double CHARGED_KAON_MASS = 493.677;
-const double MUON_MASS = 105.659;
-const double PROTON_MASS = 938.3;
-const double PI = 3.14159265358979323846;
 
 const double bindE = 25.;
 const double numi_beam_angle_rad = -0.05887;

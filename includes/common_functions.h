@@ -7,7 +7,7 @@
 #include "TFile.h"
 #include "TKey.h"
 
-#include "Constants.h" // CCNuPionIncConsts::PI
+#include "Constants.h" // Constants::PI
 #include "MacroUtil.h"
 #include "Variable.h"
 

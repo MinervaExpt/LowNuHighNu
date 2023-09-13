@@ -2,7 +2,7 @@
 #define utilities_h
 
 #include "TString.h"
-#include "Constants.h" // CCNuPionIncConsts::PI
+#include "Constants.h" // Constants::PI
 
 TString uniq() {
   static int i=0;
@@ -31,10 +31,10 @@ namespace ContainerEraser {
 double FixAngle(double angle) {
   double ret = angle;
   if (ret < 0.0) ret = -1.0*ret;
-  if (ret > CCNuPionIncConsts::PI) ret = 2.0*CCNuPionIncConsts::PI - ret;
+  if (ret > Constants::PI) ret = 2.0*Constants::PI - ret;
   return ret;
 }
 
-double ConvertRadToDeg(double rad) { return rad*180./CCNuPionIncConsts::PI; }
+double ConvertRadToDeg(double rad) { return rad*180./Constants::PI; }
 
 #endif // utilities_h

@@ -347,16 +347,16 @@ double CVUniverse::CalcQ2(const double Enu, const double Emu,
                           const double Thetamu) const {
   double Q2 =
       2.0 * Enu *
-          (Emu - sqrt(pow(Emu, 2.0) - pow(CCNuPionIncConsts::MUON_MASS, 2.0)) *
+          (Emu - sqrt(pow(Emu, 2.0) - pow(Constants::MUON_MASS, 2.0)) *
                      cos(Thetamu)) -
-      pow(CCNuPionIncConsts::MUON_MASS, 2.0);
+      pow(Constants::MUON_MASS, 2.0);
   if (Q2 < 0.) Q2 = 0.0;
   return Q2;
 }
 
 double CVUniverse::CalcWexp(const double Q2, const double Ehad) const {
-  double W = pow(CCNuPionIncConsts::PROTON_MASS, 2.0) - Q2 +
-             2.0 * (CCNuPionIncConsts::PROTON_MASS)*Ehad;
+  double W = pow(Constants::PROTON_MASS, 2.0) - Q2 +
+             2.0 * (Constants::PROTON_MASS)*Ehad;
   W = W > 0 ? sqrt(W) : 0.0;
   return W;
 }
