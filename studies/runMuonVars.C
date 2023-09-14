@@ -6,7 +6,6 @@
 #include <iostream>
 #include <vector>
 
-#include "playlist_methods.h"  // GetPlaylistFile
 #include "includes/Binning.h"
 #include "includes/CCPiEvent.h"
 #include "includes/CVUniverse.h"
@@ -14,6 +13,7 @@
 #include "includes/MacroUtil.h"
 #include "includes/Variable.h"
 #include "includes/common_functions.h"
+#include "playlist_methods.h"  // GetPlaylistFile
 #include "xsec/plotting_functions.h"
 
 // Forward declare my variables because we're hiding the header.

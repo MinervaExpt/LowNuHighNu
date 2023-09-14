@@ -10,13 +10,12 @@
 
 class CVUniverse : public PlotUtils::MinervaUniverse {
  private:
-
  public:
+#include "PlotUtils/LowRecoilPionFunctions.h"
 #include "PlotUtils/MuonFunctions.h"
 #include "PlotUtils/RecoilEnergyFunctions.h"
 #include "PlotUtils/TruthFunctions.h"
 #include "PlotUtils/WeightFunctions.h"
-#include "PlotUtils/LowRecoilPionFunctions.h"
   // CTOR
   CVUniverse(PlotUtils::ChainWrapper* chw, double nsigma = 0);
 
@@ -32,7 +31,7 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
 
   // No stale cache!
   virtual void OnNewEntry() override {
-    //RDF: there was some pion business here, I figured I'd preserve
+    // RDF: there was some pion business here, I figured I'd preserve
     // the structure in case it ends up being useful
   }
 

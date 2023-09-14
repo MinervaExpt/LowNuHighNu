@@ -171,10 +171,10 @@ void PrintEffPurTable(const EventCount signal, const EventCount background,
   double n_all_bg = -99999.;
   try {
     n_all_sig = signal.at(kNoCuts);
-    n_all_bg  = background.at(kNoCuts);
-  }
-  catch (const std::out_of_range& oor) {
-    std::cerr << "Out of Range error: " << oor.what() << " " << GetCutName(kNoCuts) << "\n";
+    n_all_bg = background.at(kNoCuts);
+  } catch (const std::out_of_range &oor) {
+    std::cerr << "Out of Range error: " << oor.what() << " "
+              << GetCutName(kNoCuts) << "\n";
     std::cerr << "This usually means that no events passed this cut.\n";
   }
   double prev_n_sig = n_all_sig;

@@ -2,16 +2,16 @@
 #define SignalDefinition_H
 
 #include "includes/CVUniverse.h"
-#include "includes/Constants.h" // namespace CCNuPionIncConsts
+#include "includes/Constants.h"  // namespace CCNuPionIncConsts
 
 enum SignalDefinition { kInclusive, kLowNu, kHighNu, kNSignalDefTypes };
 
 double GetWCutValue(SignalDefinition signal_definition) {
   switch (signal_definition) {
     case kLowNu:
-      return 1000.; // placeholder
+      return 1000.;  // placeholder
     case kHighNu:
-      return 1100.; // placeholder
+      return 1100.;  // placeholder
     case kInclusive:
       return 10.;
     default:
@@ -157,9 +157,10 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
       ZVtxIsSignal(univ) && XYVtxIsSignal(univ) &&
       univ.GetInt("mc_incoming") == 14 &&
       univ.GetThetalepTrue() < CCNuPionIncConsts::kThetamuMaxCutVal &&
-      //0. < univ.GetWexpTrue() && univ.GetWexpTrue() < GetWCutValue(sig_def) &&
+      // 0. < univ.GetWexpTrue() && univ.GetWexpTrue() < GetWCutValue(sig_def)
+      // &&
       // && NOtherParticles(univ) == 0
-      //particles.at("piplus_range") == 1 && Is1PiPlus(particles) &&
+      // particles.at("piplus_range") == 1 && Is1PiPlus(particles) &&
       CCNuPionIncConsts::kPmuMinCutVal < univ.GetPmuTrue() &&
       univ.GetPmuTrue() < CCNuPionIncConsts::kPmuMaxCutVal) {
   } else {
@@ -175,7 +176,9 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
       return true;
 
     default:
-      std::cout << "IsSignal Error Unknown Signal Definition! I think that my sig_def is:" << sig_def << "." << std::endl;
+      std::cout << "IsSignal Error Unknown Signal Definition! I think that my "
+                   "sig_def is:"
+                << sig_def << "." << std::endl;
       return false;
   }
 }

@@ -1,15 +1,15 @@
 #ifndef runEffPurTable_C
 #define runEffPurTable_C
 
-#include "playlist_methods.h"  // GetPlaylistFile
+#include <chrono>
+
 #include "includes/CCPiEvent.h"
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h"  // typedefs EventCount, t12 globals for timing
 #include "includes/Cuts.h"
 #include "includes/EventSelectionTable.h"
 #include "includes/MacroUtil.h"
-
-#include <chrono>
+#include "playlist_methods.h"  // GetPlaylistFile
 
 //==============================================================================
 // Loop and fill
@@ -38,14 +38,14 @@ std::tuple<EventCount, EventCount> FillCounters(
 // Main
 //==============================================================================
 void runEffPurTable(int signal_definition_int = 0, const char* plist = "ALL") {
-auto start = std::chrono::steady_clock::now();
+  auto start = std::chrono::steady_clock::now();
   // INIT MACRO UTILITY OBJECT
   const std::string macro("runEffPurTable");
   bool do_data = true, do_mc = true, do_truth = true;
   bool do_systematics = false, is_grid = false;
   bool use_xrootd = false;
-  //std::string data_file_list = GetPlaylistFile(plist, false, use_xrootd);
-  //std::string mc_file_list = GetPlaylistFile(plist, true, use_xrootd);
+  // std::string data_file_list = GetPlaylistFile(plist, false, use_xrootd);
+  // std::string mc_file_list = GetPlaylistFile(plist, true, use_xrootd);
   bool is_mc = false;
   std::string data_file_list = GetTestPlaylist(is_mc);
   is_mc = true;
@@ -71,11 +71,14 @@ auto start = std::chrono::steady_clock::now();
 
   PrintEffPurTable(n_remaining_sig, n_remaining_bg, n_remaining_data,
                    util.m_data_pot, util.m_mc_pot);
-auto stop = std::chrono::steady_clock::now();
-std::cout << "running time: " << std::chrono::duration_cast<std::chrono::seconds>(stop-start).count() << "sec\n";
-std::cout << "cluster creation time: " << t01.count() << "sec\n";
-std::cout << "cluster loop 1: " << t12.count() << "sec\n";
-std::cout << "cluster loop 2: " << t23.count() << "sec\n";
+  auto stop = std::chrono::steady_clock::now();
+  std::cout
+      << "running time: "
+      << std::chrono::duration_cast<std::chrono::seconds>(stop - start).count()
+      << "sec\n";
+  std::cout << "cluster creation time: " << t01.count() << "sec\n";
+  std::cout << "cluster loop 1: " << t12.count() << "sec\n";
+  std::cout << "cluster loop 2: " << t23.count() << "sec\n";
 }
 
 #endif
