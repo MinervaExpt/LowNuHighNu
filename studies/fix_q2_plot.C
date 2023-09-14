@@ -20,13 +20,13 @@
 #include "TList.h"
 #include "TPad.h"
 #include "TStyle.h"
-#include "playlist_methods.h"        // GetTestPlaylist
 #include "includes/Constants.h"   // CVHW, UniverseMap
 #include "includes/Histograms.h"  // LoadHWFromFile
 #include "includes/MacroUtil.h"
 #include "includes/Plotter.h"
 #include "includes/SignalDefinition.h"
 #include "includes/Variable.h"
+#include "playlist_methods.h"  // GetTestPlaylist
 
 void PlotTH1_1(TH1* h, std::string tag, double ymax = -1,
                bool do_log_scale = false, bool do_fit = false) {

@@ -62,9 +62,7 @@ double CVUniverse::GetThetamuDeg() const {
 }
 
 // event-wide
-double CVUniverse::GetEhad() const {
-  return GetCalRecoilEnergy();
-}
+double CVUniverse::GetEhad() const { return GetCalRecoilEnergy(); }
 double CVUniverse::GetEnu() const { return GetEmu() + GetEhad(); }
 
 double CVUniverse::GetQ2() const {
@@ -126,13 +124,13 @@ double CVUniverse::GetWexpTrue() const {
   return CalcWexp(GetQ2True(), GetEhadTrue());
 }
 
-
 //==============================
 // Ehad (GetErecoil) Variables
 //==============================
 // Untracked recoil energy
 double CVUniverse::GetCalRecoilEnergy() const {
-  return GetCalRecoilEnergy_CCIncSpline(); //AEN This really only works for the tracker now 
+  return GetCalRecoilEnergy_CCIncSpline();  // AEN This really only works for
+                                            // the tracker now
 }
 
 // Total recoil with CCPi spline correction.
@@ -152,9 +150,7 @@ double CVUniverse::GetCalRecoilEnergy_DefaultSpline() const {
 // RDF: This is a placeholder; required because the Response systematics expect
 // a function with this name to exist
 // This is what the response universe calls our tracked recoil energy
-double CVUniverse::GetNonCalRecoilEnergy() const {
-  return 0.; 
-}
+double CVUniverse::GetNonCalRecoilEnergy() const { return 0.; }
 
 //==============================
 // ehad old variables
@@ -335,8 +331,8 @@ double CVUniverse::GetWeight() const {
   wgt_geant = GetGeantHadronWeight();
 
   return wgt_genie * wgt_flux * wgt_2p2h * wgt_rpa * wgt_lowq2 * wgt_mueff *
-         wgt_anisodd * wgt_diffractive * wgt_mk * wgt_target *
-         wgt_fsi * wgt_geant * wgt_sbfit;
+         wgt_anisodd * wgt_diffractive * wgt_mk * wgt_target * wgt_fsi *
+         wgt_geant * wgt_sbfit;
 }
 
 //==============================================================================
@@ -345,11 +341,10 @@ double CVUniverse::GetWeight() const {
 
 double CVUniverse::CalcQ2(const double Enu, const double Emu,
                           const double Thetamu) const {
-  double Q2 =
-      2.0 * Enu *
-          (Emu - sqrt(pow(Emu, 2.0) - pow(Constants::MUON_MASS, 2.0)) *
-                     cos(Thetamu)) -
-      pow(Constants::MUON_MASS, 2.0);
+  double Q2 = 2.0 * Enu *
+                  (Emu - sqrt(pow(Emu, 2.0) - pow(Constants::MUON_MASS, 2.0)) *
+                             cos(Thetamu)) -
+              pow(Constants::MUON_MASS, 2.0);
   if (Q2 < 0.) Q2 = 0.0;
   return Q2;
 }
@@ -369,6 +364,5 @@ double CVUniverse::Calcq3(const double Q2, const double Enu,
                           const double Emu) const {
   return sqrt(Q2 + pow(Enu - Emu, 2.0));
 }
-
 
 #endif  // CVUniverse_cxx

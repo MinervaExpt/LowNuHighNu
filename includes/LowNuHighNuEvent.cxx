@@ -3,15 +3,15 @@
 
 #include "LowNuHighNuEvent.h"
 
-#include "Cuts.h"    // kCutsVector
+#include "Cuts.h"              // kCutsVector
 #include "common_functions.h"  // GetVar, HasVar
 
 //==============================================================================
 // CTOR
 //==============================================================================
 LowNuHighNuEvent::LowNuHighNuEvent(const bool is_mc, const bool is_truth,
-                     const SignalDefinition signal_definition,
-                     CVUniverse* universe)
+                                   const SignalDefinition signal_definition,
+                                   CVUniverse* universe)
     : m_is_mc(is_mc),
       m_is_truth(is_truth),
       m_signal_definition(signal_definition),
@@ -39,7 +39,7 @@ SignalBackgroundType GetSignalBackgroundType(const LowNuHighNuEvent& e) {
 // Fill all histos for an entire event -- call other specialized fill functions
 //==============================================================================
 void lownuhighnu_event::FillRecoEvent(const LowNuHighNuEvent& event,
-                               const std::vector<Variable*>& variables) {
+                                      const std::vector<Variable*>& variables) {
   // Fill selection -- total, signal-only, and bg-only
   if (event.m_passes_cuts) {
     lownuhighnu_event::FillSelected(event, variables);
@@ -50,7 +50,8 @@ void lownuhighnu_event::FillRecoEvent(const LowNuHighNuEvent& event,
   // }
 
   // // Fill W Sideband Study
-  // if (event.m_passes_all_cuts_except_w && event.m_universe->ShortName() == "cv") {
+  // if (event.m_passes_all_cuts_except_w && event.m_universe->ShortName() ==
+  // "cv") {
   //   lownuhighnu_event::FillWSideband_Study(event, variables);
   // }
 
@@ -78,8 +79,8 @@ void lownuhighnu_event::FillRecoEvent(const LowNuHighNuEvent& event,
   }
 }
 
-void lownuhighnu_event::FillTruthEvent(const LowNuHighNuEvent& event,
-                                const std::vector<Variable*>& variables) {
+void lownuhighnu_event::FillTruthEvent(
+    const LowNuHighNuEvent& event, const std::vector<Variable*>& variables) {
   // Fill Efficiency Denominator
   if (event.m_is_signal)
     lownuhighnu_event::FillEfficiencyDenominator(event, variables);
@@ -93,7 +94,7 @@ void lownuhighnu_event::FillTruthEvent(const LowNuHighNuEvent& event,
 // ** signal only (true vars, for eff num & closure)
 // ** bg only (reco and true vars)
 void lownuhighnu_event::FillSelected(const LowNuHighNuEvent& event,
-                              const std::vector<Variable*>& variables) {
+                                     const std::vector<Variable*>& variables) {
   for (auto var : variables) {
     // Sanity Checks
     if (var->m_is_true && !event.m_is_mc) return;  // truth, but not MC?
@@ -146,7 +147,7 @@ void lownuhighnu_event::FillSelected(const LowNuHighNuEvent& event,
 
 // Fill histograms of all variables with events in the sideband region
 void lownuhighnu_event::FillWSideband(const LowNuHighNuEvent& event,
-                               const std::vector<Variable*>& variables) {
+                                      const std::vector<Variable*>& variables) {
   if (!event.m_is_w_sideband) {
     std::cerr << "FillWSideband Warning: This event is not in the wsideband "
                  "region, are you sure you want to be filling?\n";
@@ -190,8 +191,8 @@ void lownuhighnu_event::FillWSideband(const LowNuHighNuEvent& event,
 }
 
 void lownuhighnu_event::FillMigration(const LowNuHighNuEvent& event,
-                               const vector<Variable*>& variables,
-                               std::string name) {
+                                      const vector<Variable*>& variables,
+                                      std::string name) {
   Variable* reco_var = GetVar(variables, name);
   Variable* true_var = GetVar(variables, name + string("_true"));
   if (true_var == 0) return;
@@ -226,7 +227,7 @@ void lownuhighnu_event::FillEfficiencyDenominator(
 // only. Other hists owned by this variable are used to perform the fit (those
 // are filled in FillWSideband.)
 void lownuhighnu_event::FillWSideband_Study(const LowNuHighNuEvent& event,
-                                     std::vector<Variable*> variables) {
+                                            std::vector<Variable*> variables) {
   if (event.m_universe->ShortName() != "cv") {
     std::cerr << "FillWSideband_Study Warning: you're filling the wexp_fit "
                  "variable w/o the W-cut for a universe other than the CV\n";
@@ -240,8 +241,7 @@ void lownuhighnu_event::FillWSideband_Study(const LowNuHighNuEvent& event,
   Variable* var = GetVar(variables, sidebands::kFitVarString);
   double fill_val = var->GetValue(*event.m_universe);
   if (event.m_is_mc) {
-    var->GetStackComponentHist(event.m_w_type)
-        ->Fill(fill_val, event.m_weight);
+    var->GetStackComponentHist(event.m_w_type)->Fill(fill_val, event.m_weight);
   } else {
     var->m_hists.m_wsideband_data->Fill(fill_val);
   }
@@ -260,9 +260,8 @@ void lownuhighnu_event::FillCounters(
       continue;  // truth loop does precuts
 
     bool passes_this_cut = true;
-    passes_this_cut =
-        PassesCut(*event.m_universe, i_cut, event.m_is_mc,
-                  event.m_signal_definition);
+    passes_this_cut = PassesCut(*event.m_universe, i_cut, event.m_is_mc,
+                                event.m_signal_definition);
 
     pass = pass && passes_this_cut;
 
@@ -290,9 +289,8 @@ std::pair<EventCount, EventCount> lownuhighnu_event::FillCounters(
     if (event.m_is_truth != IsPrecut(i_cut)) continue;
 
     bool passes_this_cut = true;
-    passes_this_cut =
-        PassesCut(*event.m_universe, i_cut, event.m_is_mc,
-                  event.m_signal_definition);
+    passes_this_cut = PassesCut(*event.m_universe, i_cut, event.m_is_mc,
+                                event.m_signal_definition);
 
     pass = pass && passes_this_cut;
 
@@ -311,7 +309,7 @@ std::pair<EventCount, EventCount> lownuhighnu_event::FillCounters(
 }
 
 void lownuhighnu_event::FillCutVars(LowNuHighNuEvent& event,
-                             const std::vector<Variable*>& variables) {
+                                    const std::vector<Variable*>& variables) {
   const CVUniverse* universe = event.m_universe;
   const double wgt = event.m_weight;
   const bool is_mc = event.m_is_mc;
@@ -331,8 +329,7 @@ void lownuhighnu_event::FillCutVars(LowNuHighNuEvent& event,
     }
 
     bool passes_this_cut = true;
-    passes_this_cut =
-        PassesCut(*universe, cut, is_mc, sd);
+    passes_this_cut = PassesCut(*universe, cut, is_mc, sd);
 
     pass = pass && passes_this_cut;
     if (!pass) continue;
@@ -360,13 +357,13 @@ void lownuhighnu_event::FillCutVars(LowNuHighNuEvent& event,
   }  // end cuts loop
 }
 
-void lownuhighnu_event::FillStackedHists(const LowNuHighNuEvent& event,
-                                  const std::vector<Variable*>& variables) {
+void lownuhighnu_event::FillStackedHists(
+    const LowNuHighNuEvent& event, const std::vector<Variable*>& variables) {
   for (auto var : variables) FillStackedHists(event, var);
 }
 
-void lownuhighnu_event::FillStackedHists(const LowNuHighNuEvent& event, Variable* v,
-                                  double fill_val) {
+void lownuhighnu_event::FillStackedHists(const LowNuHighNuEvent& event,
+                                         Variable* v, double fill_val) {
   if (!event.m_is_mc && v->m_is_true) return;
 
   if (fill_val == -999.) fill_val = v->GetValue(*event.m_universe);

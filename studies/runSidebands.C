@@ -208,8 +208,8 @@ void runSidebands(int signal_definition_int = 0, const char* plist = "ME1A",
   bool use_xrootd = false;
   std::string mc_file_list = GetPlaylistFile(plist, true /*is mc*/, use_xrootd);
   std::string data_file_list = GetPlaylistFile(plist, false, use_xrootd);
-  //std::string data_file_list = GetTestPlaylist(false);
-  //std::string mc_file_list = GetTestPlaylist(true);
+  // std::string data_file_list = GetTestPlaylist(false);
+  // std::string mc_file_list = GetTestPlaylist(true);
 
   const std::string macro("runSidebands");
   bool do_truth = false, is_grid = false;

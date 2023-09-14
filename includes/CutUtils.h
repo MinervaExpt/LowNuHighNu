@@ -1,13 +1,10 @@
 #ifndef CutUtils_h
 #define CutUtils_h
 
-#include "Constants.h"    // enum ECuts, CCNuPionIncConsts
+#include "Constants.h"  // enum ECuts, CCNuPionIncConsts
 
 // Analysis Cuts - default vector
-const std::vector<ECuts> kCutsVector = {kNoCuts,
-                                        kPrecuts,
-                                        kVtx,
-                                        kMinosMuon,
+const std::vector<ECuts> kCutsVector = {kNoCuts, kPrecuts, kVtx, kMinosMuon,
                                         kPmu};
 
 // Gaudi tool cuts - only work when checking truth tuple

@@ -3,15 +3,15 @@
 
 #include "InclusiveEvent.h"
 
-#include "Cuts.h"    // kCutsVector
+#include "Cuts.h"              // kCutsVector
 #include "common_functions.h"  // GetVar, HasVar
 
 //==============================================================================
 // CTOR
 //==============================================================================
 InclusiveEvent::InclusiveEvent(const bool is_mc, const bool is_truth,
-                     const SignalDefinition signal_definition,
-                     CVUniverse* universe)
+                               const SignalDefinition signal_definition,
+                               CVUniverse* universe)
     : m_is_mc(is_mc),
       m_is_truth(is_truth),
       m_signal_definition(signal_definition),
@@ -39,7 +39,7 @@ SignalBackgroundType GetSignalBackgroundType(const InclusiveEvent& e) {
 // Fill all histos for an entire event -- call other specialized fill functions
 //==============================================================================
 void inclusive_event::FillRecoEvent(const InclusiveEvent& event,
-                               const std::vector<Variable*>& variables) {
+                                    const std::vector<Variable*>& variables) {
   // Fill selection -- total, signal-only, and bg-only
   if (event.m_passes_cuts) {
     inclusive_event::FillSelected(event, variables);
@@ -50,7 +50,8 @@ void inclusive_event::FillRecoEvent(const InclusiveEvent& event,
   // }
 
   // // Fill W Sideband Study
-  // if (event.m_passes_all_cuts_except_w && event.m_universe->ShortName() == "cv") {
+  // if (event.m_passes_all_cuts_except_w && event.m_universe->ShortName() ==
+  // "cv") {
   //   inclusive_event::FillWSideband_Study(event, variables);
   // }
 
@@ -79,7 +80,7 @@ void inclusive_event::FillRecoEvent(const InclusiveEvent& event,
 }
 
 void inclusive_event::FillTruthEvent(const InclusiveEvent& event,
-                                const std::vector<Variable*>& variables) {
+                                     const std::vector<Variable*>& variables) {
   // Fill Efficiency Denominator
   if (event.m_is_signal)
     inclusive_event::FillEfficiencyDenominator(event, variables);
@@ -93,7 +94,7 @@ void inclusive_event::FillTruthEvent(const InclusiveEvent& event,
 // ** signal only (true vars, for eff num & closure)
 // ** bg only (reco and true vars)
 void inclusive_event::FillSelected(const InclusiveEvent& event,
-                              const std::vector<Variable*>& variables) {
+                                   const std::vector<Variable*>& variables) {
   for (auto var : variables) {
     // Sanity Checks
     if (var->m_is_true && !event.m_is_mc) return;  // truth, but not MC?
@@ -146,7 +147,7 @@ void inclusive_event::FillSelected(const InclusiveEvent& event,
 
 // Fill histograms of all variables with events in the sideband region
 void inclusive_event::FillWSideband(const InclusiveEvent& event,
-                               const std::vector<Variable*>& variables) {
+                                    const std::vector<Variable*>& variables) {
   if (!event.m_is_w_sideband) {
     std::cerr << "FillWSideband Warning: This event is not in the wsideband "
                  "region, are you sure you want to be filling?\n";
@@ -190,8 +191,8 @@ void inclusive_event::FillWSideband(const InclusiveEvent& event,
 }
 
 void inclusive_event::FillMigration(const InclusiveEvent& event,
-                               const vector<Variable*>& variables,
-                               std::string name) {
+                                    const vector<Variable*>& variables,
+                                    std::string name) {
   Variable* reco_var = GetVar(variables, name);
   Variable* true_var = GetVar(variables, name + string("_true"));
   if (true_var == 0) return;
@@ -226,7 +227,7 @@ void inclusive_event::FillEfficiencyDenominator(
 // only. Other hists owned by this variable are used to perform the fit (those
 // are filled in FillWSideband.)
 void inclusive_event::FillWSideband_Study(const InclusiveEvent& event,
-                                     std::vector<Variable*> variables) {
+                                          std::vector<Variable*> variables) {
   if (event.m_universe->ShortName() != "cv") {
     std::cerr << "FillWSideband_Study Warning: you're filling the wexp_fit "
                  "variable w/o the W-cut for a universe other than the CV\n";
@@ -240,8 +241,7 @@ void inclusive_event::FillWSideband_Study(const InclusiveEvent& event,
   Variable* var = GetVar(variables, sidebands::kFitVarString);
   double fill_val = var->GetValue(*event.m_universe);
   if (event.m_is_mc) {
-    var->GetStackComponentHist(event.m_w_type)
-        ->Fill(fill_val, event.m_weight);
+    var->GetStackComponentHist(event.m_w_type)->Fill(fill_val, event.m_weight);
   } else {
     var->m_hists.m_wsideband_data->Fill(fill_val);
   }
@@ -260,9 +260,8 @@ void inclusive_event::FillCounters(
       continue;  // truth loop does precuts
 
     bool passes_this_cut = true;
-    passes_this_cut =
-        PassesCut(*event.m_universe, i_cut, event.m_is_mc,
-                  event.m_signal_definition);
+    passes_this_cut = PassesCut(*event.m_universe, i_cut, event.m_is_mc,
+                                event.m_signal_definition);
 
     pass = pass && passes_this_cut;
 
@@ -290,9 +289,8 @@ std::pair<EventCount, EventCount> inclusive_event::FillCounters(
     if (event.m_is_truth != IsPrecut(i_cut)) continue;
 
     bool passes_this_cut = true;
-    passes_this_cut =
-        PassesCut(*event.m_universe, i_cut, event.m_is_mc,
-                  event.m_signal_definition);
+    passes_this_cut = PassesCut(*event.m_universe, i_cut, event.m_is_mc,
+                                event.m_signal_definition);
 
     pass = pass && passes_this_cut;
 
@@ -311,7 +309,7 @@ std::pair<EventCount, EventCount> inclusive_event::FillCounters(
 }
 
 void inclusive_event::FillCutVars(InclusiveEvent& event,
-                             const std::vector<Variable*>& variables) {
+                                  const std::vector<Variable*>& variables) {
   const CVUniverse* universe = event.m_universe;
   const double wgt = event.m_weight;
   const bool is_mc = event.m_is_mc;
@@ -331,8 +329,7 @@ void inclusive_event::FillCutVars(InclusiveEvent& event,
     }
 
     bool passes_this_cut = true;
-    passes_this_cut =
-        PassesCut(*universe, cut, is_mc, sd);
+    passes_this_cut = PassesCut(*universe, cut, is_mc, sd);
 
     pass = pass && passes_this_cut;
     if (!pass) continue;
@@ -360,15 +357,14 @@ void inclusive_event::FillCutVars(InclusiveEvent& event,
   }  // end cuts loop
 }
 
-void inclusive_event::FillStackedHists(const InclusiveEvent& event,
-                                  const std::vector<Variable*>& variables) {
+void inclusive_event::FillStackedHists(
+    const InclusiveEvent& event, const std::vector<Variable*>& variables) {
   for (auto var : variables) FillStackedHists(event, var);
 }
 
 void inclusive_event::FillStackedHists(const InclusiveEvent& event, Variable* v,
-                                  double fill_val) {
+                                       double fill_val) {
   if (!event.m_is_mc && v->m_is_true) return;
-
 
   v->GetStackComponentHist(
        GetCoherentType(*event.m_universe, event.m_signal_definition))

@@ -8,13 +8,13 @@
 
 // example code for timing
 #include <chrono>
-std::chrono::duration<double> t01; // seconds, global
-std::chrono::duration<double> t12; // seconds, global
-std::chrono::duration<double> t23; // seconds, global
-//auto td = std::chrono::steady_clock::now();
+std::chrono::duration<double> t01;  // seconds, global
+std::chrono::duration<double> t12;  // seconds, global
+std::chrono::duration<double> t23;  // seconds, global
+// auto td = std::chrono::steady_clock::now();
 //<...>
-//auto td = std::chrono::steady_clock::now();
-//tcd += std::chrono::duration_cast<std::chrono::microseconds>(td - tc);
+// auto td = std::chrono::steady_clock::now();
+// tcd += std::chrono::duration_cast<std::chrono::microseconds>(td - tc);
 
 class CVUniverse;
 
@@ -23,9 +23,7 @@ class CVUniverse;
 //==============================================================================
 struct PassesCutsInfo {
   bool passes_all_cuts;
-  bool GetAll() {
-    return passes_all_cuts;
-  };
+  bool GetAll() { return passes_all_cuts; };
 };
 
 struct PassesCutsInfoInclusive {
@@ -33,8 +31,9 @@ struct PassesCutsInfoInclusive {
   bool is_dis_signal;
   bool is_lowwhighq2_sideband;
   bool is_lowq2highw_sideband;
-  std::tuple<bool,bool,bool,bool> GetAll(){
-    return {passes_incl_cuts, is_dis_signal, is_lowwhighq2_sideband, is_lowq2highw_sideband};
+  std::tuple<bool, bool, bool, bool> GetAll() {
+    return {passes_incl_cuts, is_dis_signal, is_lowwhighq2_sideband,
+            is_lowq2highw_sideband};
   };
 };
 
@@ -66,13 +65,11 @@ typedef std::map<std::string, std::vector<CVUniverse*>> UniverseMap;
 //==============================================================================
 namespace Constants {
 
-  const double MUON_MASS = 105.659;
-  const double PROTON_MASS = 938.3;
-  const double PI = 3.14159265358979323846;
+const double MUON_MASS = 105.659;
+const double PROTON_MASS = 938.3;
+const double PI = 3.14159265358979323846;
 
-}
-
-
+}  // namespace Constants
 
 namespace CCNuPionIncConsts {
 const int N_LAT_UNIVERSES = 60;

@@ -1,33 +1,35 @@
 #ifndef SignalBackground_H
 #define SignalBackground_H
 
-#include "W.h" // GetTruthWType
 #include "../CVUniverse.h"
-#include "../SignalDefinition.h" // IsSignal
+#include "../SignalDefinition.h"  // IsSignal
+#include "W.h"                    // GetTruthWType
 
-enum SignalBackgroundType
-{
-  kB, kS, kNSignalBackgroundTypes
+enum SignalBackgroundType { kB, kS, kNSignalBackgroundTypes };
+
+enum WBackgroundType {
+  kB_HighW,
+  kB_HighW_Npi,
+  kB_Other,
+  kS_W,
+  kNWBackgroundTypes
 };
 
-enum WBackgroundType
-{
-  kB_HighW, kB_HighW_Npi, kB_Other, kS_W, kNWBackgroundTypes
-};
-
-enum MesonBackgroundType
-{
-  kB_Meson, kB_NonMeson, kS_Meson, kNMesonBackgroundTypes
+enum MesonBackgroundType {
+  kB_Meson,
+  kB_NonMeson,
+  kS_Meson,
+  kNMesonBackgroundTypes
 };
 
 //==============================================================================
 // Simple Signal-Background (no BG breakdown)
 //==============================================================================
-SignalBackgroundType GetSignalBackgroundType(const CVUniverse& universe,
-                                             SignalDefinition signal_definition) {
+SignalBackgroundType GetSignalBackgroundType(
+    const CVUniverse& universe, SignalDefinition signal_definition) {
   if (IsSignal(universe, signal_definition))
     return kS;
-  else 
+  else
     return kB;
 }
 
@@ -53,7 +55,6 @@ std::string GetTruthClassification_Name(SignalBackgroundType category) {
   }
 }
 
-
 //==============================================================================
 // Signal-Background -- W
 //==============================================================================
@@ -61,20 +62,18 @@ WBackgroundType GetWBackgroundType(const CVUniverse& universe,
                                    SignalDefinition signal_definition) {
   if (IsSignal(universe, signal_definition))
     return kS_W;
-  else if ( GetTruthWType(universe, signal_definition) == kHighW ) {
+  else if (GetTruthWType(universe, signal_definition) == kHighW) {
     if (universe.GetInt("truth_N_pip") > 1) {
-      //if (universe.shortName() == "cv") {
+      // if (universe.shortName() == "cv") {
       //  int link_size = 200;
       //  char link [link_size];
       //  universe.arachneLink(link, link_size);
       //  std::cout << link << std::endl;
       //}
       return kB_HighW_Npi;
-    }
-    else
+    } else
       return kB_HighW;
-  }
-  else 
+  } else
     return kB_Other;
 }
 
@@ -109,34 +108,28 @@ std::string GetTruthClassification_Name(WBackgroundType category) {
 }
 //==============================================================================
 
-
 //==============================================================================
 // Signal-Background -- Meson content
 //==============================================================================
 MesonBackgroundType GetMesonBackgroundType(const CVUniverse& universe,
                                            SignalDefinition signal_definition) {
-  if (IsSignal(universe, signal_definition))
-    return kS_Meson;
+  if (IsSignal(universe, signal_definition)) return kS_Meson;
 
   std::vector<int> fs_particles = universe.GetVec<int>("mc_FSPartPDG");
   bool has_meson = false;
   // loop fs particles, search for mesons
   for (auto particle : fs_particles) {
-    if ( abs(particle) ==  321  || 
-         abs(particle) ==  130  ||
-         abs(particle) ==  311  ||
-         abs(particle) ==  310  ||
-         abs(particle) ==  3222 ||
-         abs(particle) ==  3122 ||
-         abs(particle) ==  111  || 
-         particle      == -211 )
-    {
+    if (abs(particle) == 321 || abs(particle) == 130 || abs(particle) == 311 ||
+        abs(particle) == 310 || abs(particle) == 3222 ||
+        abs(particle) == 3122 || abs(particle) == 111 || particle == -211) {
       has_meson = true;
     }
   }
 
-  if (has_meson) return kB_Meson;
-  else return kB_NonMeson;
+  if (has_meson)
+    return kB_Meson;
+  else
+    return kB_NonMeson;
 }
 
 std::string GetTruthClassification_LegendLabel(MesonBackgroundType category) {
@@ -164,7 +157,5 @@ std::string GetTruthClassification_Name(MesonBackgroundType category) {
       return "ERROR";
   }
 }
-
-
 
 #endif

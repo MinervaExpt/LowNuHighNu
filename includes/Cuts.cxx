@@ -14,6 +14,7 @@ includes/CutUtils.h
 #define Cuts_cxx
 
 #include "Cuts.h"
+
 #include "CutUtils.h"  // IsPrecut, kCutsVector
 
 //==============================================================================
@@ -28,47 +29,42 @@ PassesCutsInfo PassesCuts(CVUniverse& universe, const bool is_mc,
   bool passes_all_cuts = true;
   for (auto c : cuts) {
     bool passes_this_cut = false;
-    passes_this_cut = PassesCut(
-        universe, c, is_mc, signal_definition);
+    passes_this_cut = PassesCut(universe, c, is_mc, signal_definition);
     passes_all_cuts = passes_all_cuts && passes_this_cut;
   }
 
   return PassesCutsInfo{passes_all_cuts};
 }
 
-
-//PassesCutsInfoInclusive PassesCutsInclusive(CVUniverse& universe, const bool is_mc,
-//			      const SignalDefinition signal_definition,
-//			      std::vector<ECuts> cuts) {
+// PassesCutsInfoInclusive PassesCutsInclusive(CVUniverse& universe, const bool
+// is_mc, 			      const SignalDefinition signal_definition, 			      std::vector<ECuts> cuts) {
 //  //============================================================================
 //  bool passes_incl_cuts = true;
 //  bool is_w_sideband = passes_all_cuts_except_w &&
 //    (universe.GetWexp() >= sidebands::kSidebandCutVal);
-//  return {passes_incl_cuts, is_dis_signal, is_lowwhighq2_sideband, is_lowq2highw_sideband};
+//  return {passes_incl_cuts, is_dis_signal, is_lowwhighq2_sideband,
+//  is_lowq2highw_sideband};
 //
 //}
 
 PassesCutsInfo PassesCutsInclusive(CVUniverse& universe, const bool is_mc,
-			      const SignalDefinition signal_definition,
-			      std::vector<ECuts> cuts) {
+                                   const SignalDefinition signal_definition,
+                                   std::vector<ECuts> cuts) {
   //============================================================================
   bool passes_all_cuts = true;
   for (auto c : cuts) {
     bool passes_this_cut = false;
-    passes_this_cut = PassesCut(
-        universe, c, is_mc, signal_definition);
+    passes_this_cut = PassesCut(universe, c, is_mc, signal_definition);
     passes_all_cuts = passes_all_cuts && passes_this_cut;
   }
   return PassesCutsInfo{passes_all_cuts};
 }
 
-
 //==============================================================================
 // Passes INDIVIDUAL Cut
 //==============================================================================
-bool PassesCut(
-    const CVUniverse& univ, const ECuts cut, const bool is_mc,
-    const SignalDefinition signal_definition) {
+bool PassesCut(const CVUniverse& univ, const ECuts cut, const bool is_mc,
+               const SignalDefinition signal_definition) {
   bool pass = false;
 
   if (IsPrecut(cut) && !is_mc) return true;

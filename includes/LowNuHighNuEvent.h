@@ -10,7 +10,8 @@
 class Variable;
 
 //==============================================================================
-// LowNuHighNuEvent is a container struct holding misc info about a universe-event:
+// LowNuHighNuEvent is a container struct holding misc info about a
+// universe-event:
 // * passes cuts
 // * is signal
 // * event weight
@@ -28,7 +29,8 @@ class Variable;
 
 struct LowNuHighNuEvent {
   LowNuHighNuEvent(const bool is_mc, const bool is_truth,
-            const SignalDefinition signal_definition, CVUniverse* universe);
+                   const SignalDefinition signal_definition,
+                   CVUniverse* universe);
 
   // Fixed by the constructor
   const bool m_is_mc;
@@ -57,7 +59,8 @@ void FillSelected(const LowNuHighNuEvent&, const std::vector<Variable*>&);
 void FillRecoEvent(const LowNuHighNuEvent&, const std::vector<Variable*>&);
 void FillWSideband(const LowNuHighNuEvent&, const std::vector<Variable*>&);
 void FillTruthEvent(const LowNuHighNuEvent&, const std::vector<Variable*>&);
-void FillEfficiencyDenominator(const LowNuHighNuEvent&, const std::vector<Variable*>&);
+void FillEfficiencyDenominator(const LowNuHighNuEvent&,
+                               const std::vector<Variable*>&);
 void FillMigration(const LowNuHighNuEvent&, const std::vector<Variable*>&,
                    std::string name);
 
@@ -74,6 +77,5 @@ void FillStackedHists(const LowNuHighNuEvent&,
 void FillStackedHists(const LowNuHighNuEvent&, Variable*,
                       const double fill_value = -999.);  // Single variable
 }  // namespace lownuhighnu_event
-
 
 #endif  // LowNuHighNuEvent

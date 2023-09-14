@@ -249,11 +249,13 @@ int runXSecLooper() {
   // loop.setFiducial(5890, 8467);
   loop.setPlaylist(PlotUtils::FluxReweighter::minervame1A);
   // Add the differential cross section dsigma/ds_dpT
-  double var_edges[] = {0., 1., 2., 3., 4., 5.5, 7.5, 10., 13., 20., 30.}; // pmu binning
-//  double var_edges[] = {0., 0.035, 0.068, 0.1, 0.133, 0.166, 0.200, 0.350}; // tpi binning
+  double var_edges[] = {0.,  1.,  2.,  3.,  4., 5.5,
+                        7.5, 10., 13., 20., 30.};  // pmu binning
+  //  double var_edges[] = {0., 0.035, 0.068, 0.1, 0.133, 0.166, 0.200, 0.350};
+  //  // tpi binning
   int var_nbins = (sizeof(var_edges) / sizeof(*var_edges)) - 1;
 
-  std::cout << "Number of bins = " <<var_nbins << "\n";
+  std::cout << "Number of bins = " << var_nbins << "\n";
 
   // Flux-integrated over the range 0.0 to 100.0 GeV
   MinModDepCCQEXSec* ds_dvar = new MinModDepCCQEXSec("pmu");
@@ -264,8 +266,8 @@ int runXSecLooper() {
   ds_dvar->setNormalizationType(XSec::kPerNucleon);
   ds_dvar->setUniverses(0);  // default value, put 0 if you do not want
                              // universes to be included.
-//  ds_dvar->setVariable(XSec::kTPiPlus);// For tpi
-  ds_dvar->setVariable(XSec::kPLep); // For pmu
+                             //  ds_dvar->setVariable(XSec::kTPiPlus);// For tpi
+  ds_dvar->setVariable(XSec::kPLep);  // For pmu
 
   loop.addXSec(ds_dvar);
 
