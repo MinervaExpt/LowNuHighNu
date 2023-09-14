@@ -2,14 +2,12 @@
 #define W_H
 
 #include "../CVUniverse.h"
-#include "../SignalDefinition.h" // GetWCutValue
+#include "../SignalDefinition.h"  // GetWCutValue
 
-enum WType
-{
-  kHighW, kLowW, kNWTypes
-};
+enum WType { kHighW, kLowW, kNWTypes };
 
-WType GetTruthWType(const CVUniverse& universe, SignalDefinition signal_definition) {
+WType GetTruthWType(const CVUniverse& universe,
+                    SignalDefinition signal_definition) {
   //=======================================================
   // The actual return value
   //=======================================================
@@ -17,8 +15,8 @@ WType GetTruthWType(const CVUniverse& universe, SignalDefinition signal_definiti
   return Wexp_true < GetWCutValue(signal_definition) ? kLowW : kHighW;
 }
 
-std::string GetTruthClassification_LegendLabel(WType w_category){
-  switch(w_category){
+std::string GetTruthClassification_LegendLabel(WType w_category) {
+  switch (w_category) {
     case kLowW:
       return "Low W_{exp}";
     case kHighW:
@@ -28,8 +26,8 @@ std::string GetTruthClassification_LegendLabel(WType w_category){
   }
 }
 
-std::string GetTruthClassification_Name(WType w_category){
-  switch(w_category){
+std::string GetTruthClassification_Name(WType w_category) {
+  switch (w_category) {
     case kLowW:
       return "TrueLowW";
     case kHighW:

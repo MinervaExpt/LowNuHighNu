@@ -11,9 +11,9 @@
 // SetupLoop
 //==============================================================================
 
+#include "Constants.h"  // EDataMC for the SetupLoop function
 #include "PlotUtils/MacroUtil.h"
 #include "SignalDefinition.h"
-#include "Constants.h" // EDataMC for the SetupLoop function
 
 namespace CCPi {
 class MacroUtil : public PlotUtils::MacroUtil {
@@ -41,7 +41,7 @@ class MacroUtil : public PlotUtils::MacroUtil {
   CVUniverse* m_data_universe;
   UniverseMap m_error_bands;
   UniverseMap m_error_bands_truth;
-  double m_pot_scale; // For now, only used in xsecDataFromFile
+  double m_pot_scale;  // For now, only used in xsecDataFromFile
   void PrintMacroConfiguration(std::string macro_name = "") override;
 
  private:
@@ -53,4 +53,4 @@ class MacroUtil : public PlotUtils::MacroUtil {
 void SetupLoop(const EDataMCTruth& type, const CCPi::MacroUtil& util,
                bool& is_mc, bool& is_truth, Long64_t& n_entries);
 
-#endif // CCPiMacroUtil_h
+#endif  // CCPiMacroUtil_h

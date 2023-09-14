@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "CVUniverse.h"
-#include "Constants.h"        // enum ECuts, CCNuPionIncConsts, PassesCutsInfo
-#include "CutUtils.h"         // kCutsVector
+#include "Constants.h"  // enum ECuts, CCNuPionIncConsts, PassesCutsInfo
+#include "CutUtils.h"   // kCutsVector
 #include "SignalDefinition.h"
 
 //==============================================================================
@@ -23,10 +23,13 @@
 PassesCutsInfo PassesCuts(CVUniverse&, const bool is_mc, const SignalDefinition,
                           const std::vector<ECuts> cuts = kCutsVector);
 
-//PassesCutsInfoInclusive PassesCutsInclusive(CVUniverse&, const bool is_mc, const SignalDefinition,
-//                                            const std::vector<ECuts> cuts = kCutsVector);
+// PassesCutsInfoInclusive PassesCutsInclusive(CVUniverse&, const bool is_mc,
+// const SignalDefinition,
+//                                            const std::vector<ECuts> cuts =
+//                                            kCutsVector);
 
-PassesCutsInfo PassesCutsInclusive(CVUniverse&, const bool is_mc, const SignalDefinition,
+PassesCutsInfo PassesCutsInclusive(CVUniverse&, const bool is_mc,
+                                   const SignalDefinition,
                                    const std::vector<ECuts> cuts = kCutsVector);
 
 // Event Counter
@@ -36,7 +39,7 @@ EventCount PassedCuts(const CVUniverse&, std::vector<int>& pion_candidate_idxs,
 
 // Passes Single, Given Cut
 bool PassesCut(const CVUniverse& univ, const ECuts cut, const bool is_mc,
-          const SignalDefinition);
+               const SignalDefinition);
 
 //==============================================================================
 // Cuts Definitions
@@ -55,6 +58,5 @@ bool vtxCut(const CVUniverse& univ);
 bool zVertexCut(const CVUniverse& univ, const double upZ, const double downZ);
 bool XYVertexCut(const CVUniverse& univ, const double a);
 bool PmuCut(const CVUniverse& univ);
-
 
 #endif

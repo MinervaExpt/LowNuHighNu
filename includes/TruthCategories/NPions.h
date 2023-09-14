@@ -1,40 +1,43 @@
 #ifndef NPions_H
 #define NPions_H
 
-#include <stdlib.h> // exit, EXIT_FAILURE
+#include <stdlib.h>  // exit, EXIT_FAILURE
 
 #include "../CVUniverse.h"
 
-enum NPionsType
-{
-  kThreeOrMorePions, kTwoPions, kOnePion, kZeroPions, kNNPionsTypes
+enum NPionsType {
+  kThreeOrMorePions,
+  kTwoPions,
+  kOnePion,
+  kZeroPions,
+  kNNPionsTypes
 };
 
-enum NPi0Type
-{
-  kTwoOrMorePi0, kOnePi0, kZeroPi0, kNNPi0Types
-};
+enum NPi0Type { kTwoOrMorePi0, kOnePi0, kZeroPi0, kNNPi0Types };
 
-enum NPipType
-{
-  kZeroPip, kOnePip, kTwoPip, kThreeOrMorePip, kNNPipTypes
-};
+enum NPipType { kZeroPip, kOnePip, kTwoPip, kThreeOrMorePip, kNNPipTypes };
 
 //==============================================================================
 
-NPionsType GetNPionsType(const CVUniverse& universe){
-  int n_pions = universe.GetInt("truth_N_pip") + universe.GetInt("truth_N_pim") + universe.GetInt("truth_N_pi0");
-  if (n_pions < 0) exit(EXIT_FAILURE);
-  else if (n_pions == 0) return kZeroPions;
-  else if (n_pions == 1) return kOnePion;
-  else if (n_pions == 2) return kTwoPions;
-  else return kThreeOrMorePions;
+NPionsType GetNPionsType(const CVUniverse& universe) {
+  int n_pions = universe.GetInt("truth_N_pip") +
+                universe.GetInt("truth_N_pim") + universe.GetInt("truth_N_pi0");
+  if (n_pions < 0)
+    exit(EXIT_FAILURE);
+  else if (n_pions == 0)
+    return kZeroPions;
+  else if (n_pions == 1)
+    return kOnePion;
+  else if (n_pions == 2)
+    return kTwoPions;
+  else
+    return kThreeOrMorePions;
 
-  //else if (n_pions <= 2) return static_cast<NPionsType>(n_pions);
+  // else if (n_pions <= 2) return static_cast<NPionsType>(n_pions);
 }
 
-std::string GetTruthClassification_LegendLabel(NPionsType category){
-  switch(category){
+std::string GetTruthClassification_LegendLabel(NPionsType category) {
+  switch (category) {
     case kZeroPions:
       return "0 #pi";
     case kOnePion:
@@ -48,8 +51,8 @@ std::string GetTruthClassification_LegendLabel(NPionsType category){
   }
 }
 
-std::string GetTruthClassification_Name(NPionsType category){
-  switch(category){
+std::string GetTruthClassification_Name(NPionsType category) {
+  switch (category) {
     case kZeroPions:
       return "zero_pi";
     case kOnePion:
@@ -65,18 +68,22 @@ std::string GetTruthClassification_Name(NPionsType category){
 
 //==============================================================================
 
-NPi0Type GetNPi0Type(const CVUniverse& universe){
+NPi0Type GetNPi0Type(const CVUniverse& universe) {
   int n_pions = universe.GetInt("truth_N_pi0");
-  if (n_pions < 0) exit(EXIT_FAILURE);
-  else if (n_pions == 0 )return kZeroPi0;
-  else if (n_pions == 1) return kOnePi0;
-  else return kTwoOrMorePi0;
+  if (n_pions < 0)
+    exit(EXIT_FAILURE);
+  else if (n_pions == 0)
+    return kZeroPi0;
+  else if (n_pions == 1)
+    return kOnePi0;
+  else
+    return kTwoOrMorePi0;
 
-  //else if (n_pions <= 1) return static_cast<NPi0Type>(n_pions);
+  // else if (n_pions <= 1) return static_cast<NPi0Type>(n_pions);
 }
 
-std::string GetTruthClassification_LegendLabel(NPi0Type category){
-  switch(category){
+std::string GetTruthClassification_LegendLabel(NPi0Type category) {
+  switch (category) {
     case kZeroPi0:
       return "0 #pi^{0}";
     case kOnePi0:
@@ -88,8 +95,8 @@ std::string GetTruthClassification_LegendLabel(NPi0Type category){
   }
 }
 
-std::string GetTruthClassification_Name(NPi0Type category){
-  switch(category){
+std::string GetTruthClassification_Name(NPi0Type category) {
+  switch (category) {
     case kZeroPi0:
       return "zero_pi";
     case kOnePi0:
@@ -103,15 +110,18 @@ std::string GetTruthClassification_Name(NPi0Type category){
 
 //==============================================================================
 
-NPipType GetNPipType(const CVUniverse& universe){
+NPipType GetNPipType(const CVUniverse& universe) {
   int n_pions = universe.GetInt("truth_N_pip");
-  if (n_pions < 0) exit(EXIT_FAILURE);
-  else if (n_pions <= 2) return static_cast<NPipType>(n_pions);
-  else return kThreeOrMorePip;
+  if (n_pions < 0)
+    exit(EXIT_FAILURE);
+  else if (n_pions <= 2)
+    return static_cast<NPipType>(n_pions);
+  else
+    return kThreeOrMorePip;
 }
 
-std::string GetTruthClassification_LegendLabel(NPipType category){
-  switch(category){
+std::string GetTruthClassification_LegendLabel(NPipType category) {
+  switch (category) {
     case kZeroPip:
       return "0 #pi^{+}";
     case kOnePip:
@@ -125,8 +135,8 @@ std::string GetTruthClassification_LegendLabel(NPipType category){
   }
 }
 
-std::string GetTruthClassification_Name(NPipType category){
-  switch(category){
+std::string GetTruthClassification_Name(NPipType category) {
+  switch (category) {
     case kZeroPip:
       return "zero_pip";
     case kOnePip:

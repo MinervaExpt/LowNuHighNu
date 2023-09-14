@@ -63,13 +63,12 @@ void DoWSidebandTune(CCPi::MacroUtil& util, Variable* fit_var, CVHW& loW_wgt,
   for (auto error_band : util.m_error_bands) {
     std::vector<CVUniverse*> universes = error_band.second;
     for (auto universe : universes) {
-
       int nbins = fit_var->m_hists.m_wsidebandfit_data->GetNbinsX();  // + 1;
 
       //// debugging: print fitting details
-      //std::cout << universe->ShortName() << "  " << universe->GetSigma()
+      // std::cout << universe->ShortName() << "  " << universe->GetSigma()
       //          << "\n";
-      //for (int i = 0; i < nbins; ++i) {
+      // for (int i = 0; i < nbins; ++i) {
       //  std::cout << "bin: " << i << "\n";
       //  double data_entries =
       //      fit_var->m_hists.m_wsidebandfit_data->GetBinContent(i);
