@@ -43,13 +43,17 @@ struct InclusiveEvent {
 
   // Fixed (directly) outside of constructor -- with time-intensive functions
   bool m_passes_cuts;
+  bool m_passes_incl_cuts;
+  bool m_passes_dis_cuts;
+  bool m_passes_dis_lowwhighq2_cuts;
+  bool m_passes_dis_lowq2highw_cuts;
   bool m_is_w_sideband;
   bool m_passes_all_cuts_except_w;
 };
 
 // Helper Functions
 // bool IsWSideband(InclusiveEvent&);
-PassesCutsInfo PassesCuts(const InclusiveEvent&);
+PassesCutsInfoInclusive PassesCutsInclusive(const InclusiveEvent&);
 SignalBackgroundType GetSignalBackgroundType(const InclusiveEvent&);
 
 // Helper Fill Histo Functions

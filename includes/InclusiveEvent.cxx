@@ -27,8 +27,8 @@ InclusiveEvent::InclusiveEvent(const bool is_mc, const bool is_truth,
 // Helper Functions
 //==============================================================================
 // PassesCutsInfo {passes_all_cuts, is_w_sideband, passes_all_except_w}
-PassesCutsInfo PassesCuts(const InclusiveEvent& e) {
-  return PassesCuts(*e.m_universe, e.m_is_mc, e.m_signal_definition);
+PassesCutsInfoInclusive PassesCutsInclusive(const InclusiveEvent& e) {
+  return PassesCutsInclusive(*e.m_universe, e.m_is_mc, e.m_signal_definition);
 }
 
 SignalBackgroundType GetSignalBackgroundType(const InclusiveEvent& e) {
