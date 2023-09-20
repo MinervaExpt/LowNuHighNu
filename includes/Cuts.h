@@ -28,9 +28,9 @@ PassesCutsInfo PassesCuts(CVUniverse&, const bool is_mc, const SignalDefinition,
 //                                            const std::vector<ECuts> cuts =
 //                                            kCutsVector);
 
-PassesCutsInfo PassesCutsInclusive(CVUniverse&, const bool is_mc,
-                                   const SignalDefinition,
-                                   const std::vector<ECuts> cuts = kCutsVector);
+PassesCutsInfoInclusive PassesCutsInclusive(
+    CVUniverse&, const bool is_mc, const SignalDefinition,
+    const std::vector<ECuts> cuts = kCutsVector);
 
 // Event Counter
 EventCount PassedCuts(const CVUniverse&, std::vector<int>& pion_candidate_idxs,
