@@ -90,12 +90,12 @@ void CCPi::MacroUtil::InitSystematics() {
 
   // Set Various Constant Parameters
   using namespace PlotUtils;
-  MinervaUniverse::SetNuEConstraint(CCNuPionIncConsts::kUseNueConstraint);
-  MinervaUniverse::SetAnalysisNuPDG(CCNuPionIncConsts::kAnaNuPDG);
-  MinervaUniverse::SetNonResPiReweight(CCNuPionIncConsts::kUseNonResPiWgt);
-  MinervaUniverse::SetNFluxUniverses(CCNuPionIncConsts::kNFluxUniverses);
+  MinervaUniverse::SetNuEConstraint(CCIncConsts::kUseNueConstraint);
+  MinervaUniverse::SetAnalysisNuPDG(CCIncConsts::kAnaNuPDG);
+  MinervaUniverse::SetNonResPiReweight(CCIncConsts::kUseNonResPiWgt);
+  MinervaUniverse::SetNFluxUniverses(CCIncConsts::kNFluxUniverses);
   MinervaUniverse::SetDeuteriumGeniePiTune(
-      CCNuPionIncConsts::kUseDeuteriumGeniePiTune);
+      CCIncConsts::kUseDeuteriumGeniePiTune);
   MinervaUniverse::SetReadoutVolume("Tracker");
   MinervaUniverse::SetMHRWeightNeutronCVReweight(true);
   MinervaUniverse::SetMHRWeightElastics(true);

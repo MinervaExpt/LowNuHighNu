@@ -2,7 +2,7 @@
 #define SignalDefinition_H
 
 #include "includes/CVUniverse.h"
-#include "includes/Constants.h"  // namespace CCNuPionIncConsts
+#include "includes/Constants.h"  // namespace CCIncConsts
 
 enum SignalDefinition { kInclusive, kLowNu, kHighNu, kNSignalDefTypes };
 
@@ -133,8 +133,8 @@ int NOtherParticles(const CVUniverse& univ) {
 
 bool ZVtxIsSignal(const CVUniverse& univ) {
   double vtx_z = univ.GetVecElem("mc_vtx", 2);
-  return CCNuPionIncConsts::kZVtxMinCutVal < vtx_z &&
-                 vtx_z < CCNuPionIncConsts::kZVtxMaxCutVal
+  return CCIncConsts::kZVtxMinCutVal < vtx_z &&
+                 vtx_z < CCIncConsts::kZVtxMaxCutVal
              ? true
              : false;
 }
@@ -142,7 +142,7 @@ bool ZVtxIsSignal(const CVUniverse& univ) {
 bool XYVtxIsSignal(const CVUniverse& univ) {
   return univ.IsInHexagon(univ.GetVecElem("mc_vtx", 0),  // x
                           univ.GetVecElem("mc_vtx", 1),  // y
-                          CCNuPionIncConsts::kApothemCutVal);
+                          CCIncConsts::kApothemCutVal);
 }
 // ROB -- DON'T BOTHER READING THIS STUFF
 
@@ -153,13 +153,13 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
   if (univ.GetInt("mc_current") == 1 && univ.GetBool("truth_is_fiducial") &&
       ZVtxIsSignal(univ) && XYVtxIsSignal(univ) &&
       univ.GetInt("mc_incoming") == 14 &&
-      univ.GetThetalepTrue() < CCNuPionIncConsts::kThetamuMaxCutVal &&
+      univ.GetThetalepTrue() < CCIncConsts::kThetamuMaxCutVal &&
       // 0. < univ.GetWexpTrue() && univ.GetWexpTrue() < GetWCutValue(sig_def)
       // &&
       // && NOtherParticles(univ) == 0
       // particles.at("piplus_range") == 1 && Is1PiPlus(particles) &&
-      CCNuPionIncConsts::kPmuMinCutVal < univ.GetPmuTrue() &&
-      univ.GetPmuTrue() < CCNuPionIncConsts::kPmuMaxCutVal) {
+      CCIncConsts::kPmuMinCutVal < univ.GetPmuTrue() &&
+      univ.GetPmuTrue() < CCIncConsts::kPmuMaxCutVal) {
   } else {
     return false;
   }

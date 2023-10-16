@@ -1,7 +1,7 @@
 #ifndef CutUtils_h
 #define CutUtils_h
 
-#include "Constants.h"  // enum ECuts, CCNuPionIncConsts
+#include "Constants.h"  // enum ECuts, CCIncConsts
 
 // Analysis Cuts - default vector
 const std::vector<ECuts> kCutsVector = {kNoCuts, kPrecuts, kVtx, kMinosMuon,
