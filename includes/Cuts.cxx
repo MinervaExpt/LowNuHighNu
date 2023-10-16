@@ -83,13 +83,6 @@ bool PassesCut(const CVUniverse& univ, const ECuts cut, const bool is_mc,
       pass = univ.IsTruth() ? MinosActivityCut(univ) : true;
       break;
 
-    case kPrecuts:
-      pass = univ.IsTruth() ? GoodObjectsCut(univ) && GoodVertexCut(univ) &&
-                                  FiducialVolumeCut(univ)
-                            : true;
-      // MinosActivityCut(univ) : true;
-      break;
-
     case kVtx:
       pass = vtxCut(univ);
       break;
@@ -126,28 +119,41 @@ bool PassesCut(const CVUniverse& univ, const ECuts cut, const bool is_mc,
 //==============================================================================
 // Cut Definitions
 //==============================================================================
-// Truth precuts
-bool GoodObjectsCut(const CVUniverse& univ) {
-  return univ.GetBool("truth_reco_hasGoodObjects");
-}
-bool GoodVertexCut(const CVUniverse& univ) {
-  return univ.GetBool("truth_reco_isGoodVertex");
-}
-bool FiducialVolumeCut(const CVUniverse& univ) {
-  return univ.GetBool("truth_reco_isFidVol_smeared");
-}
-bool MinosActivityCut(const CVUniverse& univ) {
-  return univ.GetInt("truth_reco_muon_is_minos_match");
-}
-
 // Eventwide reco cuts
 bool MinosMatchCut(const CVUniverse& univ) {
   return univ.GetBool("isMinosMatchTrack");
 }
-// Equivalent to Brandon's, but using standard minos branches
+// Muon helicity cut
 bool MinosChargeCut(const CVUniverse& univ) {
   return univ.GetDouble("MasterAnaDev_minos_trk_qp") < 0.0;
 }
+// Muon coil cut
+bool MinosMuonCoilCut(const CVUniverse& univ) {
+    const double coilXPos = 1219.0;
+    const double coilYPos = 393.0;
+    const double coilR = 210.;
+    const double maxR = 2500.;
+    const double minos_trk_end_x = univ.GetDouble("MasterAnaDev_minos_trk_end_x");
+    const double minos_trk_end_y = univ.GetDouble("MasterAnaDev_minos_trk_end_y");
+    const double minos_x = NukeCC_minos_trk_end_x + coilXPos;
+    const double minos_y = NukeCC_minos_trk_end_y + coilYPos;
+    double minosR = sqrt( pow(minos_x,2) + pow(minos_y,2) );
+
+    return (minosR > coilR && minosR < maxR);
+}
+// Muon curvature cut
+bool MinosMuonCurveCut(const CVUniverse& univ) {
+    //Don't make a significance cut if we reconstructed by range 
+    const bool minos_used_curvature = univ.GetBool("MasterAnaDev_minos_used_curvature");
+    if(minos_used_curvature != 1)
+        return true;
+    const double minos_trk_eqp_qp = univ.GetDouble("MasterAnaDev_minos_trk_eqp_qp");
+    return ( minos_trk_eqp_qp > -0.2 );
+}
+
+// To-do: Figure out if either of these cuts from Rob's historical implementation are needed now:
+  //if not chain.pass_canonical_cut == 1:                               return False
+  //if not chain.phys_n_dead_discr_pair_upstream_prim_track_proj <= 1:  return False
 
 // Vtx cut for detection volume
 bool vtxCut(const CVUniverse& univ) {
@@ -171,8 +177,13 @@ bool XYVertexCut(const CVUniverse& univ, const double a) {
 
 bool PmuCut(const CVUniverse& univ) {
   double pmu = univ.GetPmu();
-  return CCNuPionIncConsts::kPmuMinCutVal < pmu &&
-         pmu < CCNuPionIncConsts::kPmuMaxCutVal;
+  return CCIncConstants::kPmuMinCutVal < pmu &&
+         pmu < CCIncConstants::kPmuMaxCutVal;
+}
+
+bool ThetamuCut(const CVUniverse& univ) {
+  if (univ.GetThetamu() >= CCIncConstants::kThetamuMaxCutVal) return false;
+  else return true;
 }
 
 #endif  // Cuts_cxx
