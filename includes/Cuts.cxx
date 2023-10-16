@@ -167,8 +167,8 @@ bool MinosMuonCoilCut(const CVUniverse& univ) {
     const double maxR = 2500.;
     const double minos_trk_end_x = univ.GetDouble("MasterAnaDev_minos_trk_end_x");
     const double minos_trk_end_y = univ.GetDouble("MasterAnaDev_minos_trk_end_y");
-    const double minos_x = NukeCC_minos_trk_end_x + coilXPos;
-    const double minos_y = NukeCC_minos_trk_end_y + coilYPos;
+    const double minos_x = minos_trk_end_x + coilXPos;
+    const double minos_y = minos_trk_end_y + coilYPos;
     double minosR = sqrt( pow(minos_x,2) + pow(minos_y,2) );
 
     return (minosR > coilR && minosR < maxR);
@@ -209,13 +209,13 @@ bool XYVertexCut(const CVUniverse& univ, const double a) {
 
 bool PmuCut(const CVUniverse& univ, bool apply_upper_bound_cut = true) {
   double pmu = univ.GetPmu();
-  pass_lower_bound_cut = CCIncConstants::kPmuMinCutVal < pmu;
-  pass_upper_bound_cut = pmu < CCIncConstants::kPmuMaxCutVal if apply_upper_bound_cut else true;
+  bool pass_lower_bound_cut = CCIncConsts::kPmuMinCutVal < pmu;
+  bool pass_upper_bound_cut = apply_upper_bound_cut ? (pmu < CCIncConsts::kPmuMaxCutVal) : true;
   return pass_lower_bound_cut && pass_upper_bound_cut;
 }
 
 bool ThetamuCut(const CVUniverse& univ) {
-  if (univ.GetThetamu() >= CCIncConstants::kThetamuMaxCutVal) return false;
+  if (univ.GetThetamu() >= CCIncConsts::kThetamuMaxCutVal) return false;
   else return true;
 }
 
