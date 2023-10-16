@@ -71,7 +71,7 @@ const double PI = 3.14159265358979323846;
 
 }  // namespace Constants
 
-namespace CCNuPionIncConsts {
+namespace CCIncConsts {
 const int N_LAT_UNIVERSES = 60;
 
 const double bindE = 25.;
