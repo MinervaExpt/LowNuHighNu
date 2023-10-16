@@ -207,10 +207,11 @@ bool XYVertexCut(const CVUniverse& univ, const double a) {
   return univ.IsInHexagon(x, y, a);
 }
 
-bool PmuCut(const CVUniverse& univ) {
+bool PmuCut(const CVUniverse& univ, bool apply_upper_bound_cut = true) {
   double pmu = univ.GetPmu();
-  return CCIncConstants::kPmuMinCutVal < pmu &&
-         pmu < CCIncConstants::kPmuMaxCutVal;
+  pass_lower_bound_cut = CCIncConstants::kPmuMinCutVal < pmu;
+  pass_upper_bound_cut = pmu < CCIncConstants::kPmuMaxCutVal if apply_upper_bound_cut else true;
+  return pass_lower_bound_cut && pass_upper_bound_cut;
 }
 
 bool ThetamuCut(const CVUniverse& univ) {
