@@ -65,9 +65,6 @@ std::map<string, int> GetParticleTopology(
         genie_n["photons"]++;
         break;
       case 211:
-        if (CCNuPionIncConsts::kTpiLoCutVal < tpi &&
-            tpi < CCNuPionIncConsts::kTpiHiCutVal)
-          genie_n["piplus_range"]++;
         genie_n["piplus"]++;
         genie_n["pions"]++;
         genie_n["mesons"]++;
