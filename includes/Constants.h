@@ -37,7 +37,7 @@ struct PassesCutsInfoInclusive {
   };
 };
 
-struct PassesCutsMerged {
+struct PassesCutsInfoMerged {
   bool passes_all_cuts;
   bool passes_incl_cuts;
   bool is_dis_signal;
