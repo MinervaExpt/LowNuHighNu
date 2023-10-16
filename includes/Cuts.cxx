@@ -190,9 +190,9 @@ bool MinosMuonCurveCut(const CVUniverse& univ) {
 // Vtx cut for detection volume
 bool vtxCut(const CVUniverse& univ) {
   bool pass = true;
-  pass = pass && zVertexCut(univ, CCNuPionIncConsts::kZVtxMaxCutVal,
-                            CCNuPionIncConsts::kZVtxMinCutVal);
-  pass = pass && XYVertexCut(univ, CCNuPionIncConsts::kApothemCutVal);
+  pass = pass && zVertexCut(univ, CCIncConsts::kZVtxMaxCutVal,
+                            CCIncConsts::kZVtxMinCutVal);
+  pass = pass && XYVertexCut(univ, CCIncConsts::kApothemCutVal);
   return pass;
 }
 
