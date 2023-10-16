@@ -49,6 +49,38 @@ PassesCutsInfoInclusive PassesCutsInclusive(
           is_lowq2highw_sideband};
 }
 
+PassesCutsInfoMerged PassesCutsMerged(CVUniverse& universe, const bool is_mc,
+                                      const SignalDefinition signal_definition,
+                                      std::vector<ECuts> cuts) {
+
+  bool passes_all_cuts = true;
+  bool passes_incl_cuts = true;
+  bool is_dis_signal = true;
+  bool is_lownu = false;
+  bool is_highnu = false;
+  bool is_lowwhighq2_sideband = true;
+  bool is_lowq2highw_sideband = true;
+
+  switch (signal_definition) {
+    case kLowNu:
+    case kHighNu:
+      for (auto c : cuts) {
+        bool passes_this_cut = false;
+        passes_this_cut = PassesCut(universe, c, is_mc, signal_definition);
+        passes_all_cuts = passes_all_cuts && passes_this_cut;
+      }
+      // Do something to set is_lownu and is_highnu
+      break;
+    case kInclusive:
+      // Do something to set the Inclusive/DIS specific bools
+    default:
+      std::cout << "Warning: Unknown Signal Definition! PassesCutsMerged() is not doing the correct thing!!" << std::endl;
+  }
+
+  return {passes_all_cuts, passes_incl_cuts, is_dis_signal, is_lownu, is_highnu, 
+          is_lowwhighq2_sideband, is_lowq2highw_sideband};
+} 
+
 //==============================================================================
 // Passes INDIVIDUAL Cut
 //==============================================================================
