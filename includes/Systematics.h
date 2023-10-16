@@ -98,7 +98,7 @@ UniverseMap GetSystematicUniversesMap(PlotUtils::ChainWrapper* chain,
     // FLUX
     //========================================================================
     UniverseMap bands_flux = PlotUtils::GetFluxSystematicsMap<CVUniverse>(
-        chain, CCNuPionIncConsts::kNFluxUniverses);
+        chain, CCIncConsts::kNFluxUniverses);
     error_bands.insert(bands_flux.begin(), bands_flux.end());
 
     //========================================================================

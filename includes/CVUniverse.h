@@ -4,7 +4,7 @@
 #include <TVector3.h>
 
 #include "Binning.h"    // CCPi::GetBinning for ehad_nopi
-#include "Constants.h"  // CCNuPionIncConsts, CCNuPionIncShifts
+#include "Constants.h"  // CCIncConsts, CCNuPionIncShifts
 #include "PlotUtils/ChainWrapper.h"
 #include "PlotUtils/MinervaUniverse.h"
 
