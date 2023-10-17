@@ -49,12 +49,6 @@ void lownuhighnu_event::FillRecoEvent(const LowNuHighNuEvent& event,
   //   lownuhighnu_event::FillWSideband(event, variables);
   // }
 
-  // // Fill W Sideband Study
-  // if (event.m_passes_all_cuts_except_w && event.m_universe->ShortName() ==
-  // "cv") {
-  //   lownuhighnu_event::FillWSideband_Study(event, variables);
-  // }
-
   // Fill Migration
   if (event.m_is_mc && event.m_is_signal && event.m_passes_cuts) {
     if (HasVar(variables, "pmu") && HasVar(variables, "pmu_true"))
@@ -222,31 +216,6 @@ void lownuhighnu_event::FillEfficiencyDenominator(
 //==============================================================================
 // Specialized fill functions -- for studies
 //==============================================================================
-// Fill Stacked components of the wexp_fit variable without the W cut. For
-// visualizing the sideband sample. These hists are filled for study purposes
-// only. Other hists owned by this variable are used to perform the fit (those
-// are filled in FillWSideband.)
-void lownuhighnu_event::FillWSideband_Study(const LowNuHighNuEvent& event,
-                                            std::vector<Variable*> variables) {
-  if (event.m_universe->ShortName() != "cv") {
-    std::cerr << "FillWSideband_Study Warning: you're filling the wexp_fit "
-                 "variable w/o the W-cut for a universe other than the CV\n";
-  }
-
-  if (!event.m_passes_all_cuts_except_w) {
-    std::cerr << "FillWSideband_Study Warning: This event does not pass "
-                 "correct cuts, are you sure you want to be filling?\n";
-  }
-
-  Variable* var = GetVar(variables, sidebands::kFitVarString);
-  double fill_val = var->GetValue(*event.m_universe);
-  if (event.m_is_mc) {
-    var->GetStackComponentHist(event.m_w_type)->Fill(fill_val, event.m_weight);
-  } else {
-    var->m_hists.m_wsideband_data->Fill(fill_val);
-  }
-}
-
 // Like FillCutVars, this function loops through cuts and calls PassesCut.
 void lownuhighnu_event::FillCounters(
     const LowNuHighNuEvent& event,

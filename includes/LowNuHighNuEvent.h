@@ -65,7 +65,6 @@ void FillMigration(const LowNuHighNuEvent&, const std::vector<Variable*>&,
                    std::string name);
 
 // Study functions
-void FillWSideband_Study(const LowNuHighNuEvent&, std::vector<Variable*>);
 void FillCounters(const LowNuHighNuEvent&,
                   const std::pair<EventCount*, EventCount*>& counters);
 std::pair<EventCount, EventCount> FillCounters(const LowNuHighNuEvent&,
