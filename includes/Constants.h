@@ -57,7 +57,6 @@ enum ECuts {
   kGoodVertex,
   kFiducialVolume,
   kMinosActivity,
-  kPrecuts,
   kVtx,
   kMinosMatch,
   kMinosCharge,

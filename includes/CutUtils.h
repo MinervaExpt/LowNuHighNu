@@ -4,13 +4,13 @@
 #include "Constants.h"  // enum ECuts, CCIncConsts
 
 // Analysis Cuts - default vector
-const std::vector<ECuts> kCutsVector = {kNoCuts, kPrecuts, kVtx, kMinosMuon,
+const std::vector<ECuts> kCutsVector = {kNoCuts, kVtx, kMinosMuon,
                                         kPmu};
 
 // Gaudi tool cuts - only work when checking truth tuple
 bool IsPrecut(ECuts c) {
   if (c == kNoCuts || c == kGoodObjects || c == kGoodVertex ||
-      c == kFiducialVolume || c == kMinosActivity || c == kPrecuts)
+      c == kFiducialVolume || c == kMinosActivity)
     return true;
   else
     return false;
@@ -33,9 +33,6 @@ std::string GetCutName(ECuts cut) {
 
     case kMinosActivity:
       return "MINOS Activity";
-
-    case kPrecuts:
-      return "Anatool Precuts";
 
     case kVtx:
       return "vertex position Cut";
