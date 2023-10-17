@@ -77,7 +77,7 @@ double CVUniverse::GetThetamuDeg() const {
 }
 
 // event-wide
-double CVUniverse::GetEhad() const { return GetCalRecoilEnergy(); }
+double CVUniverse::GetEhad() const { return GetRecoilEnergy(); }
 double CVUniverse::GetEnu() const { return GetEmu() + GetEhad(); }
 
 double CVUniverse::GetQ2() const {
