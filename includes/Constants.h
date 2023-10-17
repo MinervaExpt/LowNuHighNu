@@ -81,6 +81,7 @@ namespace Constants {
 const double MUON_MASS = 105.659;
 const double PROTON_MASS = 938.3;
 const double PI = 3.14159265358979323846;
+const double mev_to_gev = 1./1000.;
 
 }  // namespace Constants
 

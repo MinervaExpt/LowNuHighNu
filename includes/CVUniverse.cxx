@@ -12,6 +12,21 @@
 #include "utilities.h"  // FixAngle
 
 //==============================================================================
+// Calorimetry spline setup
+//==============================================================================
+// Path to MParamFiles calibration file
+std::string splines_file = "$MPARAMFILESROOT/data/Calibrations/energy_calib/CalorimetryTunings.txt";
+
+// Initialize calorimetric correction for tracker
+util::CaloCorrection Nu_Tracker(splines_file.c_str(), "NukeCC_Nu_Tracker");
+// arguments:
+// 1. path to calibration file
+// 2. name of the calorimetric spline
+
+// n.b. All of the splines that Anne needs can be added here, too
+// see example in https://github.com/MinervaExpt/NSFNukeCCInclusive/blob/de94f6fdee7693a4f3fb86f2dc6d0b5bba90476d/NUKECCSRC/src/CVUniverse.cxx
+
+//==============================================================================
 // Constructor
 //==============================================================================
 CVUniverse::CVUniverse(PlotUtils::ChainWrapper* chw, double nsigma)
@@ -129,8 +144,29 @@ double CVUniverse::GetWexpTrue() const {
 //==============================
 // Untracked recoil energy
 double CVUniverse::GetCalRecoilEnergy() const {
-  return GetCalRecoilEnergy_CCIncSpline();  // AEN This really only works for
-                                            // the tracker now
+  // inclusive analysis -> ID + OD
+  return GetDouble("part_response_total_recoil_passive_allNonMuonClusters_id") +
+      GetDouble("part_response_total_recoil_passive_allNonMuonClusters_od"); // in MeV
+}
+
+double CVUniverse::GetNonCalRecoilEnergy() const { 
+  // no non calorimetric recoil
+  return 0.;
+}
+
+double CVUniverse::ApplyCaloTuning(double calRecoilE) const{
+  return Nu_Tracker.eCorrection(calRecoilE*Constants::mev_to_gev)/Constants::mev_to_gev; // in MeV
+  // calRecoilE in MeV, calorimetric splines in GeV
+}
+
+//==============================
+// ehad old variables
+//==============================
+
+// Ehad CCInclusive Spline Variables
+// Ehad ccinclusive splines -- doesn't account for pion
+double CVUniverse::GetCalRecoilEnergy_CCIncSpline() const {
+  return GetDouble("MasterAnaDev_hadron_recoil_CCInc");
 }
 
 // Total recoil with CCPi spline correction.
@@ -145,21 +181,6 @@ double CVUniverse::GetCalRecoilEnergy_CCPiSpline() const {
 // RecoilUtils->calcRecoilEFromClusters(event, muonProng, "Default" );
 double CVUniverse::GetCalRecoilEnergy_DefaultSpline() const {
   return GetDouble("MasterAnaDev_hadron_recoil_default");
-}
-
-// RDF: This is a placeholder; required because the Response systematics expect
-// a function with this name to exist
-// This is what the response universe calls our tracked recoil energy
-double CVUniverse::GetNonCalRecoilEnergy() const { return 0.; }
-
-//==============================
-// ehad old variables
-//==============================
-
-// Ehad CCInclusive Spline Variables
-// Ehad ccinclusive splines -- doesn't account for pion
-double CVUniverse::GetCalRecoilEnergy_CCIncSpline() const {
-  return GetDouble("MasterAnaDev_hadron_recoil_CCInc");
 }
 
 //==============================
