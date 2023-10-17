@@ -207,7 +207,7 @@ bool XYVertexCut(const CVUniverse& univ, const double a) {
   return univ.IsInHexagon(x, y, a);
 }
 
-bool PmuCut(const CVUniverse& univ, bool apply_upper_bound_cut = true) {
+bool PmuCut(const CVUniverse& univ, bool apply_upper_bound_cut /* = true */) {
   double pmu = univ.GetPmu();
   bool pass_lower_bound_cut = CCIncConsts::kPmuMinCutVal < pmu;
   bool pass_upper_bound_cut = apply_upper_bound_cut ? (pmu < CCIncConsts::kPmuMaxCutVal) : true;

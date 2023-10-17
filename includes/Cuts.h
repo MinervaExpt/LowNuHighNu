@@ -61,6 +61,6 @@ bool MinosChargeCut(const CVUniverse&);
 bool vtxCut(const CVUniverse& univ);
 bool zVertexCut(const CVUniverse& univ, const double upZ, const double downZ);
 bool XYVertexCut(const CVUniverse& univ, const double a);
-bool PmuCut(const CVUniverse& univ);
+bool PmuCut(const CVUniverse& univ, bool apply_upper_bound_cut = true);
 
 #endif
