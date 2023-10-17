@@ -7,6 +7,7 @@
 #include "Constants.h"  // CCIncConsts, CCNuPionIncShifts
 #include "PlotUtils/ChainWrapper.h"
 #include "PlotUtils/MinervaUniverse.h"
+#include "PlotUtils/CaloCorrection.h"
 
 class CVUniverse : public PlotUtils::MinervaUniverse {
  private:
@@ -77,12 +78,13 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
   //==============================
   // ehad and related variables
   virtual double GetCalRecoilEnergy() const;
-  virtual double GetCalRecoilEnergy_CCPiSpline() const;
-  virtual double GetCalRecoilEnergy_DefaultSpline() const;
   virtual double GetNonCalRecoilEnergy() const;
+  virtual double ApplyCaloTuning(double calRecoilE) const;
 
   // ehad old variables
   virtual double GetCalRecoilEnergy_CCIncSpline() const;
+  virtual double GetCalRecoilEnergy_CCPiSpline() const;
+  virtual double GetCalRecoilEnergy_DefaultSpline() const;
 
   // ehad truth variables
   virtual double GetEhadTrue() const;
