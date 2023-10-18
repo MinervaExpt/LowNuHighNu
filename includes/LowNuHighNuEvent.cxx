@@ -51,25 +51,7 @@ void lownuhighnu_event::FillRecoEvent(const LowNuHighNuEvent& event,
 
   // Fill Migration
   if (event.m_is_mc && event.m_is_signal && event.m_passes_cuts) {
-    if (HasVar(variables, "pmu") && HasVar(variables, "pmu_true"))
-      FillMigration(event, variables, std::string("pmu"));
-    if (HasVar(variables, "pzmu") && HasVar(variables, "pzmu_true"))
-      FillMigration(event, variables, std::string("pzmu"));
-    if (HasVar(variables, "ptmu") && HasVar(variables, "ptmu_true"))
-      FillMigration(event, variables, std::string("ptmu"));
-    if (HasVar(variables, "thetamu_deg") &&
-        HasVar(variables, "thetamu_deg_true"))
-      FillMigration(event, variables, std::string("thetamu_deg"));
-    if (HasVar(variables, "q2") && HasVar(variables, "q2_true"))
-      FillMigration(event, variables, std::string("q2"));
-    if (HasVar(variables, "enu") && HasVar(variables, "enu_true"))
-      FillMigration(event, variables, std::string("enu"));
-    if (HasVar(variables, "wexp") && HasVar(variables, "wexp_true"))
-      FillMigration(event, variables, std::string("wexp"));
-    if (HasVar(variables, "ehad") && HasVar(variables, "ehad_true"))
-      FillMigration(event, variables, std::string("ehad"));
-    if (HasVar(variables, "cosadtheta") && HasVar(variables, "cosadtheta_true"))
-      FillMigration(event, variables, std::string("cosadtheta"));
+    FillMigration(event, variables);
   }
 }
 
@@ -185,15 +167,18 @@ void lownuhighnu_event::FillWSideband(const LowNuHighNuEvent& event,
 }
 
 void lownuhighnu_event::FillMigration(const LowNuHighNuEvent& event,
-                                      const vector<Variable*>& variables,
-                                      std::string name) {
-  Variable* reco_var = GetVar(variables, name);
-  Variable* true_var = GetVar(variables, name + string("_true"));
-  if (true_var == 0) return;
-  double reco_fill_val = reco_var->GetValue(*event.m_universe);
-  double true_fill_val = true_var->GetValue(*event.m_universe);
-  reco_var->m_hists.m_migration.FillUniverse(*event.m_universe, reco_fill_val,
-                                             true_fill_val, event.m_weight);
+                                      const vector<Variable*>& variables) {
+  for (auto var : variables) {
+    if(var->m_is_true) continue;
+    std::string var_name = var->Name();
+    if(!HasVar(variables, var_name + string("_true"))) continue;
+    Variable* reco_var = GetVar(variables, var_name);
+    Variable* true_var = GetVar(variables, var_name + string("_true"));
+    double reco_fill_val = reco_var->GetValue(*event.m_universe);
+    double true_fill_val = true_var->GetValue(*event.m_universe);
+    reco_var->m_hists.m_migration.FillUniverse(*event.m_universe, reco_fill_val,
+                                               true_fill_val, event.m_weight);
+  }
 }
 
 // Only for true variables

@@ -61,8 +61,7 @@ void FillWSideband(const LowNuHighNuEvent&, const std::vector<Variable*>&);
 void FillTruthEvent(const LowNuHighNuEvent&, const std::vector<Variable*>&);
 void FillEfficiencyDenominator(const LowNuHighNuEvent&,
                                const std::vector<Variable*>&);
-void FillMigration(const LowNuHighNuEvent&, const std::vector<Variable*>&,
-                   std::string name);
+void FillMigration(const LowNuHighNuEvent&, const std::vector<Variable*>&);
 
 // Study functions
 void FillCounters(const LowNuHighNuEvent&,
