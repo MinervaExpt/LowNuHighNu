@@ -366,9 +366,6 @@ void inclusive_event::FillStackedHists(const InclusiveEvent& event, Variable* v,
                                        double fill_val) {
   if (!event.m_is_mc && v->m_is_true) return;
 
-  v->GetStackComponentHist(
-       GetCoherentType(*event.m_universe, event.m_signal_definition))
-      ->Fill(fill_val, event.m_weight);
 }
 
 #endif  // InclusiveEvent_cxx

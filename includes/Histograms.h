@@ -61,15 +61,9 @@ class Histograms {
 
   // Stacked Histograms
   StackedHistogram<ChannelType> m_stacked_channel;
-  StackedHistogram<CoherentType> m_stacked_coherent;
   StackedHistogram<FSParticleType> m_stacked_fspart;
-  StackedHistogram<HadronType> m_stacked_hadron;
   StackedHistogram<MesonBackgroundType> m_stacked_mesonbg;
-  StackedHistogram<NPi0Type> m_stacked_npi0;
-  StackedHistogram<NPionsType> m_stacked_npi;
-  StackedHistogram<NPipType> m_stacked_npip;
   StackedHistogram<SignalBackgroundType> m_stacked_sigbg;
-  StackedHistogram<WType> m_stacked_w;
   StackedHistogram<WBackgroundType> m_stacked_wbg;
   StackedHistogram<WSidebandType> m_stacked_wsideband;
 
@@ -97,20 +91,14 @@ class Histograms {
   void InitializeStackedHists();
 
   // Stack Map Access
-  std::map<WType, MH1D*> GetStackMap(WType type) const;
   std::map<SignalBackgroundType, MH1D*> GetStackMap(
       SignalBackgroundType type) const;
   std::map<WBackgroundType, MH1D*> GetStackMap(WBackgroundType type) const;
   std::map<MesonBackgroundType, MH1D*> GetStackMap(
       MesonBackgroundType type) const;
-  std::map<HadronType, MH1D*> GetStackMap(HadronType type) const;
   std::map<FSParticleType, MH1D*> GetStackMap(FSParticleType type) const;
   std::map<ChannelType, MH1D*> GetStackMap(ChannelType type) const;
-  std::map<NPionsType, MH1D*> GetStackMap(NPionsType type) const;
-  std::map<NPi0Type, MH1D*> GetStackMap(NPi0Type type) const;
-  std::map<NPipType, MH1D*> GetStackMap(NPipType type) const;
   std::map<WSidebandType, MH1D*> GetStackMap(WSidebandType type) const;
-  std::map<CoherentType, MH1D*> GetStackMap(CoherentType type) const;
 
   // Load MC hists from file
   void LoadDataHistsFromFile(TFile& fin);
