@@ -29,9 +29,6 @@ namespace make_xsec_mc_inputs {
 typedef Variable Var;
 
 std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
-  const int nadphibins = 16;
-  const double adphimin = -Constants::PI;
-  const double adphimax = Constants::PI;
 
   Var* pmu = new Var("pmu", "p_{#mu}", "MeV", CCPi::GetBinning("pmu"),
                      &CVUniverse::GetPmu);
@@ -78,9 +75,6 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
 }
 
 std::vector<Variable*> GetInclusiveVariables(bool include_truth_vars = true) {
-  const int nadphibins = 16;
-  const double adphimin = -Constants::PI;
-  const double adphimax = Constants::PI;
 
   Var* pmu = new Var("pmu", "p_{#mu}", "MeV", CCPi::GetBinning("pmu"),
                      &CVUniverse::GetPmu);
@@ -292,8 +286,6 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
 
   // INIT MACRO UTILITY
   const std::string macro("MCXSecInputs");
-  // std::string a_file =
-  // "root://fndca1.fnal.gov:1094///pnfs/fnal.gov/usr/minerva/persistent/users/bmesserl/pions//20200713/merged/mc/ME1A/CCNuPionInc_mc_AnaTuple_run00110000_Playlist.root";
   CCPi::MacroUtil util(signal_definition_int, mc_file_list, plist, do_truth,
                        is_grid, do_systematics);
   util.PrintMacroConfiguration(macro);
