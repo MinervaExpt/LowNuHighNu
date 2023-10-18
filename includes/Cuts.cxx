@@ -62,8 +62,7 @@ PassesCutsInfoMerged PassesCutsMerged(CVUniverse& universe, const bool is_mc,
   bool is_lowq2highw_sideband = true;
 
   switch (signal_definition) {
-    case kLowNu:
-    case kHighNu:
+    case kLowNuHighNu:
       for (auto c : cuts) {
         bool passes_this_cut = false;
         passes_this_cut = PassesCut(universe, c, is_mc, signal_definition);
