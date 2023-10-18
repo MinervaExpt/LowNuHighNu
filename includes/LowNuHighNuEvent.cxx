@@ -349,13 +349,6 @@ void lownuhighnu_event::FillStackedHists(const LowNuHighNuEvent& event,
        GetWBackgroundType(*event.m_universe, event.m_signal_definition))
       ->Fill(fill_val, event.m_weight);
 
-  v->GetStackComponentHist(
-       GetTruthWType(*event.m_universe, event.m_signal_definition))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(
-       GetCoherentType(*event.m_universe, event.m_signal_definition))
-      ->Fill(fill_val, event.m_weight);
 }
 
 #endif  // LowNuHighNuEvent_cxx

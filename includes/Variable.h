@@ -48,8 +48,7 @@ class Variable {
   int XMax() const { return m_hists.XMax(); }
 
   // Get the variable's value
-  virtual double GetValue(const CVUniverse& universe,
-                          const int hadron_ID = -1) const;
+  virtual double GetValue(const CVUniverse& universe) const;
 
   // Histogram Initialization
   template <typename T>
@@ -71,8 +70,6 @@ class Variable {
   template <typename T>
   TObjArray GetStackArray(T type) const;
 
-  // Get Histograms from File
-  // void GetMCHists(TFile& fin);
 };
 
 #include "Variable.cxx"

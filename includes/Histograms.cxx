@@ -31,15 +31,9 @@ Histograms::Histograms()
       m_wsidebandfit_midW(),
       m_wsidebandfit_sig(),
       m_stacked_channel(),
-      m_stacked_coherent(),
       m_stacked_fspart(),
-      m_stacked_hadron(),
       m_stacked_mesonbg(),
-      m_stacked_npi(),
-      m_stacked_npi0(),
-      m_stacked_npip(),
       m_stacked_sigbg(),
-      m_stacked_w(),
       m_stacked_wbg(),
       m_stacked_wsideband() {}
 
@@ -70,15 +64,9 @@ Histograms::Histograms(const std::string label, const std::string xlabel,
       m_wsidebandfit_midW(),
       m_wsidebandfit_sig(),
       m_stacked_channel(),
-      m_stacked_coherent(),
       m_stacked_fspart(),
-      m_stacked_hadron(),
       m_stacked_mesonbg(),
-      m_stacked_npi(),
-      m_stacked_npi0(),
-      m_stacked_npip(),
       m_stacked_sigbg(),
-      m_stacked_w(),
       m_stacked_wbg(),
       m_stacked_wsideband() {}
 
@@ -109,15 +97,9 @@ Histograms::Histograms(const std::string label, const std::string xlabel,
       m_wsidebandfit_midW(),
       m_wsidebandfit_sig(),
       m_stacked_channel(),
-      m_stacked_coherent(),
       m_stacked_fspart(),
-      m_stacked_hadron(),
       m_stacked_mesonbg(),
-      m_stacked_npi(),
-      m_stacked_npi0(),
-      m_stacked_npip(),
       m_stacked_sigbg(),
-      m_stacked_w(),
       m_stacked_wbg(),
       m_stacked_wsideband() {}
 
@@ -139,15 +121,9 @@ Histograms::Histograms(const std::string label, const std::string xlabel,
       m_wsidebandfit_midW(h.m_wsidebandfit_midW),
       m_wsidebandfit_sig(h.m_wsidebandfit_sig),
       m_stacked_channel(h.m_stacked_channel),
-      m_stacked_coherent(h.m_stacked_coherent),
       m_stacked_fspart(h.m_stacked_fspart),
-      m_stacked_hadron(h.m_stacked_hadron),
       m_stacked_mesonbg(h.m_stacked_mesonbg),
-      m_stacked_npi0(h.m_stacked_npi0),
-      m_stacked_npi(h.m_stacked_npi),
-      m_stacked_npip(h.m_stacked_npip),
       m_stacked_sigbg(h.m_stacked_sigbg),
-      m_stacked_w(h.m_stacked_w),
       m_stacked_wbg(h.m_stacked_wbg),
       m_stacked_wsideband(h.m_stacked_wsideband) {
   m_bg_subbed_data = new MH1D(*h.m_bg_subbed_data);
@@ -334,9 +310,6 @@ void Histograms::InitializeSidebandHists(T systematic_univs) {
 
 void Histograms::InitializeStackedHists() {
   // Event Selection Stacked
-  m_stacked_w =
-      StackedHistogram<WType>(m_label, m_xlabel, m_bins_array, int(kNWTypes));
-
   m_stacked_sigbg = StackedHistogram<SignalBackgroundType>(
       m_label, m_xlabel, m_bins_array, int(kNSignalBackgroundTypes));
 
@@ -346,26 +319,11 @@ void Histograms::InitializeStackedHists() {
   m_stacked_mesonbg = StackedHistogram<MesonBackgroundType>(
       m_label, m_xlabel, m_bins_array, int(kNMesonBackgroundTypes));
 
-  m_stacked_hadron = StackedHistogram<HadronType>(
-      m_label, m_xlabel, m_bins_array, int(kNHadronTypes), 3);
-
   m_stacked_fspart = StackedHistogram<FSParticleType>(
       m_label, m_xlabel, m_bins_array, int(kNFSParticleTypes));
 
   m_stacked_channel = StackedHistogram<ChannelType>(
       m_label, m_xlabel, m_bins_array, int(kNChannelTypes));
-
-  m_stacked_npi = StackedHistogram<NPionsType>(m_label, m_xlabel, m_bins_array,
-                                               int(kNNPionsTypes), 2);
-
-  m_stacked_npi0 = StackedHistogram<NPi0Type>(m_label, m_xlabel, m_bins_array,
-                                              int(kNNPi0Types), 2);
-
-  m_stacked_npip = StackedHistogram<NPipType>(m_label, m_xlabel, m_bins_array,
-                                              int(kNNPipTypes), 2);
-
-  m_stacked_coherent = StackedHistogram<CoherentType>(
-      m_label, m_xlabel, m_bins_array, int(kNCoherentTypes), 5);
 
   // Sideband Stacked
   m_stacked_wsideband = StackedHistogram<WSidebandType>(
@@ -408,10 +366,6 @@ void Histograms::InitializeMigrationHist(T systematic_univs) {
 }
 
 // Accessor functions
-std::map<WType, MH1D*> Histograms::GetStackMap(WType type) const {
-  return m_stacked_w.m_hist_map;
-}
-
 std::map<SignalBackgroundType, MH1D*> Histograms::GetStackMap(
     SignalBackgroundType type) const {
   return m_stacked_sigbg.m_hist_map;
@@ -427,10 +381,6 @@ std::map<MesonBackgroundType, MH1D*> Histograms::GetStackMap(
   return m_stacked_mesonbg.m_hist_map;
 }
 
-std::map<HadronType, MH1D*> Histograms::GetStackMap(HadronType type) const {
-  return m_stacked_hadron.m_hist_map;
-}
-
 std::map<FSParticleType, MH1D*> Histograms::GetStackMap(
     FSParticleType type) const {
   return m_stacked_fspart.m_hist_map;
@@ -440,25 +390,9 @@ std::map<ChannelType, MH1D*> Histograms::GetStackMap(ChannelType type) const {
   return m_stacked_channel.m_hist_map;
 }
 
-std::map<NPionsType, MH1D*> Histograms::GetStackMap(NPionsType type) const {
-  return m_stacked_npi.m_hist_map;
-}
-
-std::map<NPi0Type, MH1D*> Histograms::GetStackMap(NPi0Type type) const {
-  return m_stacked_npi0.m_hist_map;
-}
-
-std::map<NPipType, MH1D*> Histograms::GetStackMap(NPipType type) const {
-  return m_stacked_npip.m_hist_map;
-}
-
 std::map<WSidebandType, MH1D*> Histograms::GetStackMap(
     WSidebandType type) const {
   return m_stacked_wsideband.m_hist_map;
-}
-
-std::map<CoherentType, MH1D*> Histograms::GetStackMap(CoherentType type) const {
-  return m_stacked_coherent.m_hist_map;
 }
 
 #endif  // Histograms_cxx

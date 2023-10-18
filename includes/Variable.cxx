@@ -37,8 +37,7 @@ Variable::Variable(const std::string label, const std::string xlabel,
       m_is_true(is_true) {}
 
 // GetValue defines this variable
-double Variable::GetValue(const CVUniverse& universe,
-                          const int hadron_ID) const {
+double Variable::GetValue(const CVUniverse& universe) const {
   return m_pointer_to_GetValue(universe);
 }
 
@@ -101,30 +100,18 @@ void Variable::LoadMCHistsFromFile(TFile& fin, UniverseMap& error_bands) {
 
 template <typename T>
 TObjArray Variable::GetStackArray(T type) const {
-  if (std::is_same<T, WType>::value)
-    return m_hists.m_stacked_w.m_hist_array;
-  else if (std::is_same<T, SignalBackgroundType>::value)
+  if (std::is_same<T, SignalBackgroundType>::value)
     return m_hists.m_stacked_sigbg.m_hist_array;
   else if (std::is_same<T, WBackgroundType>::value)
     return m_hists.m_stacked_wbg.m_hist_array;
   else if (std::is_same<T, MesonBackgroundType>::value)
     return m_hists.m_stacked_mesonbg.m_hist_array;
-  else if (std::is_same<T, HadronType>::value)
-    return m_hists.m_stacked_hadron.m_hist_array;
   else if (std::is_same<T, FSParticleType>::value)
     return m_hists.m_stacked_fspart.m_hist_array;
   else if (std::is_same<T, ChannelType>::value)
     return m_hists.m_stacked_channel.m_hist_array;
-  else if (std::is_same<T, NPionsType>::value)
-    return m_hists.m_stacked_npi.m_hist_array;
-  else if (std::is_same<T, NPi0Type>::value)
-    return m_hists.m_stacked_npi0.m_hist_array;
-  else if (std::is_same<T, NPipType>::value)
-    return m_hists.m_stacked_npip.m_hist_array;
   else if (std::is_same<T, WSidebandType>::value)
     return m_hists.m_stacked_wsideband.m_hist_array;
-  else if (std::is_same<T, CoherentType>::value)
-    return m_hists.m_stacked_coherent.m_hist_array;
   else {
     std::cerr << "GetStackArray: Unknown truth type.\n";
     std::exit(1);
