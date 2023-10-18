@@ -86,7 +86,7 @@ class Histograms {
   template <typename T>
   void InitializeSidebandHists(T systematic_univs);
   template <typename T>
-  void InitializeMigrationHist(T systematic_univs);
+  void InitializeMigrationHists(T systematic_univs);
   void InitializeDataHists();
   void InitializeStackedHists();
 

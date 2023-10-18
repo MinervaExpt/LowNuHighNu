@@ -229,7 +229,7 @@ void Histograms::InitializeAllHists(T systematic_univs,
   InitializeSelectionHists(systematic_univs, systematic_univs_truth);
 
   // Migration Matrix
-  InitializeMigrationHist(systematic_univs);
+  InitializeMigrationHists(systematic_univs);
 
   // Sidebands
   InitializeSidebandHists(systematic_univs);
@@ -353,7 +353,7 @@ void Histograms::InitializeDataHists() {
 }
 
 template <typename T>
-void Histograms::InitializeMigrationHist(T systematic_univs) {
+void Histograms::InitializeMigrationHists(T systematic_univs) {
   const Double_t* bins = m_bins_array.GetArray();
   const char* label = m_label.c_str();
   PlotUtils::MnvH2D* migration = new PlotUtils::MnvH2D(
