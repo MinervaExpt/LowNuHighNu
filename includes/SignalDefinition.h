@@ -4,14 +4,12 @@
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h"  // namespace CCIncConsts
 
-enum SignalDefinition { kInclusive, kLowNu, kHighNu, kNSignalDefTypes };
+enum SignalDefinition { kInclusive, kLowNuHighNu, kNSignalDefTypes };
 
 double GetWCutValue(SignalDefinition signal_definition) {
   switch (signal_definition) {
-    case kLowNu:
+    case kLowNuHighNu:
       return 1000.;  // placeholder
-    case kHighNu:
-      return 1100.;  // placeholder
     case kInclusive:
       return 10.;
     default:
@@ -165,9 +163,7 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
   }
 
   switch (sig_def) {
-    case kLowNu:
-      return true;
-    case kHighNu:
+    case kLowNuHighNu:
       return true;
     case kInclusive:
       return true;
@@ -183,10 +179,8 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
 
 std::string GetSignalName(SignalDefinition sig_def) {
   switch (sig_def) {
-    case kLowNu:
-      return "#nu_{#mu} Tracker #rightarrow #mu^{-} [Low Nu placeholder]";
-    case kHighNu:
-      return "#nu_{#mu} Tracker #rightarrow #mu^{-} [High Nu placeholder]";
+    case kLowNuHighNu:
+      return "#nu_{#mu} Tracker #rightarrow #mu^{-} [LowNuHighNu placeholder]";
     case kInclusive:
       return "#nu_{#mu} Tracker #rightarrow #mu^{-} X [Inclusive]";
 
@@ -197,10 +191,8 @@ std::string GetSignalName(SignalDefinition sig_def) {
 
 std::string GetSignalFileTag(SignalDefinition sig_def) {
   switch (sig_def) {
-    case kLowNu:
-      return "LowNu";
-    case kHighNu:
-      return "HighNu";
+    case kLowNuHighNu:
+      return "LowNuHighNu";
     case kInclusive:
       return "Inclusive";
 

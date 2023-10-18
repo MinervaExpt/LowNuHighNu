@@ -143,11 +143,7 @@ std::vector<Variable*> GetAnalysisVariables(SignalDefinition signal_definition,
   std::vector<Variable*> variables;
   std::cout << "My signal is " << GetSignalName(signal_definition) << std::endl;
   switch (signal_definition) {
-    case kLowNu:
-      variables =
-          make_xsec_mc_inputs::GetLowNuHighNuVariables(include_truth_vars);
-      break;
-    case kHighNu:
+    case kLowNuHighNu:
       variables =
           make_xsec_mc_inputs::GetLowNuHighNuVariables(include_truth_vars);
       break;
