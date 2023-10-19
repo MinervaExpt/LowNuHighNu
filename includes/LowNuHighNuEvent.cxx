@@ -39,10 +39,11 @@ SignalBackgroundType GetSignalBackgroundType(const LowNuHighNuEvent& e) {
 // Fill all histos for an entire event -- call other specialized fill functions
 //==============================================================================
 void lownuhighnu_event::FillRecoEvent(const LowNuHighNuEvent& event,
-                                      const std::vector<Variable*>& variables) {
+                                      const std::vector<Variable*>& variables,
+                                      const std::vector<Variable2D*>& variables2D) {
   // Fill selection -- total, signal-only, and bg-only
   if (event.m_passes_cuts) {
-    lownuhighnu_event::FillSelected(event, variables);
+    lownuhighnu_event::FillSelected(event, variables, variables2D);
   }
   // // Fill W Sideband
   // if (event.m_is_w_sideband) {
@@ -70,7 +71,8 @@ void lownuhighnu_event::FillTruthEvent(
 // ** signal only (true vars, for eff num & closure)
 // ** bg only (reco and true vars)
 void lownuhighnu_event::FillSelected(const LowNuHighNuEvent& event,
-                                     const std::vector<Variable*>& variables) {
+                                     const std::vector<Variable*>& variables,
+                                     const std::vector<Variable2D*>& variables2D) {
   for (auto var : variables) {
     // Sanity Checks
     if (var->m_is_true && !event.m_is_mc) return;  // truth, but not MC?
@@ -119,6 +121,31 @@ void lownuhighnu_event::FillSelected(const LowNuHighNuEvent& event,
       }
     }
   }  // end variables
+  for (auto var: variables2D) {
+    //Get fill value
+    double fill_val_x = var->GetRecoValueX(*event.m_universe);
+    double fill_val_y = var->GetRecoValueY(*event.m_universe);
+  
+    // total = signal & background, together
+    if (event.m_is_mc) {
+      var->m_selection_mc.FillUniverse(*event.m_universe, fill_val_x,
+                                                fill_val_y, event.m_weight);
+    } else {
+      var->m_selection_data.hist->Fill(fill_val_x, fill_val_y);
+    }
+
+    // done with data
+    if (!event.m_is_mc) continue;
+    
+    // signal and background individually
+    if (event.m_is_signal) {
+      var->m_effnum.FillUniverse(*event.m_universe, fill_val_x,
+                                 fill_val_y, event.m_weight);
+    } else {
+      var->m_bg.FillUniverse(*event.m_universe, fill_val_x,
+                             fill_val_y, event.m_weight);
+    }
+  } // end variables2D
 }
 
 // Fill histograms of all variables with events in the sideband region

@@ -16,6 +16,7 @@
 #include "includes/SignalDefinition.h"
 #include "includes/TruthCategories/Sidebands.h"  // sidebands::kFitVarString, IsWSideband
 #include "includes/Variable.h"
+#include "includes/Variable2D.h"
 #include "includes/common_functions.h"  // GetVar, WritePOT
 #include "playlist_methods.h"           // GetPlaylistFile
 
@@ -27,6 +28,21 @@ class HadronVariable;
 //==============================================================================
 namespace make_xsec_mc_inputs {
 typedef Variable Var;
+typedef VariableMAT VarMAT;
+typedef Variable2D Var2D;
+
+// Temporary solution to the fact that Ben's Variable class accepts a TArrayD binning
+// but the MAT VariableBase class only accepts a std::vector<double> binning
+std::vector<double> ConvertTArrayDToStdVector(const TArrayD& array) {
+    std::vector<double> result;
+    result.reserve(array.GetSize()); // Optional for optimization
+
+    for (int i = 0; i < array.GetSize(); i++) {
+        result.push_back(array[i]);
+    }
+
+    return result;
+}
 
 std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
 
@@ -72,6 +88,16 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
   }
 
   return variables;
+}
+
+std::vector<Variable2D*> GetLowNuHighNu2DVariables(bool include_truth_vars = true) {
+
+  VarMAT* vmat_enu = new VarMAT("enu", "enu", ConvertTArrayDToStdVector(CCPi::GetBinning("enu")), &CVUniverse::GetEnu, &CVUniverse::GetEnuTrue);
+  VarMAT* vmat_ehad = new VarMAT("ehad", "ehad", ConvertTArrayDToStdVector(CCPi::GetBinning("ehad")), &CVUniverse::GetEhad, &CVUniverse::GetEhadTrue);
+  Var2D* enu_ehad = new Var2D(*vmat_enu, *vmat_ehad); 
+
+  return std::vector<Var2D*>{enu_ehad};
+
 }
 
 std::vector<Variable*> GetInclusiveVariables(bool include_truth_vars = true) {
@@ -178,6 +204,7 @@ void SyncAllHists(Variable& v) {
 void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
                              const EDataMCTruth& type,
                              std::vector<Variable*>& variables,
+                             std::vector<Variable2D*>& variables2D,
                              bool truncate_run) {
   bool is_mc, is_truth;
   Long64_t n_entries;
@@ -248,7 +275,7 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         //===============
         // FILL RECO
         //===============
-        lownuhighnu_event::FillRecoEvent(event, variables);
+        lownuhighnu_event::FillRecoEvent(event, variables, variables2D);
         // inclusive_event::FillRecoEvent(event, variables);
       }  // universes
     }    // error bands
@@ -297,16 +324,21 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   const bool do_truth_vars = true;
   std::vector<Variable*> variables =
       GetAnalysisVariables(util.m_signal_definition, do_truth_vars);
+  std::vector<Variable2D*> variables2D = 
+      make_xsec_mc_inputs::GetLowNuHighNu2DVariables(do_truth_vars);
 
   for (auto v : variables)
     v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
+
+  for (auto v : variables2D)
+    v->InitializeAllHists(util.m_error_bands);
 
   // LOOP MC RECO
   for (auto band : util.m_error_bands) {
     std::vector<CVUniverse*> universes = band.second;
     for (auto universe : universes) universe->SetTruth(false);
   }
-  LoopAndFillMCXSecInputs(util, kMC, variables, test_run);
+  LoopAndFillMCXSecInputs(util, kMC, variables, variables2D, test_run);
 
   // LOOP TRUTH
   if (util.m_do_truth) {
@@ -315,7 +347,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
       std::vector<CVUniverse*> universes = band.second;
       for (auto universe : universes) universe->SetTruth(true);
     }
-    LoopAndFillMCXSecInputs(util, kTruth, variables, test_run);
+    LoopAndFillMCXSecInputs(util, kTruth, variables, variables2D, test_run);
   }
 
   // WRITE TO FILE
@@ -325,6 +357,10 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   for (auto v : variables) {
     SyncAllHists(*v);
     v->WriteMCHists(fout);
+  }
+  for (auto v : variables2D) {
+    //SyncAllHists(*v); // to-do follow up on this
+    v->WriteAllHistogramsToFile(fout,true);
   }
 }
 
