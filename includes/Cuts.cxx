@@ -217,5 +217,10 @@ bool ThetamuCut(const CVUniverse& univ) {
   if (univ.GetThetamu() >= CCIncConsts::kThetamuMaxCutVal) return false;
   else return true;
 }
+bool RockMuonCut(const CVUniverse& univ){
+  bool disc = univ.GetInt("phys_n_dead_discr_pair_upstream_prim_track_proj") <= 1;
+  return disc; 
+}
+
 
 #endif  // Cuts_cxx
