@@ -46,7 +46,12 @@ struct PassesCutsInfoMerged {
   bool is_lowwhighq2_sideband;
   bool is_lowq2highw_sideband;
   std::tuple<bool, bool, bool, bool, bool, bool, bool> GetAll() {
-    return {passes_all_cuts, passes_incl_cuts, is_dis_signal, is_lownu, is_highnu, is_lowwhighq2_sideband,
+    return {passes_all_cuts,
+            passes_incl_cuts,
+            is_dis_signal,
+            is_lownu,
+            is_highnu,
+            is_lowwhighq2_sideband,
             is_lowq2highw_sideband};
   };
 };
@@ -81,7 +86,7 @@ namespace Constants {
 const double MUON_MASS = 105.659;
 const double PROTON_MASS = 938.3;
 const double PI = 3.14159265358979323846;
-const double mev_to_gev = 1./1000.;
+const double mev_to_gev = 1. / 1000.;
 
 }  // namespace Constants
 

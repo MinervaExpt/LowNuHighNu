@@ -15,7 +15,8 @@
 // Calorimetry spline setup
 //==============================================================================
 // Path to MParamFiles calibration file
-std::string splines_file = "$MPARAMFILESROOT/data/Calibrations/energy_calib/CalorimetryTunings.txt";
+std::string splines_file =
+    "$MPARAMFILESROOT/data/Calibrations/energy_calib/CalorimetryTunings.txt";
 
 // Initialize calorimetric correction for tracker
 util::CaloCorrection Nu_Tracker(splines_file.c_str(), "NukeCC_Nu_Tracker");
@@ -24,7 +25,8 @@ util::CaloCorrection Nu_Tracker(splines_file.c_str(), "NukeCC_Nu_Tracker");
 // 2. name of the calorimetric spline
 
 // n.b. All of the splines that Anne needs can be added here, too
-// see example in https://github.com/MinervaExpt/NSFNukeCCInclusive/blob/de94f6fdee7693a4f3fb86f2dc6d0b5bba90476d/NUKECCSRC/src/CVUniverse.cxx
+// see example in
+// https://github.com/MinervaExpt/NSFNukeCCInclusive/blob/de94f6fdee7693a4f3fb86f2dc6d0b5bba90476d/NUKECCSRC/src/CVUniverse.cxx
 
 //==============================================================================
 // Constructor
@@ -146,16 +148,19 @@ double CVUniverse::GetWexpTrue() const {
 double CVUniverse::GetCalRecoilEnergy() const {
   // inclusive analysis -> ID + OD
   return GetDouble("part_response_total_recoil_passive_allNonMuonClusters_id") +
-      GetDouble("part_response_total_recoil_passive_allNonMuonClusters_od"); // in MeV
+         GetDouble(
+             "part_response_total_recoil_passive_allNonMuonClusters_od");  // in
+                                                                           // MeV
 }
 
-double CVUniverse::GetNonCalRecoilEnergy() const { 
+double CVUniverse::GetNonCalRecoilEnergy() const {
   // no non calorimetric recoil
   return 0.;
 }
 
-double CVUniverse::ApplyCaloTuning(double calRecoilE) const{
-  return Nu_Tracker.eCorrection(calRecoilE*Constants::mev_to_gev)/Constants::mev_to_gev; // in MeV
+double CVUniverse::ApplyCaloTuning(double calRecoilE) const {
+  return Nu_Tracker.eCorrection(calRecoilE * Constants::mev_to_gev) /
+         Constants::mev_to_gev;  // in MeV
   // calRecoilE in MeV, calorimetric splines in GeV
 }
 

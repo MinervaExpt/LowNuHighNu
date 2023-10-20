@@ -4,8 +4,7 @@
 #include "Constants.h"  // enum ECuts, CCIncConsts
 
 // Analysis Cuts - default vector
-const std::vector<ECuts> kCutsVector = {kNoCuts, kVtx, kMinosMuon,
-                                        kPmu};
+const std::vector<ECuts> kCutsVector = {kNoCuts, kVtx, kMinosMuon, kPmu};
 
 // Gaudi tool cuts - only work when checking truth tuple
 bool IsPrecut(ECuts c) {
