@@ -52,7 +52,6 @@ PassesCutsInfoInclusive PassesCutsInclusive(
 PassesCutsInfoMerged PassesCutsMerged(CVUniverse& universe, const bool is_mc,
                                       const SignalDefinition signal_definition,
                                       std::vector<ECuts> cuts) {
-
   bool passes_all_cuts = true;
   bool passes_incl_cuts = true;
   bool is_dis_signal = true;
@@ -73,12 +72,15 @@ PassesCutsInfoMerged PassesCutsMerged(CVUniverse& universe, const bool is_mc,
     case kInclusive:
       // Do something to set the Inclusive/DIS specific bools
     default:
-      std::cout << "Warning: Unknown Signal Definition! PassesCutsMerged() is not doing the correct thing!!" << std::endl;
+      std::cout << "Warning: Unknown Signal Definition! PassesCutsMerged() is "
+                   "not doing the correct thing!!"
+                << std::endl;
   }
 
-  return {passes_all_cuts, passes_incl_cuts, is_dis_signal, is_lownu, is_highnu, 
-          is_lowwhighq2_sideband, is_lowq2highw_sideband};
-} 
+  return {
+      passes_all_cuts, passes_incl_cuts,       is_dis_signal,         is_lownu,
+      is_highnu,       is_lowwhighq2_sideband, is_lowq2highw_sideband};
+}
 
 //==============================================================================
 // Passes INDIVIDUAL Cut
@@ -160,31 +162,34 @@ bool MinosChargeCut(const CVUniverse& univ) {
 }
 // Muon coil cut
 bool MinosMuonCoilCut(const CVUniverse& univ) {
-    const double coilXPos = 1219.0;
-    const double coilYPos = 393.0;
-    const double coilR = 210.;
-    const double maxR = 2500.;
-    const double minos_trk_end_x = univ.GetDouble("MasterAnaDev_minos_trk_end_x");
-    const double minos_trk_end_y = univ.GetDouble("MasterAnaDev_minos_trk_end_y");
-    const double minos_x = minos_trk_end_x + coilXPos;
-    const double minos_y = minos_trk_end_y + coilYPos;
-    double minosR = sqrt( pow(minos_x,2) + pow(minos_y,2) );
+  const double coilXPos = 1219.0;
+  const double coilYPos = 393.0;
+  const double coilR = 210.;
+  const double maxR = 2500.;
+  const double minos_trk_end_x = univ.GetDouble("MasterAnaDev_minos_trk_end_x");
+  const double minos_trk_end_y = univ.GetDouble("MasterAnaDev_minos_trk_end_y");
+  const double minos_x = minos_trk_end_x + coilXPos;
+  const double minos_y = minos_trk_end_y + coilYPos;
+  double minosR = sqrt(pow(minos_x, 2) + pow(minos_y, 2));
 
-    return (minosR > coilR && minosR < maxR);
+  return (minosR > coilR && minosR < maxR);
 }
 // Muon curvature cut
 bool MinosMuonCurveCut(const CVUniverse& univ) {
-    //Don't make a significance cut if we reconstructed by range 
-    const bool minos_used_curvature = univ.GetBool("MasterAnaDev_minos_used_curvature");
-    if(minos_used_curvature != 1)
-        return true;
-    const double minos_trk_eqp_qp = univ.GetDouble("MasterAnaDev_minos_trk_eqp_qp");
-    return ( minos_trk_eqp_qp > -0.2 );
+  // Don't make a significance cut if we reconstructed by range
+  const bool minos_used_curvature =
+      univ.GetBool("MasterAnaDev_minos_used_curvature");
+  if (minos_used_curvature != 1) return true;
+  const double minos_trk_eqp_qp =
+      univ.GetDouble("MasterAnaDev_minos_trk_eqp_qp");
+  return (minos_trk_eqp_qp > -0.2);
 }
 
-// To-do: Figure out if either of these cuts from Rob's historical implementation are needed now:
-  //if not chain.pass_canonical_cut == 1:                               return False
-  //if not chain.phys_n_dead_discr_pair_upstream_prim_track_proj <= 1:  return False
+// To-do: Figure out if either of these cuts from Rob's historical
+// implementation are needed now:
+// if not chain.pass_canonical_cut == 1:                               return
+// False if not chain.phys_n_dead_discr_pair_upstream_prim_track_proj <= 1:
+// return False
 
 // Vtx cut for detection volume
 bool vtxCut(const CVUniverse& univ) {
@@ -209,13 +214,16 @@ bool XYVertexCut(const CVUniverse& univ, const double a) {
 bool PmuCut(const CVUniverse& univ, bool apply_upper_bound_cut /* = true */) {
   double pmu = univ.GetPmu();
   bool pass_lower_bound_cut = CCIncConsts::kPmuMinCutVal < pmu;
-  bool pass_upper_bound_cut = apply_upper_bound_cut ? (pmu < CCIncConsts::kPmuMaxCutVal) : true;
+  bool pass_upper_bound_cut =
+      apply_upper_bound_cut ? (pmu < CCIncConsts::kPmuMaxCutVal) : true;
   return pass_lower_bound_cut && pass_upper_bound_cut;
 }
 
 bool ThetamuCut(const CVUniverse& univ) {
-  if (univ.GetThetamu() >= CCIncConsts::kThetamuMaxCutVal) return false;
-  else return true;
+  if (univ.GetThetamu() >= CCIncConsts::kThetamuMaxCutVal)
+    return false;
+  else
+    return true;
 }
 
 #endif  // Cuts_cxx

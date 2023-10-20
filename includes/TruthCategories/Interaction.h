@@ -36,7 +36,8 @@ FSParticleType GetFSParticleType(const CVUniverse& universe) {
   if (N_pip == 0 && N_pim == 0 && N_pi0 == 0) return kOtherInt;  // k0pi;
   if (universe.GetInt("mc_current") == 2) return kOtherInt;      // kNC_NpiX;
   if (universe.GetInt("mc_incoming") == 12) return kOtherInt;    // knue_NpiX;
-  if (universe.GetInt("mc_incoming") == -14) return kOtherInt;  // knumubar_NpiX;
+  if (universe.GetInt("mc_incoming") == -14)
+    return kOtherInt;  // knumubar_NpiX;
   if (universe.GetInt("mc_incoming") != 14) return kOtherInt;
   if (universe.GetInt("mc_current") != 1) return kOtherInt;
 

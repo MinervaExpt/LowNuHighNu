@@ -56,8 +56,10 @@ SignalBackgroundType GetSignalBackgroundType(const LowNuHighNuEvent&);
 // Helper Fill Histo Functions
 namespace lownuhighnu_event {
 // Xsec analysis fill functions
-void FillSelected(const LowNuHighNuEvent&, const std::vector<Variable*>&, const std::vector<Variable2D*>&);
-void FillRecoEvent(const LowNuHighNuEvent&, const std::vector<Variable*>&, const std::vector<Variable2D*>&);
+void FillSelected(const LowNuHighNuEvent&, const std::vector<Variable*>&,
+                  const std::vector<Variable2D*>&);
+void FillRecoEvent(const LowNuHighNuEvent&, const std::vector<Variable*>&,
+                   const std::vector<Variable2D*>&);
 void FillWSideband(const LowNuHighNuEvent&, const std::vector<Variable*>&);
 void FillTruthEvent(const LowNuHighNuEvent&, const std::vector<Variable*>&);
 void FillEfficiencyDenominator(const LowNuHighNuEvent&,

@@ -69,7 +69,6 @@ class Variable {
 
   template <typename T>
   TObjArray GetStackArray(T type) const;
-
 };
 
 #include "Variable.cxx"

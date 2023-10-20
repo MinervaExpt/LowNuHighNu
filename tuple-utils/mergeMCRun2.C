@@ -9,7 +9,7 @@
 //* of the tuples.
 //*
 //* TTree* outTreeTruth=inChainTruth.CopyTree("mc_vtx[2]>5891 &&
-//mc_vtx[2]<8439");
+// mc_vtx[2]<8439");
 //*
 //* I stopped using this script because this fiducial truth cut was worked into
 //* the official PlotUtils merging script.

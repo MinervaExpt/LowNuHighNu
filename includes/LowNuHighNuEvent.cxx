@@ -38,9 +38,9 @@ SignalBackgroundType GetSignalBackgroundType(const LowNuHighNuEvent& e) {
 //==============================================================================
 // Fill all histos for an entire event -- call other specialized fill functions
 //==============================================================================
-void lownuhighnu_event::FillRecoEvent(const LowNuHighNuEvent& event,
-                                      const std::vector<Variable*>& variables,
-                                      const std::vector<Variable2D*>& variables2D) {
+void lownuhighnu_event::FillRecoEvent(
+    const LowNuHighNuEvent& event, const std::vector<Variable*>& variables,
+    const std::vector<Variable2D*>& variables2D) {
   // Fill selection -- total, signal-only, and bg-only
   if (event.m_passes_cuts) {
     lownuhighnu_event::FillSelected(event, variables, variables2D);
@@ -70,9 +70,9 @@ void lownuhighnu_event::FillTruthEvent(
 // ** sig + bg (true and reco vars, data and mc)
 // ** signal only (true vars, for eff num & closure)
 // ** bg only (reco and true vars)
-void lownuhighnu_event::FillSelected(const LowNuHighNuEvent& event,
-                                     const std::vector<Variable*>& variables,
-                                     const std::vector<Variable2D*>& variables2D) {
+void lownuhighnu_event::FillSelected(
+    const LowNuHighNuEvent& event, const std::vector<Variable*>& variables,
+    const std::vector<Variable2D*>& variables2D) {
   for (auto var : variables) {
     // Sanity Checks
     if (var->m_is_true && !event.m_is_mc) return;  // truth, but not MC?
@@ -121,31 +121,31 @@ void lownuhighnu_event::FillSelected(const LowNuHighNuEvent& event,
       }
     }
   }  // end variables
-  for (auto var: variables2D) {
-    //Get fill value
+  for (auto var : variables2D) {
+    // Get fill value
     double fill_val_x = var->GetRecoValueX(*event.m_universe);
     double fill_val_y = var->GetRecoValueY(*event.m_universe);
-  
+
     // total = signal & background, together
     if (event.m_is_mc) {
       var->m_selection_mc.FillUniverse(*event.m_universe, fill_val_x,
-                                                fill_val_y, event.m_weight);
+                                       fill_val_y, event.m_weight);
     } else {
       var->m_selection_data.hist->Fill(fill_val_x, fill_val_y);
     }
 
     // done with data
     if (!event.m_is_mc) continue;
-    
+
     // signal and background individually
     if (event.m_is_signal) {
-      var->m_effnum.FillUniverse(*event.m_universe, fill_val_x,
-                                 fill_val_y, event.m_weight);
+      var->m_effnum.FillUniverse(*event.m_universe, fill_val_x, fill_val_y,
+                                 event.m_weight);
     } else {
-      var->m_bg.FillUniverse(*event.m_universe, fill_val_x,
-                             fill_val_y, event.m_weight);
+      var->m_bg.FillUniverse(*event.m_universe, fill_val_x, fill_val_y,
+                             event.m_weight);
     }
-  } // end variables2D
+  }  // end variables2D
 }
 
 // Fill histograms of all variables with events in the sideband region
@@ -196,9 +196,9 @@ void lownuhighnu_event::FillWSideband(const LowNuHighNuEvent& event,
 void lownuhighnu_event::FillMigration(const LowNuHighNuEvent& event,
                                       const vector<Variable*>& variables) {
   for (auto var : variables) {
-    if(var->m_is_true) continue;
+    if (var->m_is_true) continue;
     std::string var_name = var->Name();
-    if(!HasVar(variables, var_name + string("_true"))) continue;
+    if (!HasVar(variables, var_name + string("_true"))) continue;
     Variable* reco_var = GetVar(variables, var_name);
     Variable* true_var = GetVar(variables, var_name + string("_true"));
     double reco_fill_val = reco_var->GetValue(*event.m_universe);
@@ -375,7 +375,6 @@ void lownuhighnu_event::FillStackedHists(const LowNuHighNuEvent& event,
   v->GetStackComponentHist(
        GetWBackgroundType(*event.m_universe, event.m_signal_definition))
       ->Fill(fill_val, event.m_weight);
-
 }
 
 #endif  // LowNuHighNuEvent_cxx

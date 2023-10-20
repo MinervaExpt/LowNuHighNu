@@ -3,7 +3,7 @@
 
 #include "../CVUniverse.h"
 #include "../SignalDefinition.h"  // IsSignal
-#include "W.h" //GetTruthWType
+#include "W.h"                    //GetTruthWType
 
 enum SignalBackgroundType { kB, kS, kNSignalBackgroundTypes };
 

@@ -365,7 +365,6 @@ void inclusive_event::FillStackedHists(
 void inclusive_event::FillStackedHists(const InclusiveEvent& event, Variable* v,
                                        double fill_val) {
   if (!event.m_is_mc && v->m_is_true) return;
-
 }
 
 #endif  // InclusiveEvent_cxx

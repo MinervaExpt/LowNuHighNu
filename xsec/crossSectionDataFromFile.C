@@ -518,8 +518,7 @@ void crossSectionDataFromFile(int signal_definition_int = 0,
     static PlotUtils::FluxReweighter* frw = new PlotUtils::FluxReweighter(
         14, CCIncConsts::kUseNueConstraint, "minervame1D1M1NWeightedAve",
         PlotUtils::FluxReweighter::gen2thin,
-        PlotUtils::FluxReweighter::g4numiv6,
-        CCIncConsts::kNFluxUniverses);
+        PlotUtils::FluxReweighter::g4numiv6, CCIncConsts::kNFluxUniverses);
 
     fout.cd();  // FRW opens a new file and changes our current dir.
 

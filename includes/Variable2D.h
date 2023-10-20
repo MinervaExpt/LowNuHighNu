@@ -21,8 +21,7 @@ class VariableMAT : public PlotUtils::VariableBase<CVUniverse> {
   // CTOR
   //=======================================================================================
   template <class... ARGS>
-  VariableMAT(ARGS... args)
-      : PlotUtils::VariableBase<CVUniverse>(args...) {}
+  VariableMAT(ARGS... args) : PlotUtils::VariableBase<CVUniverse>(args...) {}
 
   //=======================================================================================
   // INITIALIZE ALL HISTOGRAMS
@@ -35,9 +34,7 @@ class VariableMAT : public PlotUtils::VariableBase<CVUniverse> {
   //=======================================================================================
   // WRITE ALL HISTOGRAMS
   //=======================================================================================
-  void WriteAllHistogramsToFile(TFile& f, bool isMC) const {
-    return;
-  }
+  void WriteAllHistogramsToFile(TFile& f, bool isMC) const { return; }
 };
 
 class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
@@ -50,8 +47,7 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
   // CTOR
   //=======================================================================================
   template <class... ARGS>
-  Variable2D(ARGS... args)
-      : PlotUtils::Variable2DBase<CVUniverse>(args...) {}
+  Variable2D(ARGS... args) : PlotUtils::Variable2DBase<CVUniverse>(args...) {}
 
   //=======================================================================================
   // DECLARE NEW HISTOGRAMS
@@ -70,24 +66,24 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
   void InitializeAllHists(T univs) {
     const bool clear_bands = true;  // we want empty histograms
 
-    MH2D* temp_selection_mc =
-        new MH2D(Form("selection_mc_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
-                 GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    MH2D* temp_selection_mc = new MH2D(
+        Form("selection_mc_%s", GetName().c_str()), GetName().c_str(),
+        GetNBinsX(), GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
     m_selection_mc = HW2D(temp_selection_mc, univs, clear_bands);
 
-    MH2D* temp_selection_data =
-        new MH2D(Form("selection_data_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
-                 GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    MH2D* temp_selection_data = new MH2D(
+        Form("selection_data_%s", GetName().c_str()), GetName().c_str(),
+        GetNBinsX(), GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
     m_selection_data = HW2D(temp_selection_data, univs, clear_bands);
 
-    MH2D* temp_effnum =
-        new MH2D(Form("effnum_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
-                 GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    MH2D* temp_effnum = new MH2D(
+        Form("effnum_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+        GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
     m_effnum = HW2D(temp_effnum, univs, clear_bands);
 
-    MH2D* temp_bg =
-        new MH2D(Form("bg_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
-                 GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    MH2D* temp_bg = new MH2D(
+        Form("bg_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+        GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
     m_bg = HW2D(temp_bg, univs, clear_bands);
 
     delete temp_selection_mc;
@@ -106,7 +102,6 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
     m_selection_data.hist->Write();
     m_effnum.hist->Write();
     m_bg.hist->Write();
-
   }
 };
 

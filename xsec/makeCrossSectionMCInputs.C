@@ -31,21 +31,21 @@ typedef Variable Var;
 typedef VariableMAT VarMAT;
 typedef Variable2D Var2D;
 
-// Temporary solution to the fact that Ben's Variable class accepts a TArrayD binning
-// but the MAT VariableBase class only accepts a std::vector<double> binning
+// Temporary solution to the fact that Ben's Variable class accepts a TArrayD
+// binning but the MAT VariableBase class only accepts a std::vector<double>
+// binning
 std::vector<double> ConvertTArrayDToStdVector(const TArrayD& array) {
-    std::vector<double> result;
-    result.reserve(array.GetSize()); // Optional for optimization
+  std::vector<double> result;
+  result.reserve(array.GetSize());  // Optional for optimization
 
-    for (int i = 0; i < array.GetSize(); i++) {
-        result.push_back(array[i]);
-    }
+  for (int i = 0; i < array.GetSize(); i++) {
+    result.push_back(array[i]);
+  }
 
-    return result;
+  return result;
 }
 
 std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
-
   Var* pmu = new Var("pmu", "p_{#mu}", "MeV", CCPi::GetBinning("pmu"),
                      &CVUniverse::GetPmu);
 
@@ -90,18 +90,20 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
   return variables;
 }
 
-std::vector<Variable2D*> GetLowNuHighNu2DVariables(bool include_truth_vars = true) {
-
-  VarMAT* vmat_enu = new VarMAT("enu", "enu", ConvertTArrayDToStdVector(CCPi::GetBinning("enu")), &CVUniverse::GetEnu, &CVUniverse::GetEnuTrue);
-  VarMAT* vmat_ehad = new VarMAT("ehad", "ehad", ConvertTArrayDToStdVector(CCPi::GetBinning("ehad")), &CVUniverse::GetEhad, &CVUniverse::GetEhadTrue);
-  Var2D* enu_ehad = new Var2D(*vmat_enu, *vmat_ehad); 
+std::vector<Variable2D*> GetLowNuHighNu2DVariables(
+    bool include_truth_vars = true) {
+  VarMAT* vmat_enu = new VarMAT(
+      "enu", "enu", ConvertTArrayDToStdVector(CCPi::GetBinning("enu")),
+      &CVUniverse::GetEnu, &CVUniverse::GetEnuTrue);
+  VarMAT* vmat_ehad = new VarMAT(
+      "ehad", "ehad", ConvertTArrayDToStdVector(CCPi::GetBinning("ehad")),
+      &CVUniverse::GetEhad, &CVUniverse::GetEhadTrue);
+  Var2D* enu_ehad = new Var2D(*vmat_enu, *vmat_ehad);
 
   return std::vector<Var2D*>{enu_ehad};
-
 }
 
 std::vector<Variable*> GetInclusiveVariables(bool include_truth_vars = true) {
-
   Var* pmu = new Var("pmu", "p_{#mu}", "MeV", CCPi::GetBinning("pmu"),
                      &CVUniverse::GetPmu);
 
@@ -324,14 +326,13 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   const bool do_truth_vars = true;
   std::vector<Variable*> variables =
       GetAnalysisVariables(util.m_signal_definition, do_truth_vars);
-  std::vector<Variable2D*> variables2D = 
+  std::vector<Variable2D*> variables2D =
       make_xsec_mc_inputs::GetLowNuHighNu2DVariables(do_truth_vars);
 
   for (auto v : variables)
     v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
 
-  for (auto v : variables2D)
-    v->InitializeAllHists(util.m_error_bands);
+  for (auto v : variables2D) v->InitializeAllHists(util.m_error_bands);
 
   // LOOP MC RECO
   for (auto band : util.m_error_bands) {
@@ -359,8 +360,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
     v->WriteMCHists(fout);
   }
   for (auto v : variables2D) {
-    //SyncAllHists(*v); // to-do follow up on this
-    v->WriteAllHistogramsToFile(fout,true);
+    // SyncAllHists(*v); // to-do follow up on this
+    v->WriteAllHistogramsToFile(fout, true);
   }
 }
 
