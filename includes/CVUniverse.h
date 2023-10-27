@@ -12,7 +12,6 @@
 class CVUniverse : public PlotUtils::MinervaUniverse {
  private:
  public:
-#include "PlotUtils/LowRecoilPionFunctions.h"
 #include "PlotUtils/MuonFunctions.h"
 #include "PlotUtils/RecoilEnergyFunctions.h"
 #include "PlotUtils/TruthFunctions.h"
