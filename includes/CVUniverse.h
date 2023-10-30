@@ -140,6 +140,12 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
     else
       return acos(pzp / sqrt(denom2));
   }
+
+  virtual bool IsMinosMatchMuon() const {
+    bool ismatch = GetBool("isMinosMatchTrack");
+    return ismatch;
+  }
+
 };
 
 #endif  // CVUniverse_H
