@@ -20,7 +20,6 @@ void loadIncludes(bool verbose_cvu) {
   gSystem->CompileMacro("StackedHistogram.cxx", "k");
   gSystem->CompileMacro("Histograms.cxx", cvu_flags);
   gSystem->CompileMacro("Variable.cxx", "k");
-  gSystem->CompileMacro("HadronVariable.cxx", "k");
   gSystem->CompileMacro("MacroUtil.cxx", "k");
   gSystem->CompileMacro("LowNuHighNuEvent.cxx", cvu_flags);
   gSystem->CompileMacro("InclusiveEvent.cxx", cvu_flags);

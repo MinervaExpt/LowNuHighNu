@@ -9,7 +9,6 @@
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h"
 #include "includes/Cuts.h"
-#include "includes/HadronVariable.h"
 #include "includes/InclusiveEvent.h"
 #include "includes/LowNuHighNuEvent.h"
 #include "includes/MacroUtil.h"
@@ -21,7 +20,6 @@
 #include "playlist_methods.h"           // GetPlaylistFile
 
 class Variable;
-class HadronVariable;
 
 //==============================================================================
 // Helper Functions
