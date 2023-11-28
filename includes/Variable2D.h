@@ -15,6 +15,8 @@ class VariableMAT : public PlotUtils::VariableBase<CVUniverse> {
  private:
   typedef PlotUtils::HistWrapper<CVUniverse> HW;
   typedef PlotUtils::MnvH1D MH1D;
+  typedef PlotUtils::Hist2DWrapper<CVUniverse> HW2D;
+  typedef PlotUtils::MnvH2D MH2D;
 
  public:
   //=======================================================================================
@@ -24,17 +26,36 @@ class VariableMAT : public PlotUtils::VariableBase<CVUniverse> {
   VariableMAT(ARGS... args) : PlotUtils::VariableBase<CVUniverse>(args...) {}
 
   //=======================================================================================
+  // DECLARE NEW HISTOGRAMS
+  //=======================================================================================
+  // HISTWRAPPER
+  HW2D m_migration;
+
+  //=======================================================================================
   // INITIALIZE ALL HISTOGRAMS
   //=======================================================================================
   template <typename T>
   void InitializeAllHists(T univs) {
-    return;
+
+    const bool clear_bands = true;  // we want empty histograms
+
+    MH2D* temp_migration = new MH2D(
+        Form("migration_%s", GetName().c_str()), GetName().c_str(),
+        GetNBins(), GetBinVec().data(), GetNBins(), GetBinVec().data());
+    m_migration = HW2D(temp_migration, univs, clear_bands);
+
+    delete temp_migration;
+
   }
 
   //=======================================================================================
   // WRITE ALL HISTOGRAMS
   //=======================================================================================
-  void WriteAllHistogramsToFile(TFile& f, bool isMC) const { return; }
+  void WriteAllHistogramsToFile(TFile& f, bool isMC) const {
+    f.cd();
+
+    m_migration.hist->Write();
+  }
 };
 
 class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
