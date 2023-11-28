@@ -4,6 +4,7 @@ cache/
 *.so
 *.pcm
 *.root
+*.pyc
 *.#*
 *#
 *~
