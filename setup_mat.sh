@@ -29,3 +29,5 @@ source ../opt/bin/setup.sh
 source ../opt/buildGENIEXSecExtract/setup_GENIEXSecExtract.sh 
 
 export IFDH_DEBUG=0
+
+export PYTHONPATH=$PYTHONPATH:$W/py_classes
