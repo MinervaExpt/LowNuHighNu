@@ -5,7 +5,6 @@
 #include <ctime>
 
 #include "includes/Binning.h"
-//#include "includes/CCPiEvent.h"
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h"
 #include "includes/Cuts.h"
@@ -86,6 +85,13 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
   }
 
   return variables;
+}
+
+std::vector<VariableMAT*> GetLowNuHighNuMATVariables(bool include_truth_vars = true) {
+  VarMAT* vmat_ehad = new VarMAT(
+    "vmat_ehad", "vmat_ehad", ConvertTArrayDToStdVector(CCPi::GetBinning("ehad_fine")),
+    &CVUniverse::GetEhad, &CVUniverse::GetEhadTrue);
+  return std::vector<VarMAT*>{vmat_ehad};
 }
 
 std::vector<Variable2D*> GetLowNuHighNu2DVariables(
@@ -204,6 +210,7 @@ void SyncAllHists(Variable& v) {
 void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
                              const EDataMCTruth& type,
                              std::vector<Variable*>& variables,
+                             std::vector<VariableMAT*>& variables_MAT,
                              std::vector<Variable2D*>& variables2D,
                              bool truncate_run) {
   bool is_mc, is_truth;
@@ -280,7 +287,7 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         //===============
         // FILL RECO
         //===============
-        // lownuhighnu_event::FillRecoEvent(event, variables, variables2D);
+        // lownuhighnu_event::FillRecoEvent(event, variables, variables_MAT, variables2D);
         inclusive_event::FillRecoEvent(event, variables);
       }  // universes
     }    // error bands
@@ -329,12 +336,15 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   const bool do_truth_vars = true;
   std::vector<Variable*> variables =
       GetAnalysisVariables(util.m_signal_definition, do_truth_vars);
+  std::vector<VariableMAT*> variables_MAT = 
+      make_xsec_mc_inputs::GetLowNuHighNuMATVariables(do_truth_vars);
   std::vector<Variable2D*> variables2D =
       make_xsec_mc_inputs::GetLowNuHighNu2DVariables(do_truth_vars);
 
   for (auto v : variables)
     v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
 
+  for (auto v : variables_MAT) v->InitializeAllHists(util.m_error_bands);
   for (auto v : variables2D) v->InitializeAllHists(util.m_error_bands);
 
   // LOOP MC RECO
@@ -342,7 +352,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
     std::vector<CVUniverse*> universes = band.second;
     for (auto universe : universes) universe->SetTruth(false);
   }
-  LoopAndFillMCXSecInputs(util, kMC, variables, variables2D, test_run);
+  LoopAndFillMCXSecInputs(util, kMC, variables, variables_MAT, variables2D, test_run);
 
   // LOOP TRUTH
   if (util.m_do_truth) {
@@ -351,7 +361,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
       std::vector<CVUniverse*> universes = band.second;
       for (auto universe : universes) universe->SetTruth(true);
     }
-    LoopAndFillMCXSecInputs(util, kTruth, variables, variables2D, test_run);
+    LoopAndFillMCXSecInputs(util, kTruth, variables, variables_MAT, variables2D, test_run);
   }
 
   // WRITE TO FILE
@@ -361,6 +371,9 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   for (auto v : variables) {
     SyncAllHists(*v);
     v->WriteMCHists(fout);
+  }
+  for (auto v: variables_MAT) {
+    v->WriteAllHistogramsToFile(fout, true);
   }
   for (auto v : variables2D) {
     // SyncAllHists(*v); // to-do follow up on this

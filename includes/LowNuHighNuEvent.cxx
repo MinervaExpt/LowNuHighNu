@@ -40,10 +40,11 @@ SignalBackgroundType GetSignalBackgroundType(const LowNuHighNuEvent& e) {
 //==============================================================================
 void lownuhighnu_event::FillRecoEvent(
     const LowNuHighNuEvent& event, const std::vector<Variable*>& variables,
+    const std::vector<VariableMAT*>& variables_MAT,
     const std::vector<Variable2D*>& variables2D) {
   // Fill selection -- total, signal-only, and bg-only
   if (event.m_passes_cuts) {
-    lownuhighnu_event::FillSelected(event, variables, variables2D);
+    lownuhighnu_event::FillSelected(event, variables, variables_MAT, variables2D);
   }
   // // Fill W Sideband
   // if (event.m_is_w_sideband) {
@@ -72,6 +73,7 @@ void lownuhighnu_event::FillTruthEvent(
 // ** bg only (reco and true vars)
 void lownuhighnu_event::FillSelected(
     const LowNuHighNuEvent& event, const std::vector<Variable*>& variables,
+    const std::vector<VariableMAT*>& variables_MAT,
     const std::vector<Variable2D*>& variables2D) {
   for (auto var : variables) {
     // Sanity Checks
@@ -121,6 +123,18 @@ void lownuhighnu_event::FillSelected(
       }
     }
   }  // end variables
+  for (auto var: variables_MAT) {
+    // Get fill value
+    double fill_val_reco = var->GetRecoValue(*event.m_universe);
+    double fill_val_truth = var->GetTrueValue(*event.m_universe);
+
+    // all MC events
+    if (event.m_is_mc) {
+      var->m_migration.FillUniverse(*event.m_universe, fill_val_reco,
+                                    fill_val_truth, event.m_weight);
+    }
+  } //end variables_MAT
+
   for (auto var : variables2D) {
     // Get fill value
     double fill_val_x = var->GetRecoValueX(*event.m_universe);
