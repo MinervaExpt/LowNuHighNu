@@ -224,7 +224,7 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
       std::cout << (i_event / 1000) << "k " << std::endl;
 
     // Variables that hold info about whether the CVU passes cuts
-    PassesCutsInfoInclusive cv_cuts_info;
+    PassesCutsInfo cv_cuts_info;
     bool checked_cv = false;
 
     // Loop universes, make cuts, and fill
@@ -260,23 +260,18 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
           // Only check vertical-only universes once.
           if (!checked_cv) {
             // Check cuts
-            cv_cuts_info = PassesCutsInclusive(event);
+            cv_cuts_info = PassesCuts(event);
             checked_cv = true;
           }
+
           // Already checked a vertical-only universe
           if (checked_cv) {
-            std::tie(event.m_passes_incl_cuts, event.m_passes_dis_cuts,
-                     event.m_passes_dis_lowwhighq2_cuts,
-                     event.m_passes_dis_lowq2highw_cuts) =
-                cv_cuts_info.GetAll();
+            event.m_passes_cuts = cv_cuts_info.GetAll();
           }
           // Universe shifts something laterally
         } else {
-          PassesCutsInfoInclusive cuts_info = PassesCutsInclusive(event);
-
-          std::tie(event.m_passes_incl_cuts, event.m_passes_dis_cuts,
-                   event.m_passes_dis_lowwhighq2_cuts,
-                   event.m_passes_dis_lowq2highw_cuts) = cv_cuts_info.GetAll();
+          PassesCutsInfo cuts_info = PassesCuts(event);
+          event.m_passes_cuts = cuts_info.GetAll();
         }
 
         // RDF: Still need this in its current location? Or can be moved
