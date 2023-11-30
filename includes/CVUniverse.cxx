@@ -19,7 +19,7 @@ std::string splines_file =
     "$MPARAMFILESROOT/data/Calibrations/energy_calib/CalorimetryTunings.txt";
 
 // Initialize calorimetric correction for tracker
-util::CaloCorrection Nu_Tracker(splines_file.c_str(), "NukeCC_Nu_Tracker");
+util::CaloCorrection InclusiveSpline(splines_file.c_str(), "CCInclusive");
 // arguments:
 // 1. path to calibration file
 // 2. name of the calorimetric spline
@@ -80,6 +80,7 @@ double CVUniverse::GetThetamuDeg() const {
 
 // event-wide
 double CVUniverse::GetEhad() const { return GetRecoilEnergy(); }
+double CVUniverse::GetEhadLessOD() const { return GetRecoilEnergyLessOD(); } // for recoil energy study
 double CVUniverse::GetEnu() const { return GetEmu() + GetEhad(); }
 
 double CVUniverse::GetQ2() const {
@@ -153,13 +154,19 @@ double CVUniverse::GetCalRecoilEnergy() const {
                                                                            // MeV
 }
 
+// Untracked recoil energy less OD, for recoil energy study
+double CVUniverse::GetCalRecoilEnergyLessOD() const {
+  // inclusive analysis -> ID only, for recoil energy study
+  return GetDouble("part_response_total_recoil_passive_allNonMuonClusters_id"); // in MeV
+}
+
 double CVUniverse::GetNonCalRecoilEnergy() const {
   // no non calorimetric recoil
   return 0.;
 }
 
 double CVUniverse::ApplyCaloTuning(double calRecoilE) const {
-  return Nu_Tracker.eCorrection(calRecoilE * Constants::mev_to_gev) /
+  return InclusiveSpline.eCorrection(calRecoilE * Constants::mev_to_gev) /
          Constants::mev_to_gev;  // in MeV
   // calRecoilE in MeV, calorimetric splines in GeV
 }

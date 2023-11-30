@@ -51,12 +51,18 @@ TArrayD GetBinning(const std::string var_name) {
   } else if (var_name == "ehad") {
     bins_vec = {0.2e3,   0.328e3, 0.392e3, 0.456e3, 0.520e3,
                 0.584e3, 0.648e3, 0.776e3, 0.904e3, 1.800e3};
-  } else if (var_name == "ehad_fine") {
+  } else if (var_name == "ehad_fine") { // for recoil energy study
     bins_vec = {0.0e3,0.1e3,0.2e3,0.3e3,0.4e3,0.5e3,0.6e3,0.7e3,0.8e3,0.9e3,
                 1.0e3,1.1e3,1.2e3,1.3e3,1.4e3,1.5e3,1.6e3,1.7e3,1.8e3,1.9e3,
                 2.0e3,2.1e3,2.2e3,2.3e3,2.4e3,2.5e3,2.6e3,2.7e3,2.8e3,2.9e3,
                 3.0e3,3.1e3,3.2e3,3.3e3,3.4e3,3.5e3,3.6e3,3.7e3,3.8e3,3.9e3,
                 4.0e3};
+  } else if (var_name == "ehad_res") { // for recoil energy study
+    bins_vec = {-1.00e2,-0.95e2,-0.90e2,-0.85e2,-0.80e2,-0.75e2,-0.70e2,-0.65e2,
+                -0.60e2,-0.55e2,-0.50e2,-0.45e2,-0.40e2,-0.35e2,-0.30e2,-0.25e2,
+                -0.20e2,-0.15e2,-0.10e2,-0.05e2,0.0,0.05e2,0.10e2,0.15e2,0.20e2,
+                0.25e2,0.30e2,0.35e2,0.40e2,0.45e2,0.50e2,0.55e2,0.60e2,0.65e2,
+                0.70e2,0.75e2,0.80e2,0.85e2,0.90e2,0.95e2,1.00e2};
   } else if (var_name == "adtheta") {
     bins_vec = {0., 20., 40., 60., 80., 100., 120, 140., 160., 180.};
   } else if (var_name == "cosadtheta") {

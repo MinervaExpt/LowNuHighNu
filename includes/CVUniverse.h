@@ -49,6 +49,7 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
 
   // event-wide
   virtual double GetEhad() const;
+  virtual double GetEhadLessOD() const; // for recoil energy study
   virtual double GetEnu() const;
   virtual double GetQ2() const;
   virtual double GetWexp() const;
@@ -77,6 +78,7 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
   //==============================
   // ehad and related variables
   virtual double GetCalRecoilEnergy() const;
+  virtual double GetCalRecoilEnergyLessOD() const; // for recoil energy study
   virtual double GetNonCalRecoilEnergy() const;
   virtual double ApplyCaloTuning(double calRecoilE) const;
 
