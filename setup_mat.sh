@@ -14,15 +14,8 @@ setup cmake v3_7_1
 source /cvmfs/minerva.opensciencegrid.org/minerva/setup/setup_minerva_products.sh
 
 export TOPDIR=/minerva/app/users/$USER/MATAna/
-CMTUSER=/minerva/app/users/$USER/cmtuser
-W=/minerva/app/users/$USER/MATAna/LowNuHighNu
-d=/pnfs/minerva/scratch/users/$USER
-D=/pnfs/minerva/persistent/users/$USER/LowNuHighNu/2023-06-05
-b=/minerva/data/users/$USER/
-m=/minerva/app/users/$USER/MATAna/MAT/
-mm=/minerva/app/users/$USER/MATAna/MAT-MINERvA/
-
-cd $W
+WORKINGDIR=/minerva/app/users/$USER/MATAna/LowNuHighNu
+cd $WORKINGDIR
 
 source ../opt/bin/setupROOT6OnGPVMs.sh
 source ../opt/bin/setup.sh
@@ -30,4 +23,5 @@ source ../opt/buildGENIEXSecExtract/setup_GENIEXSecExtract.sh
 
 export IFDH_DEBUG=0
 
-export PYTHONPATH=$PYTHONPATH:$W/py_classes
+export PYTHONPATH=$PYTHONPATH:$WORKINGDIR/py_classes
+export PLOTROOT=$WORKINGDIR/plotting
