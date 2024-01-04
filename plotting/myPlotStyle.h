@@ -205,6 +205,9 @@ void myPlotStyle()
   gStyle->SetNdivisions(505, "XYZ");
   gStyle->SetStripDecimals(false);
 
+  gStyle->SetPalette(54);
+  gStyle->SetNumberContours(200);
+
   TGaxis::SetMaxDigits(2);
 }
 

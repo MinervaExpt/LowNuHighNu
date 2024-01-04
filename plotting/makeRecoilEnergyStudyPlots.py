@@ -1,10 +1,6 @@
 import ROOT
-#from functions import *
 from plottingClasses import *
-from errorMaps import *
-#from binning import *
-#from errorMaps_fracDiff import *
-import os,sys
+import os,sys,re
 
 ##set ROOT to batch mode
 ROOT.gROOT.SetBatch()
@@ -16,48 +12,68 @@ ROOT.myPlotStyle()
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
 ROOT.TH1.AddDirectory(False)
 
-plotter = ROOT.PlotUtils.MnvPlotter()
-# Manually override default error summary groups
-plotter.error_summary_group_map.clear()
-for group in error_bands:
-  for error in error_bands[group]:
-    plotter.error_summary_group_map[group].push_back(error)
-
-# I think this needs to be done again after instantiating MnvPlotter, because I guess MnvPlotter sets the palette as well
-ROOT.gStyle.SetPalette(54)
-#plotter.SetROOT6Palette(87)
-ROOT.gStyle.SetNumberContours(200)
-
-############################################################################################## Preamble above
 #############################################################################################################
+### I/O filepath specification ##############################################################################
 #############################################################################################################
 
-#############################################################################################################
-### Input file location #####################################################################################
-#############################################################################################################
+# Check if the user provided the correct number of arguments
+if len(sys.argv) != 2:
+  print("Usage: python makeRecoilEnergyStudyPlots.py <file_path>")
+  sys.exit(1)
 
-#histFileLocation = "../runStudyTemplate_0000_ME1B_2023-11-17.root"
-#histFileLocation = "/minerva/app/users/finer/MATAna/LowNuHighNu/runStudyTemplate_0000_ME1B_2023-11-30_static.root"
-histFileLocation = "/minerva/app/users/finer/MATAna/LowNuHighNu/runStudyTemplate_0000_ME1A_2023-12-06.root"
-histFile = ROOT.TFile(histFileLocation)
+# Get the file path from the command-line argument
+histFilePath = sys.argv[1]
 
-#############################################################################################################
-### Make output directory ###################################################################################
-#############################################################################################################
+# Check if the provided path exists
+if not os.path.exists(histFilePath):
+  print("Error: The specified file path does not exist.")
+  sys.exit(1)
 
-#plotSubdir = "2023-11-17_highNu_RecoilEnergyStudy"
-#plotSubdir = "2023-11-30_highNu_RecoilEnergyStudy"
-plotSubdir = "2023-12-07_highNu_RecoilEnergyStudy"
+# Declare ROOT file object from which hists will be read
+histFile = ROOT.TFile(histFilePath)
+
+# Define a regular expression pattern to capture relevant substrings from histFilePath
+# Example histFilePath format below. We only care about the file name, not the directory 
+# "/minerva/app/users/finer/MATAna/LowNuHighNu/runStudyTemplate_0000_ME1B_2024-01-04.root"
+histFilePath_elements = histFilePath.split('/')
+pattern = r"([^/]+)_([^/]+)_([^/]+)_(\d{4}-\d{2}-\d{2})\.root"
+
+# Use re.match to find matches in the input string
+match = re.match(pattern, histFilePath_elements[-1])
+
+# Check if a match is found
+if match:
+  # Extract substrings using group indices
+  label = match.group(1)
+  options = match.group(2)
+  playlist = match.group(3)
+  date = match.group(4)
+
+  # Dictionary to store the extracted information
+  file_specs = {
+      "label": label,
+      "options": options,
+      "playlist": playlist,
+      "date": date,
+      "file_name": histFilePath_elements[-1],
+      "full_path": histFilePath 
+  }
+else:
+  print("input filepath does not match expected naming convention.")
+  sys.exit(1)
+
+## Construct output subdirectory name
+plot_subdir = "{0}_highNu_{1}_{2}_{3}".format(file_specs["date"],file_specs["label"],file_specs["options"],file_specs["playlist"])
 
 PLOTDIR_ROOT = "/minerva/data/users/finer/highNu/analysisPlots/highNu_studies"
-plotDir = "{0}/{1}".format(PLOTDIR_ROOT,plotSubdir)
-if not os.path.isdir(plotDir):
-  print "Making plot directory {0}".format(plotDir)
-  os.system( "mkdir %s" % plotDir )
+plot_dir = "{0}/{1}".format(PLOTDIR_ROOT,plot_subdir)
+if not os.path.isdir(plot_dir):
+  print "Making plot directory {0}".format(plot_dir)
+  os.system( "mkdir %s" % plot_dir )
 
-################
-########## Plots
-################
+#############################################################################################################
+### Plotting ################################################################################################
+#############################################################################################################
 
 ## Get histograms from input file
 mHist_ehad_migration = histFile.Get("migration_vmat_ehad")
@@ -86,14 +102,14 @@ for str_label,low_bound,up_bound in [["03",2,3],["04",3,4],["05",4,5],["06",5,6]
   exec("tHist_ehad_migration_true_{0} = tHist_ehad_migration.ProjectionY(\"migration_ehad_true_{0}\",{1},{2})".format(str_label,low_bound,up_bound))
 
 ## Plot migration matrices
-with makeEnv_TCanvas('{0}/ehad_migration.png'.format(plotDir)):
+with makeEnv_TCanvas('{0}/ehad_migration.png'.format(plot_dir)):
 
   tHist_ehad_migration.GetXaxis().SetTitle("Reconstructed E_{had} (MeV)")
   tHist_ehad_migration.GetYaxis().SetTitle("True E_{had} (MeV)")
   tHist_ehad_migration.SetTitle("Migration using ID+OD calorimetry")
   tHist_ehad_migration.Draw("colz")
 
-with makeEnv_TCanvas('{0}/ehad_migration_lessOD.png'.format(plotDir)):
+with makeEnv_TCanvas('{0}/ehad_migration_lessOD.png'.format(plot_dir)):
 
   tHist_ehad_migration_lessOD.GetXaxis().SetTitle("Reconstructed E_{had} (MeV)")
   tHist_ehad_migration_lessOD.GetYaxis().SetTitle("True E_{had} (MeV)")
@@ -101,7 +117,7 @@ with makeEnv_TCanvas('{0}/ehad_migration_lessOD.png'.format(plotDir)):
   tHist_ehad_migration_lessOD.Draw("colz")
 
 ROOT.gStyle.SetPalette(57)
-with makeEnv_TCanvas('{0}/ehad_migration_diff.png'.format(plotDir)):
+with makeEnv_TCanvas('{0}/ehad_migration_diff.png'.format(plot_dir)):
 
   tHist_ehad_migration_diff.GetXaxis().SetTitle("Reconstructed E_{had} (MeV)")
   tHist_ehad_migration_diff.GetYaxis().SetTitle("True E_{had} (MeV)")
@@ -120,7 +136,7 @@ for label_first_hist,label_second_hist,low_bin,center_bin,up_bin in [["03","04",
     x_axis_label = "Reconstructed" if true_reco_switch == "reco" else "True"
     anti_x_axis_label = "True"     if true_reco_switch == "reco" else "Reconstructed"
 
-    with makeEnv_TCanvas('{0}/ehad_migration_{1}_{2}.png'.format(plotDir,true_reco_switch,label_first_hist)):
+    with makeEnv_TCanvas('{0}/ehad_migration_{1}_{2}.png'.format(plot_dir,true_reco_switch,label_first_hist)):
     
       exec("tHist_ehad_migration_{0}_{1}.GetXaxis().SetTitle(\"{2} E_{{had}} (MeV)\")".format(true_reco_switch,label_first_hist,x_axis_label))
       exec("tHist_ehad_migration_{0}_{1}.Draw()".format(true_reco_switch,label_first_hist))
@@ -138,7 +154,7 @@ for label_first_hist,label_second_hist,low_bin,center_bin,up_bin in [["03","04",
 
 for slice_label,low_bin,up_bin in [["03","0.2","0.4"],["05","0.4","0.6"],["10","0.9","1.1"],["20","1.9","2.1"]]:
 
-  with makeEnv_TCanvas("{0}/ehad_reco_alt_{1}.png".format(plotDir,slice_label)):
+  with makeEnv_TCanvas("{0}/ehad_reco_alt_{1}.png".format(plot_dir,slice_label)):
 
     exec("tHist_ehad_reco_{0}.GetXaxis().SetTitle(\"Reconstructed E_{{ehad}} (MeV)\")".format(slice_label))
     exec("tHist_ehad_reco_{0}.Draw()".format(slice_label))
@@ -154,7 +170,7 @@ for slice_label,low_bin,up_bin in [["03","0.2","0.4"],["05","0.4","0.6"],["10","
     leg.Draw()
 
   ## Failed attempt at making log-y version of above plots
-  ## with makeEnv_TCanvas("{0}/ehad_reco_alt_{1}_logy.png".format(plotDir,slice_label,True)):
+  ## with makeEnv_TCanvas("{0}/ehad_reco_alt_{1}_logy.png".format(plot_dir,slice_label,True)):
 
   ##   #exec("tHist_ehad_reco_{0}.GetXaxis().SetTitle(\"Reconstructed E_{{ehad}} (MeV)\")".format(slice_label))
   ##   exec("tHist_ehad_reco_{0}.Draw()".format(slice_label))
@@ -169,7 +185,7 @@ for slice_label,low_bin,up_bin in [["03","0.2","0.4"],["05","0.4","0.6"],["10","
   ##   leg.SetBorderSize(0)
   ##   leg.Draw()
 
-  with makeEnv_TCanvas("{0}/ehad_residual_{1}.png".format(plotDir,slice_label)):
+  with makeEnv_TCanvas("{0}/ehad_residual_{1}.png".format(plot_dir,slice_label)):
 
     exec("tHist_ehad_residual_lessOD_{0}.GetXaxis().SetRangeUser(-20,80)".format(slice_label))
     exec("tHist_ehad_residual_lessOD_{0}.GetXaxis().SetTitle(\"E_{{ehad}} #frac{{Reco - True}}{{True}}\")".format(slice_label))
@@ -185,7 +201,7 @@ for slice_label,low_bin,up_bin in [["03","0.2","0.4"],["05","0.4","0.6"],["10","
     leg.SetBorderSize(0)
     leg.Draw()
 
-  with makeEnv_TCanvas("{0}/ehad_residual_zoom_{1}.png".format(plotDir,slice_label)):
+  with makeEnv_TCanvas("{0}/ehad_residual_zoom_{1}.png".format(plot_dir,slice_label)):
 
     #exec("tHist_ehad_residual_lessOD_zoom_{0}.GetXaxis().SetRangeUser(-20,80)".format(slice_label))
     exec("tHist_ehad_residual_lessOD_zoom_{0}.GetXaxis().SetTitle(\"E_{{ehad}} #frac{{Reco - True}}{{True}}\")".format(slice_label))
