@@ -238,7 +238,7 @@ void runRecoilEnergyStudy(std::string plist = "ME1L", std::string input_file = "
   // Init macro utility
   //=========================================
   const int signal_definition_int = 0;
-  const std::string macro("runStudyTemplate");
+  const std::string macro("RecoilEnergyStudy");
   const bool is_grid = false;
   const bool do_truth = false;
   const bool do_systematics = false;
