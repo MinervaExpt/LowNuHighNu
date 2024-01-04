@@ -66,25 +66,33 @@ void FillVars(LowNuHighNuEvent& event, const std::vector<MnvH1D*>& study_hists,
     study_hists[0]->Fill(ehad_reco,event.m_weight);
     study_hists[1]->Fill(ehad_reco_lessOD,event.m_weight);
     study_hists[2]->Fill(ehad_residual,event.m_weight);
-    study_hists[3]->Fill(ehad_residual_lessOD,event.m_weight);
+    study_hists[3]->Fill(ehad_residual/100.,event.m_weight);
+    study_hists[4]->Fill(ehad_residual_lessOD,event.m_weight);
+    study_hists[5]->Fill(ehad_residual_lessOD/100.,event.m_weight);
   }
   else if(ehad_true>400&&ehad_true<600){
-    study_hists[4]->Fill(ehad_reco,event.m_weight);
-    study_hists[5]->Fill(ehad_reco_lessOD,event.m_weight);
-    study_hists[6]->Fill(ehad_residual,event.m_weight);
-    study_hists[7]->Fill(ehad_residual_lessOD,event.m_weight);
+    study_hists[6]->Fill(ehad_reco,event.m_weight);
+    study_hists[7]->Fill(ehad_reco_lessOD,event.m_weight);
+    study_hists[8]->Fill(ehad_residual,event.m_weight);
+    study_hists[9]->Fill(ehad_residual/100.,event.m_weight);
+    study_hists[10]->Fill(ehad_residual_lessOD,event.m_weight);
+    study_hists[11]->Fill(ehad_residual_lessOD/100.,event.m_weight);
   }
   else if(ehad_true>900&&ehad_true<1100){
-    study_hists[8]->Fill(ehad_reco,event.m_weight);
-    study_hists[9]->Fill(ehad_reco_lessOD,event.m_weight);
-    study_hists[10]->Fill(ehad_residual,event.m_weight);
-    study_hists[11]->Fill(ehad_residual_lessOD,event.m_weight);
-  }
-  else if(ehad_true>1900&&ehad_true<2100){
     study_hists[12]->Fill(ehad_reco,event.m_weight);
     study_hists[13]->Fill(ehad_reco_lessOD,event.m_weight);
     study_hists[14]->Fill(ehad_residual,event.m_weight);
-    study_hists[15]->Fill(ehad_residual_lessOD,event.m_weight);
+    study_hists[15]->Fill(ehad_residual/100.,event.m_weight);
+    study_hists[16]->Fill(ehad_residual_lessOD,event.m_weight);
+    study_hists[17]->Fill(ehad_residual_lessOD/100.,event.m_weight);
+  }
+  else if(ehad_true>1900&&ehad_true<2100){
+    study_hists[18]->Fill(ehad_reco,event.m_weight);
+    study_hists[19]->Fill(ehad_reco_lessOD,event.m_weight);
+    study_hists[10]->Fill(ehad_residual,event.m_weight);
+    study_hists[21]->Fill(ehad_residual/100.,event.m_weight);
+    study_hists[22]->Fill(ehad_residual_lessOD,event.m_weight);
+    study_hists[23]->Fill(ehad_residual_lessOD/100.,event.m_weight);
   }
 
   for (auto var: variables_MAT) {
@@ -125,44 +133,61 @@ std::vector<MnvH1D*> GetStudyHists() {
 
   int n_bins_ehad_reco = CCPi::GetBinning("ehad_fine").GetSize()-1;
   int n_bins_ehad_res = CCPi::GetBinning("ehad_res").GetSize()-1;
+  int n_bins_ehad_res_zoom = CCPi::GetBinning("ehad_res_zoom").GetSize()-1;
 
   MnvH1D* ehad_reco_03 = new MnvH1D("ehad_reco_03", "ehad_reco_03", n_bins_ehad_reco, CCPi::GetBinning("ehad_fine").GetArray());
   MnvH1D* ehad_reco_lessOD_03 = new MnvH1D("ehad_reco_lessOD_03", "ehad_reco_lessOD_03", n_bins_ehad_reco, CCPi::GetBinning("ehad_fine").GetArray());
-  MnvH1D* ehad_residual_03 = new MnvH1D("ehad_reco_residual_03", "ehad_residual_03", n_bins_ehad_res, CCPi::GetBinning("ehad_res").GetArray());
+  MnvH1D* ehad_residual_03 = new MnvH1D("ehad_residual_03", "ehad_residual_03", n_bins_ehad_res, CCPi::GetBinning("ehad_res").GetArray());
+  MnvH1D* ehad_residual_03_zoom = new MnvH1D("ehad_residual_zoom_03", "ehad_residual_zoom_03", n_bins_ehad_res_zoom, CCPi::GetBinning("ehad_res_zoom").GetArray());
   MnvH1D* ehad_residual_lessOD_03 = new MnvH1D("ehad_residual_lessOD_03", "ehad_residual_lessOD_03", n_bins_ehad_res, CCPi::GetBinning("ehad_res").GetArray());
+  MnvH1D* ehad_residual_lessOD_03_zoom = new MnvH1D("ehad_residual_lessOD_zoom_03", "ehad_residual_lessOD_zoom_03", n_bins_ehad_res_zoom, CCPi::GetBinning("ehad_res_zoom").GetArray());
 
   MnvH1D* ehad_reco_05 = new MnvH1D("ehad_reco_05", "ehad_reco_05", n_bins_ehad_reco, CCPi::GetBinning("ehad_fine").GetArray());
   MnvH1D* ehad_reco_lessOD_05 = new MnvH1D("ehad_reco_lessOD_05", "ehad_reco_lessOD_05", n_bins_ehad_reco, CCPi::GetBinning("ehad_fine").GetArray());
   MnvH1D* ehad_residual_05 = new MnvH1D("ehad_residual_05", "ehad_residual_05", n_bins_ehad_res, CCPi::GetBinning("ehad_res").GetArray());
+  MnvH1D* ehad_residual_05_zoom = new MnvH1D("ehad_residual_zoom_05", "ehad_residual_zoom_05", n_bins_ehad_res_zoom, CCPi::GetBinning("ehad_res_zoom").GetArray());
   MnvH1D* ehad_residual_lessOD_05 = new MnvH1D("ehad_residual_lessOD_05", "ehad_residual_lessOD_05", n_bins_ehad_res, CCPi::GetBinning("ehad_res").GetArray());
+  MnvH1D* ehad_residual_lessOD_05_zoom = new MnvH1D("ehad_residual_lessOD_zoom_05", "ehad_residual_lessOD_zoom_05", n_bins_ehad_res_zoom, CCPi::GetBinning("ehad_res_zoom").GetArray());
 
   MnvH1D* ehad_reco_10 = new MnvH1D("ehad_reco_10", "ehad_reco_10", n_bins_ehad_reco, CCPi::GetBinning("ehad_fine").GetArray());
   MnvH1D* ehad_reco_lessOD_10 = new MnvH1D("ehad_reco_lessOD_10", "ehad_reco_lessOD_10", n_bins_ehad_reco, CCPi::GetBinning("ehad_fine").GetArray());
   MnvH1D* ehad_residual_10 = new MnvH1D("ehad_residual_10", "ehad_residual_10", n_bins_ehad_res, CCPi::GetBinning("ehad_res").GetArray());
+  MnvH1D* ehad_residual_10_zoom = new MnvH1D("ehad_residual_zoom_10", "ehad_residual_zoom_10", n_bins_ehad_res_zoom, CCPi::GetBinning("ehad_res_zoom").GetArray());
   MnvH1D* ehad_residual_lessOD_10 = new MnvH1D("ehad_residual_lessOD_10", "ehad_residual_lessOD_10", n_bins_ehad_res, CCPi::GetBinning("ehad_res").GetArray());
+  MnvH1D* ehad_residual_lessOD_10_zoom = new MnvH1D("ehad_residual_lessOD_zoom_10", "ehad_residual_lessOD_zoom_10", n_bins_ehad_res_zoom, CCPi::GetBinning("ehad_res_zoom").GetArray());
 
   MnvH1D* ehad_reco_20 = new MnvH1D("ehad_reco_20", "ehad_reco_20", n_bins_ehad_reco, CCPi::GetBinning("ehad_fine").GetArray());
   MnvH1D* ehad_reco_lessOD_20 = new MnvH1D("ehad_reco_lessOD_20", "ehad_reco_lessOD_20", n_bins_ehad_reco, CCPi::GetBinning("ehad_fine").GetArray());
   MnvH1D* ehad_residual_20 = new MnvH1D("ehad_residual_20", "ehad_residual_20", n_bins_ehad_res, CCPi::GetBinning("ehad_res").GetArray());
+  MnvH1D* ehad_residual_20_zoom = new MnvH1D("ehad_residual_zoom_20", "ehad_residual_zoom_20", n_bins_ehad_res_zoom, CCPi::GetBinning("ehad_res_zoom").GetArray());
   MnvH1D* ehad_residual_lessOD_20 = new MnvH1D("ehad_residual_lessOD_20", "ehad_residual_lessOD_20", n_bins_ehad_res, CCPi::GetBinning("ehad_res").GetArray());
+  MnvH1D* ehad_residual_lessOD_20_zoom = new MnvH1D("ehad_residual_lessOD_zoom_20", "ehad_residual_lessOD_zoom_20", n_bins_ehad_res_zoom, CCPi::GetBinning("ehad_res_zoom").GetArray());
 
   return std::vector<MnvH1D*>{
     ehad_reco_03,
     ehad_reco_lessOD_03,
     ehad_residual_03,
+    ehad_residual_03_zoom,
     ehad_residual_lessOD_03,
+    ehad_residual_lessOD_03_zoom,
     ehad_reco_05,
     ehad_reco_lessOD_05,
     ehad_residual_05,
+    ehad_residual_05_zoom,
     ehad_residual_lessOD_05,
+    ehad_residual_lessOD_05_zoom,
     ehad_reco_10,
     ehad_reco_lessOD_10,
     ehad_residual_10,
+    ehad_residual_10_zoom,
     ehad_residual_lessOD_10,
+    ehad_residual_lessOD_10_zoom,
     ehad_reco_20,
     ehad_reco_lessOD_20,
     ehad_residual_20,
-    ehad_residual_lessOD_20
+    ehad_residual_20_zoom,
+    ehad_residual_lessOD_20,
+    ehad_residual_lessOD_20_zoom
   };
 }
 
