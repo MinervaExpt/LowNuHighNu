@@ -12,6 +12,7 @@
 #include "includes/Variable.h"
 #include "includes/Variable2D.h"
 #include "includes/common_functions.h"
+#include "PlotUtils/LowRecoilPionReco.h" // Cluster struct
 #include "playlist_methods.h"  // GetPlaylistFile
 
 // Forward declare my variables because we're hiding the header.
@@ -106,6 +107,44 @@ void FillVars(LowNuHighNuEvent& event, const std::vector<MnvH1D*>& study_hists,
                                     fill_val_truth, event.m_weight);
     }
   } //end variables_MAT
+
+  // Loop over clusters
+  int nclusters = universe->GetInt("cluster_view_sz");
+  double interaction_time = universe->GetVecElem("vtx",3);///pow(10,3);
+  for (int i = 0; i < nclusters; i++) {
+
+    // Grab ith cluster
+    LowRecoilPion::Cluster clus(*universe,i);
+
+    // Some of the clusters have energy = nan (don't know why). Skip these clusters 
+    if(clus.energy!=clus.energy){
+      continue;
+    }
+
+    study_hists[24]->Fill(clus.time*pow(10,3)-interaction_time,clus.energy); // weight by cluster energy because low-energy clusters have bad timing reco
+    study_hists[25]->Fill(clus.energy,event.m_weight);
+
+    if(clus.subdet==1){ // Nuclear Targets
+      study_hists[26]->Fill(clus.time*pow(10,3)-interaction_time,clus.energy);
+      study_hists[27]->Fill(clus.energy,event.m_weight);
+    }
+    else if(clus.subdet==2){ // Tracker
+      study_hists[28]->Fill(clus.time*pow(10,3)-interaction_time,clus.energy);
+      study_hists[29]->Fill(clus.energy,event.m_weight);
+    } 
+    else if(clus.subdet==3){ // ECAL
+      study_hists[30]->Fill(clus.time*pow(10,3)-interaction_time,clus.energy);
+      study_hists[31]->Fill(clus.energy,event.m_weight);
+    } 
+    else if(clus.subdet==4){ // HCAL 
+      study_hists[32]->Fill(clus.time*pow(10,3)-interaction_time,clus.energy);
+      study_hists[33]->Fill(clus.energy,event.m_weight);
+    }
+    else{
+      std::cout << "Maybe I don't understand clus.subdet, because it's value here is: " << clus.subdet << std::endl;
+    }
+
+  }
 }
 
 //==============================================================================
@@ -134,6 +173,8 @@ std::vector<MnvH1D*> GetStudyHists() {
   int n_bins_ehad_reco = CCPi::GetBinning("ehad_fine").GetSize()-1;
   int n_bins_ehad_res = CCPi::GetBinning("ehad_res").GetSize()-1;
   int n_bins_ehad_res_zoom = CCPi::GetBinning("ehad_res_zoom").GetSize()-1;
+  int n_bins_cluster_timing = CCPi::GetBinning("cluster_timing").GetSize()-1;
+  int n_bins_cluster_energy = CCPi::GetBinning("cluster_energy").GetSize()-1;
 
   MnvH1D* ehad_reco_03 = new MnvH1D("ehad_reco_03", "ehad_reco_03", n_bins_ehad_reco, CCPi::GetBinning("ehad_fine").GetArray());
   MnvH1D* ehad_reco_lessOD_03 = new MnvH1D("ehad_reco_lessOD_03", "ehad_reco_lessOD_03", n_bins_ehad_reco, CCPi::GetBinning("ehad_fine").GetArray());
@@ -163,6 +204,17 @@ std::vector<MnvH1D*> GetStudyHists() {
   MnvH1D* ehad_residual_lessOD_20 = new MnvH1D("ehad_residual_lessOD_20", "ehad_residual_lessOD_20", n_bins_ehad_res, CCPi::GetBinning("ehad_res").GetArray());
   MnvH1D* ehad_residual_lessOD_20_zoom = new MnvH1D("ehad_residual_lessOD_zoom_20", "ehad_residual_lessOD_zoom_20", n_bins_ehad_res_zoom, CCPi::GetBinning("ehad_res_zoom").GetArray());
 
+  MnvH1D* cluster_timing = new MnvH1D("cluster_timing", "cluster_timing", n_bins_cluster_timing, CCPi::GetBinning("cluster_timing").GetArray());
+  MnvH1D* cluster_energy = new MnvH1D("cluster_energy", "cluster_energy", n_bins_cluster_energy, CCPi::GetBinning("cluster_energy").GetArray());
+  MnvH1D* cluster_timing_nuclear_targets = new MnvH1D("cluster_timing_nuclear_targets", "cluster_timing_nuclear_targets", n_bins_cluster_timing, CCPi::GetBinning("cluster_timing").GetArray());
+  MnvH1D* cluster_energy_nuclear_targets = new MnvH1D("cluster_energy_nuclear_targets", "cluster_energy_nuclear_targets", n_bins_cluster_energy, CCPi::GetBinning("cluster_energy").GetArray());
+  MnvH1D* cluster_timing_tracker = new MnvH1D("cluster_timing_tracker", "cluster_timing_tracker", n_bins_cluster_timing, CCPi::GetBinning("cluster_timing").GetArray());
+  MnvH1D* cluster_energy_tracker = new MnvH1D("cluster_energy_tracker", "cluster_energy_tracker", n_bins_cluster_energy, CCPi::GetBinning("cluster_energy").GetArray());
+  MnvH1D* cluster_timing_ECAL = new MnvH1D("cluster_timing_ECAL", "cluster_timing_ECAL", n_bins_cluster_timing, CCPi::GetBinning("cluster_timing").GetArray());
+  MnvH1D* cluster_energy_ECAL = new MnvH1D("cluster_energy_ECAL", "cluster_energy_ECAL", n_bins_cluster_energy, CCPi::GetBinning("cluster_energy").GetArray());
+  MnvH1D* cluster_timing_HCAL = new MnvH1D("cluster_timing_HCAL", "cluster_timing_HCAL", n_bins_cluster_timing, CCPi::GetBinning("cluster_timing").GetArray());
+  MnvH1D* cluster_energy_HCAL = new MnvH1D("cluster_energy_HCAL", "cluster_energy_HCAL", n_bins_cluster_energy, CCPi::GetBinning("cluster_energy").GetArray());
+  
   return std::vector<MnvH1D*>{
     ehad_reco_03,
     ehad_reco_lessOD_03,
@@ -187,7 +239,17 @@ std::vector<MnvH1D*> GetStudyHists() {
     ehad_residual_20,
     ehad_residual_20_zoom,
     ehad_residual_lessOD_20,
-    ehad_residual_lessOD_20_zoom
+    ehad_residual_lessOD_20_zoom,
+    cluster_timing,
+    cluster_energy,
+    cluster_timing_nuclear_targets,
+    cluster_energy_nuclear_targets,
+    cluster_timing_tracker,
+    cluster_energy_tracker,
+    cluster_timing_ECAL,
+    cluster_energy_ECAL,
+    cluster_timing_HCAL,
+    cluster_energy_HCAL
   };
 }
 
