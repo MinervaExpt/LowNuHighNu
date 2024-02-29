@@ -147,6 +147,55 @@ void FillVars(LowNuHighNuEvent& event, const std::vector<MnvH1D*>& study_hists,
   }
 }
 
+void FillVarsData(LowNuHighNuEvent& event, const std::vector<MnvH1D*>& study_hists) {
+  const CVUniverse* universe = event.m_universe;
+
+  // No systematics considered here
+  if (universe->ShortName() != "cv") return;
+
+  PassesCutsInfo cuts_info = PassesCuts(event);
+  event.m_passes_cuts = cuts_info.GetAll();
+  if(!event.m_passes_cuts) return;
+
+  // Loop over clusters
+  int nclusters = universe->GetInt("cluster_view_sz");
+  double interaction_time = universe->GetVecElem("vtx",3);///pow(10,3);
+  for (int i = 0; i < nclusters; i++) {
+
+    // Grab ith cluster
+    LowRecoilPion::Cluster clus(*universe,i);
+
+    // Some of the clusters have energy = nan (don't know why). Skip these clusters 
+    if(clus.energy!=clus.energy){
+      continue;
+    }
+
+    study_hists[0]->Fill(clus.time*pow(10,3)-interaction_time,clus.energy); // weight by cluster energy because low-energy clusters have bad timing reco
+    study_hists[1]->Fill(clus.energy,event.m_weight);
+
+    if(clus.subdet==1){ // Nuclear Targets
+      study_hists[2]->Fill(clus.time*pow(10,3)-interaction_time,clus.energy);
+      study_hists[3]->Fill(clus.energy,event.m_weight);
+    }
+    else if(clus.subdet==2){ // Tracker
+      study_hists[4]->Fill(clus.time*pow(10,3)-interaction_time,clus.energy);
+      study_hists[5]->Fill(clus.energy,event.m_weight);
+    } 
+    else if(clus.subdet==3){ // ECAL
+      study_hists[6]->Fill(clus.time*pow(10,3)-interaction_time,clus.energy);
+      study_hists[7]->Fill(clus.energy,event.m_weight);
+    } 
+    else if(clus.subdet==4){ // HCAL 
+      study_hists[8]->Fill(clus.time*pow(10,3)-interaction_time,clus.energy);
+      study_hists[9]->Fill(clus.energy,event.m_weight);
+    }
+    else{
+      std::cout << "Maybe I don't understand clus.subdet, because it's value here is: " << clus.subdet << std::endl;
+    }
+
+  }
+}
+
 //==============================================================================
 // Get Variables
 //==============================================================================
@@ -168,8 +217,6 @@ std::vector<VariableMAT*> GetMATVariables() {
 // Get Study-Specific Histograms 
 //==============================================================================
 std::vector<MnvH1D*> GetStudyHists() {
-  // reco-true/reco, etc.
-
   int n_bins_ehad_reco = CCPi::GetBinning("ehad_fine").GetSize()-1;
   int n_bins_ehad_res = CCPi::GetBinning("ehad_res").GetSize()-1;
   int n_bins_ehad_res_zoom = CCPi::GetBinning("ehad_res_zoom").GetSize()-1;
@@ -253,6 +300,35 @@ std::vector<MnvH1D*> GetStudyHists() {
   };
 }
 
+std::vector<MnvH1D*> GetStudyHistsData() {
+  int n_bins_cluster_timing_data = CCPi::GetBinning("cluster_timing").GetSize()-1;
+  int n_bins_cluster_energy_data = CCPi::GetBinning("cluster_energy").GetSize()-1;
+
+  MnvH1D* cluster_timing_data = new MnvH1D("cluster_timing_data", "cluster_timing_data", n_bins_cluster_timing_data, CCPi::GetBinning("cluster_timing").GetArray());
+  MnvH1D* cluster_energy_data = new MnvH1D("cluster_energy_data", "cluster_energy_data", n_bins_cluster_energy_data, CCPi::GetBinning("cluster_energy").GetArray());
+  MnvH1D* cluster_timing_nuclear_targets_data = new MnvH1D("cluster_timing_nuclear_targets_data", "cluster_timing_nuclear_targets_data", n_bins_cluster_timing_data, CCPi::GetBinning("cluster_timing").GetArray());
+  MnvH1D* cluster_energy_nuclear_targets_data = new MnvH1D("cluster_energy_nuclear_targets_data", "cluster_energy_nuclear_targets_data", n_bins_cluster_energy_data, CCPi::GetBinning("cluster_energy").GetArray());
+  MnvH1D* cluster_timing_tracker_data = new MnvH1D("cluster_timing_tracker", "cluster_timing_tracker", n_bins_cluster_timing_data, CCPi::GetBinning("cluster_timing").GetArray());
+  MnvH1D* cluster_energy_tracker_data = new MnvH1D("cluster_energy_tracker", "cluster_energy_tracker", n_bins_cluster_energy_data, CCPi::GetBinning("cluster_energy").GetArray());
+  MnvH1D* cluster_timing_ECAL_data = new MnvH1D("cluster_timing_ECAL_data", "cluster_timing_ECAL_data", n_bins_cluster_timing_data, CCPi::GetBinning("cluster_timing").GetArray());
+  MnvH1D* cluster_energy_ECAL_data = new MnvH1D("cluster_energy_ECAL_data", "cluster_energy_ECAL_data", n_bins_cluster_energy_data, CCPi::GetBinning("cluster_energy").GetArray());
+  MnvH1D* cluster_timing_HCAL_data = new MnvH1D("cluster_timing_HCAL_data", "cluster_timing_HCAL_data", n_bins_cluster_timing_data, CCPi::GetBinning("cluster_timing").GetArray());
+  MnvH1D* cluster_energy_HCAL_data = new MnvH1D("cluster_energy_HCAL_data", "cluster_energy_HCAL_data", n_bins_cluster_energy_data, CCPi::GetBinning("cluster_energy").GetArray());
+  
+  return std::vector<MnvH1D*>{
+    cluster_timing_data,
+    cluster_energy_data,
+    cluster_timing_nuclear_targets_data,
+    cluster_energy_nuclear_targets_data,
+    cluster_timing_tracker_data,
+    cluster_energy_tracker_data,
+    cluster_timing_ECAL_data,
+    cluster_energy_ECAL_data,
+    cluster_timing_HCAL_data,
+    cluster_energy_HCAL_data
+  };
+}
+
 }  // namespace run_recoil_study
 
 //==============================================================================
@@ -276,7 +352,12 @@ void LoopAndFill(const CCPi::MacroUtil& util, CVUniverse* universe,
     LowNuHighNuEvent event(is_mc, is_truth, util.m_signal_definition, universe);
 
     // WRITE THE FILL FUNCTION
-    run_recoil_study::FillVars(event, study_hists, variables, variables_MAT);
+    if (is_mc){
+      run_recoil_study::FillVars(event, study_hists, variables, variables_MAT);
+    }
+    else{
+      run_recoil_study::FillVarsData(event, study_hists);
+    }
   }  // events
   std::cout << "*** Done ***\n\n";
 }
@@ -284,7 +365,7 @@ void LoopAndFill(const CCPi::MacroUtil& util, CVUniverse* universe,
 //==============================================================================
 // Main
 //==============================================================================
-void runRecoilEnergyStudy(std::string plist = "ME1L", std::string input_file = "") {
+void runRecoilEnergyStudy(std::string plist = "ME1L", std::string input_file = "", std::string input_file_data = "") {
 
   //=========================================
   // Input tuples
@@ -295,6 +376,10 @@ void runRecoilEnergyStudy(std::string plist = "ME1L", std::string input_file = "
   mc_file_list = input_file.empty()
                      ? GetPlaylistFile(plist, is_mc)
                      : input_file;
+  std::string data_file_list;
+  data_file_list = input_file_data.empty()
+                     ? GetPlaylistFile(plist,false)
+                     : input_file_data;
 
   //=========================================
   // Init macro utility
@@ -305,7 +390,7 @@ void runRecoilEnergyStudy(std::string plist = "ME1L", std::string input_file = "
   const bool do_truth = false;
   const bool do_systematics = false;
 
-  CCPi::MacroUtil util(signal_definition_int, mc_file_list, 
+  CCPi::MacroUtil util(signal_definition_int, mc_file_list, data_file_list,
                        plist, do_truth, is_grid, do_systematics);
   util.PrintMacroConfiguration(macro);
 
@@ -327,6 +412,7 @@ void runRecoilEnergyStudy(std::string plist = "ME1L", std::string input_file = "
   // Get variables and initialize their hists
   //=========================================
   std::vector<MnvH1D*> study_hists = run_recoil_study::GetStudyHists();
+  std::vector<MnvH1D*> study_hists_data = run_recoil_study::GetStudyHistsData();
   std::vector<Variable*> variables = run_recoil_study::GetVariables();
   std::vector<VariableMAT*> variables_MAT = run_recoil_study::GetMATVariables();
   for (auto v : variables)
@@ -336,7 +422,7 @@ void runRecoilEnergyStudy(std::string plist = "ME1L", std::string input_file = "
   //=========================================
   // Loop and Fill
   //=========================================
-  LoopAndFill(util, util.m_data_universe, kData, study_hists, variables, variables_MAT);
+  LoopAndFill(util, util.m_data_universe, kData, study_hists_data, variables, variables_MAT);
   LoopAndFill(util, util.m_error_bands.at("cv").at(0), kMC, study_hists, variables, variables_MAT);
 
   //=========================================
@@ -353,6 +439,10 @@ void runRecoilEnergyStudy(std::string plist = "ME1L", std::string input_file = "
   }
 
   for (auto h: study_hists) {
+    h->Write();
+  }
+
+  for (auto h: study_hists_data) {
     h->Write();
   }
 
