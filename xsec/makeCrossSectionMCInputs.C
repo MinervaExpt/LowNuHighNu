@@ -297,7 +297,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
                               std::string plist = "ME1A",
                               bool do_systematics = false,
                               bool do_truth = false, bool is_grid = false,
-                              std::string input_file = "", int run = 0,
+                              std::string input_file = "",
                               bool test_run = false) {
   // INPUT TUPLES
   const bool is_mc = true;
@@ -320,9 +320,9 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   char tchar[100];
   std::strftime(tchar, sizeof(tchar), "%F", std::gmtime(&time));  // YYYY-MM-dd
   const std::string tag = tchar;
-  std::string outfile_name(Form("%s_%d%d%d%d_%s_%d_%s.root", macro.c_str(),
+  std::string outfile_name(Form("%s_%d%d%d%d_%s_%s.root", macro.c_str(),
                                 signal_definition_int, int(do_systematics),
-                                int(do_truth), int(is_grid), plist.c_str(), run,
+                                int(do_truth), int(is_grid), plist.c_str(),
                                 tag.c_str()));
   std::cout << "Saving output to " << outfile_name << "\n\n";
   TFile fout(outfile_name.c_str(), "RECREATE");
