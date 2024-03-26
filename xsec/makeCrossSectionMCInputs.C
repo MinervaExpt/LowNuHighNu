@@ -207,6 +207,37 @@ void SyncAllHists(Variable& v) {
 //==============================================================================
 // Loop and Fill
 //==============================================================================
+void LoopAndFillData(const CCPi::MacroUtil& util,
+                     std::vector<Variable*>& variables,
+                     std::vector<VariableMAT*>& variables_MAT,
+                     std::vector<Variable2D*>& variables2D,
+                     bool truncate_run) {
+  // Fill data distributions.
+  const bool is_mc = false;
+  const bool is_truth = false;
+  std::cout << "*** Starting Data Loop ***" << std::endl;
+  Long64_t n_entries = util.GetDataEntries();
+  Long64_t n_entries_to_loop_over = truncate_run ? 1000 : n_entries;
+  for (Long64_t i_event = 0; i_event < n_entries_to_loop_over; ++i_event) {
+    if (i_event % (n_entries_to_loop_over / 10) == 0)
+      std::cout << (i_event / 1000) << "k " << std::endl;
+    util.m_data_universe->SetEntry(i_event);
+
+    LowNuHighNuEvent event(is_mc, is_truth, util.m_signal_definition,
+                    util.m_data_universe);
+
+    // Check cuts
+    // And extract whether this is w sideband and get candidate pion indices
+    PassesCutsInfo cuts_info = PassesCuts(event);
+
+    // Set what we've learned to the event
+    event.m_passes_cuts = cuts_info.GetAll();
+
+    lownuhighnu_event::FillRecoEvent(event, variables, variables_MAT, variables2D);
+  }
+  std::cout << "*** Done Data Loop ***\n\n";
+}
+
 void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
                              const EDataMCTruth& type,
                              std::vector<Variable*>& variables,
@@ -218,7 +249,7 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
   SetupLoop(type, util, is_mc, is_truth, n_entries);
   const UniverseMap error_bands =
       is_truth ? util.m_error_bands_truth : util.m_error_bands;
-  Long64_t n_entries_to_loop_over = truncate_run ? 10000 : n_entries;
+  Long64_t n_entries_to_loop_over = truncate_run ? 1000 : n_entries;
   for (Long64_t i_event = 0; i_event < n_entries_to_loop_over; ++i_event) {
     if (i_event % (n_entries_to_loop_over / 10) == 0)
       std::cout << (i_event / 1000) << "k " << std::endl;
@@ -287,7 +318,7 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
       }  // universes
     }    // error bands
   }      // events
-  std::cout << "*** Done ***\n\n";
+  std::cout << "*** Done MC Loop ***\n\n";
 }
 
 //==============================================================================
@@ -297,22 +328,26 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
                               std::string plist = "ME1A",
                               bool do_systematics = false,
                               bool do_truth = false, bool is_grid = false,
-                              std::string input_file = "",
+                              std::string mc_input_file = "",
+                              std::string data_input_file = "",
                               bool test_run = false) {
   // INPUT TUPLES
   const bool is_mc = true;
-  std::string mc_file_list;
+  std::string mc_file_list, data_file_list;
   assert(!(is_grid && input_file.empty()) &&
          "On the grid, infile must be specified.");
   // const bool use_xrootd = false;
-  mc_file_list = input_file.empty()
-                     ? GetPlaylistFile(plist, is_mc /*, use_xrootd*/)
-                     : input_file;
+  mc_file_list = mc_input_file.empty()
+                     ? GetPlaylistFile(plist, true /*, use_xrootd*/)
+                     : mc_input_file;
+  data_file_list = data_input_file.empty()
+                     ? GetPlaylistFile(plist, false /*, use_xrootd*/)
+                     : data_input_file;
 
   // INIT MACRO UTILITY
-  const std::string macro("MCXSecInputs");
-  CCPi::MacroUtil util(signal_definition_int, mc_file_list, plist, do_truth,
-                       is_grid, do_systematics);
+  const std::string macro("XSecInputs");
+  CCPi::MacroUtil util(signal_definition_int, mc_file_list, data_file_list, 
+                       plist, do_truth, is_grid, do_systematics);
   util.PrintMacroConfiguration(macro);
 
   // INIT OUTPUT
@@ -322,7 +357,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   const std::string tag = tchar;
   std::string outfile_name(Form("%s_%d%d%d%d_%s_%s.root", macro.c_str(),
                                 signal_definition_int, int(do_systematics),
-                                int(do_truth), int(is_grid), plist.c_str(),
+                                int(do_truth), int(is_grid), plist.c_str(), 
                                 tag.c_str()));
   std::cout << "Saving output to " << outfile_name << "\n\n";
   TFile fout(outfile_name.c_str(), "RECREATE");
@@ -331,6 +366,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   const bool do_truth_vars = true;
   std::vector<Variable*> variables =
       GetAnalysisVariables(util.m_signal_definition, do_truth_vars);
+  std::vector<Variable*> variables_lessTruth =
+      GetAnalysisVariables(util.m_signal_definition, !do_truth_vars);
   std::vector<VariableMAT*> variables_MAT = 
       make_xsec_mc_inputs::GetLowNuHighNuMATVariables(do_truth_vars);
   std::vector<Variable2D*> variables2D =
@@ -338,9 +375,13 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
 
   for (auto v : variables)
     v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
-
+  for (auto v : variables_lessTruth)
+    v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
   for (auto v : variables_MAT) v->InitializeAllHists(util.m_error_bands);
   for (auto v : variables2D) v->InitializeAllHists(util.m_error_bands);
+
+  // LOOP DATA
+  LoopAndFillData(util, variables_lessTruth, variables_MAT, variables2D, test_run);
 
   // LOOP MC RECO
   for (auto band : util.m_error_bands) {
@@ -365,7 +406,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   fout.cd();
   for (auto v : variables) {
     SyncAllHists(*v);
-    v->WriteMCHists(fout);
+    v->WriteAllHistogramsToFile(fout);
   }
   for (auto v: variables_MAT) {
     v->WriteAllHistogramsToFile(fout, true);

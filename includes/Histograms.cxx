@@ -335,7 +335,7 @@ void Histograms::InitializeDataHists() {
   const Double_t* bins = m_bins_array.GetArray();
   const char* label = m_label.c_str();
   m_selection_data =
-      new MH1D(Form("selection_mc_%s", label), label, NBins(), bins);
+      new MH1D(Form("selection_data_%s", label), label, NBins(), bins);
 
   m_wsidebandfit_data =
       new MH1D(Form("wsidebandfit_data_%s", label), label, NBins(), bins);

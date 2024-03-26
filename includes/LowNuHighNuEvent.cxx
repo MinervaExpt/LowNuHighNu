@@ -124,12 +124,13 @@ void lownuhighnu_event::FillSelected(
     }
   }  // end variables
   for (auto var: variables_MAT) {
-    // Get fill value
-    double fill_val_reco = var->GetRecoValue(*event.m_universe);
-    double fill_val_truth = var->GetTrueValue(*event.m_universe);
-
     // all MC events
     if (event.m_is_mc) {
+
+      // Get fill value
+      double fill_val_reco = var->GetRecoValue(*event.m_universe);
+      double fill_val_truth = var->GetTrueValue(*event.m_universe);
+
       var->m_migration.FillUniverse(*event.m_universe, fill_val_reco,
                                     fill_val_truth, event.m_weight);
     }

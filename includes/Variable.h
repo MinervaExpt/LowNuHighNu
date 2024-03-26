@@ -59,7 +59,7 @@ class Variable {
   void InitializeDataHists();
 
   // Write and Load MC Hists to/from a file
-  void WriteMCHists(TFile& fout) const;
+  void WriteAllHistogramsToFile(TFile& fout) const;
   void LoadDataHistsFromFile(TFile& fin);
   void LoadMCHistsFromFile(TFile& fin, UniverseMap& error_bands);
 

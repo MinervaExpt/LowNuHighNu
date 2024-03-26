@@ -65,8 +65,9 @@ PlotUtils::MnvH1D* Variable::GetStackComponentHist(T type) const {
 }
 
 // Save with the object names that hists were initialized with
-void Variable::WriteMCHists(TFile& fout) const {
+void Variable::WriteAllHistogramsToFile(TFile& fout) const {
   fout.cd();
+  m_hists.m_selection_data->Write();
   m_hists.m_selection_mc.hist->Write();
   m_hists.m_bg.hist->Write();
   m_hists.m_bg_loW.hist->Write();
