@@ -35,7 +35,7 @@ class VariableMAT : public PlotUtils::VariableBase<CVUniverse> {
   // INITIALIZE ALL HISTOGRAMS
   //=======================================================================================
   template <typename T>
-  void InitializeAllHists(T univs) {
+  void InitializeAllHists(T univs, T univs_truth) {
 
     const bool clear_bands = true;  // we want empty histograms
 
@@ -74,6 +74,7 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
   // Data members
   //==========================================================================
   std::string m_label;
+  bool m_is_true;
 
   //==========================================================================
   // Functions
@@ -88,13 +89,14 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
   HW2D m_selection_mc;
   HW2D m_selection_data;
   HW2D m_effnum;
+  HW2D m_effdenom;
   HW2D m_bg;
 
   //=======================================================================================
   // INITIALIZE ALL HISTOGRAMS
   //=======================================================================================
   template <typename T>
-  void InitializeAllHists(T univs) {
+  void InitializeAllHists(T univs, T univs_truth) {
     const bool clear_bands = true;  // we want empty histograms
 
     MH2D* temp_selection_mc = new MH2D(
@@ -112,6 +114,11 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
         GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
     m_effnum = HW2D(temp_effnum, univs, clear_bands);
 
+    MH2D* temp_effdenom = new MH2D(
+        Form("effdenom_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+        GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_effdenom = HW2D(temp_effdenom, univs_truth, clear_bands);
+
     MH2D* temp_bg = new MH2D(
         Form("bg_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
         GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
@@ -120,6 +127,7 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
     delete temp_selection_mc;
     delete temp_selection_data;
     delete temp_effnum;
+    delete temp_effdenom;
     delete temp_bg;
   }
 
@@ -132,6 +140,7 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
     m_selection_mc.hist->Write();
     m_selection_data.hist->Write();
     m_effnum.hist->Write();
+    m_effdenom.hist->Write();
     m_bg.hist->Write();
   }
 };

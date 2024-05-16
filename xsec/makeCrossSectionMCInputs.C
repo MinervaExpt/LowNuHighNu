@@ -278,7 +278,7 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         // FILL TRUTH
         //===============
         if (type == kTruth) {
-          lownuhighnu_event::FillTruthEvent(event, variables);
+          lownuhighnu_event::FillTruthEvent(event, variables, variables_MAT, variables2D);
           // inclusive_event::FillTruthEvent(event, variables);
           continue;
         }
@@ -377,8 +377,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
     v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
   for (auto v : variables_lessTruth)
     v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
-  for (auto v : variables_MAT) v->InitializeAllHists(util.m_error_bands);
-  for (auto v : variables2D) v->InitializeAllHists(util.m_error_bands);
+  for (auto v : variables_MAT) v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
+  for (auto v : variables2D) v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
 
   // LOOP DATA
   LoopAndFillData(util, variables_lessTruth, variables_MAT, variables2D, test_run);
@@ -403,6 +403,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   // WRITE TO FILE
   std::cout << "Synching and Writing\n\n";
   WritePOT(fout, true, util.m_mc_pot);
+  WritePOT(fout, false, util.m_data_pot);
   fout.cd();
   for (auto v : variables) {
     SyncAllHists(*v);
