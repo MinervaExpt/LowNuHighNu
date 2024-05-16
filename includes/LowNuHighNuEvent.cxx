@@ -58,10 +58,13 @@ void lownuhighnu_event::FillRecoEvent(
 }
 
 void lownuhighnu_event::FillTruthEvent(
-    const LowNuHighNuEvent& event, const std::vector<Variable*>& variables) {
+    const LowNuHighNuEvent& event, const std::vector<Variable*>& variables,
+    const std::vector<VariableMAT*>& variables_MAT,
+    const std::vector<Variable2D*>& variables2D) {
   // Fill Efficiency Denominator
   if (event.m_is_signal)
-    lownuhighnu_event::FillEfficiencyDenominator(event, variables);
+    lownuhighnu_event::FillEfficiencyDenominator(event, variables,
+                                                 variables_MAT, variables2D);
 }
 
 //==============================================================================
@@ -135,7 +138,6 @@ void lownuhighnu_event::FillSelected(
                                     fill_val_truth, event.m_weight);
     }
   } //end variables_MAT
-
   for (auto var : variables2D) {
     // Get fill value
     double fill_val_x = var->GetRecoValueX(*event.m_universe);
@@ -225,7 +227,9 @@ void lownuhighnu_event::FillMigration(const LowNuHighNuEvent& event,
 
 // Only for true variables
 void lownuhighnu_event::FillEfficiencyDenominator(
-    const LowNuHighNuEvent& event, const std::vector<Variable*>& variables) {
+    const LowNuHighNuEvent& event, const std::vector<Variable*>& variables,
+    const std::vector<VariableMAT*>& variables_MAT,
+    const std::vector<Variable2D*>& variables2D) {
   for (auto var : variables) {
     if (!var->m_is_true) continue;
     double fill_val = var->GetValue(*event.m_universe);
@@ -237,7 +241,19 @@ void lownuhighnu_event::FillEfficiencyDenominator(
       std::cerr << "Variable is " << var->Name() << "\n";
       throw;
     }
-  }
+  } // end variables
+  for (auto var : variables2D) {
+    double fill_val_x = var->GetTrueValueX(*event.m_universe);
+    double fill_val_y = var->GetTrueValueY(*event.m_universe);
+    try {
+      var->m_effdenom.FillUniverse(*event.m_universe, fill_val_x,
+                                   fill_val_y, event.m_weight);
+    } catch (...) {
+      std::cerr << "From lownuhighnu_event::FillEfficiencyDenominator\n";
+      std::cerr << "2D Variable is " << var->Name() << "\n";
+      throw;
+    }
+  } // end variables2D
 }
 
 //==============================================================================
