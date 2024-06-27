@@ -102,9 +102,13 @@ std::vector<Variable2D*> GetLowNuHighNu2DVariables(
   VarMAT* vmat_ehad = new VarMAT(
       "ehad", "ehad", ConvertTArrayDToStdVector(CCPi::GetBinning("ehad")),
       &CVUniverse::GetEhad, &CVUniverse::GetEhadTrue);
+  VarMAT* vmat_ehad_fine = new VarMAT(
+      "ehad_fine", "ehad_fine", ConvertTArrayDToStdVector(CCPi::GetBinning("ehad_fine")),
+      &CVUniverse::GetEhad, &CVUniverse::GetEhadTrue);
   Var2D* enu_ehad = new Var2D(*vmat_enu, *vmat_ehad);
+  Var2D* enu_ehad_fine = new Var2D(*vmat_enu, *vmat_ehad_fine);
 
-  return std::vector<Var2D*>{enu_ehad};
+  return std::vector<Var2D*>{enu_ehad,enu_ehad_fine};
 }
 
 std::vector<Variable*> GetInclusiveVariables(bool include_truth_vars = true) {
