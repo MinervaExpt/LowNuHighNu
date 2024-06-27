@@ -17,7 +17,10 @@ namespace CCPi {
 TArrayD GetBinning(const std::string var_name) {
   std::vector<double> bins_vec;
   if (var_name == "enu") {
-    bins_vec = {0., 1.e3, 3.e3, 4.e3, 6.5e3, 9.5e3, 14.e3, 30.e3};
+    //bins_vec = {0., 1.e3, 3.e3, 4.e3, 6.5e3, 9.5e3, 14.e3, 30.e3};
+    bins_vec = {0., 1.e3, 2.e3, 3.e3, 4.e3, 5.e3, 6.e3, 7.e3, 8.e3,
+                9.e3 ,1.e4, 1.2e4, 1.4e4, 1.6e4, 1.8e4, 2.e4, 2.2e4,
+                2.8e4, 3.4e4, 4.e4, 5.e4, 6.e4, 8.e4, 1.e5, 1.2e5};
   } else if (var_name == "pmu") {
     bins_vec = {0.,    1.e3,  2.e3,  3.e3,  4.e3, 5.5e3,
                 7.5e3, 10.e3, 13.e3, 20.e3, 30.e3};
@@ -49,14 +52,14 @@ TArrayD GetBinning(const std::string var_name) {
   } else if (var_name == "ALR") {
     bins_vec = {0., 1., 2., 3.};
   } else if (var_name == "ehad") {
-    bins_vec = {0.2e3,   0.328e3, 0.392e3, 0.456e3, 0.520e3,
-                0.584e3, 0.648e3, 0.776e3, 0.904e3, 1.800e3};
+    bins_vec = {0.0,  0.3e3,  0.5e3,  1.0e3,  2.0e3,  5.0e3};
   } else if (var_name == "ehad_fine") { // for recoil energy study
     bins_vec = {0.0e3,0.1e3,0.2e3,0.3e3,0.4e3,0.5e3,0.6e3,0.7e3,0.8e3,0.9e3,
                 1.0e3,1.1e3,1.2e3,1.3e3,1.4e3,1.5e3,1.6e3,1.7e3,1.8e3,1.9e3,
                 2.0e3,2.1e3,2.2e3,2.3e3,2.4e3,2.5e3,2.6e3,2.7e3,2.8e3,2.9e3,
                 3.0e3,3.1e3,3.2e3,3.3e3,3.4e3,3.5e3,3.6e3,3.7e3,3.8e3,3.9e3,
-                4.0e3};
+                4.0e3,4.1e3,4.2e3,4.3e3,4.4e3,4.5e3,4.6e3,4.7e3,4.8e3,4.9e3,
+                5.0e3};
   } else if (var_name == "ehad_res") { // for recoil energy study
     bins_vec = {-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,
                 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
