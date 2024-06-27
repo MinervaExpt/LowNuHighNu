@@ -85,12 +85,21 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
   // DECLARE NEW HISTOGRAMS
   //=======================================================================================
   // HISTWRAPPER
-  // selected mc reco histwrapper
-  HW2D m_selection_mc;
-  HW2D m_selection_data;
-  HW2D m_effnum;
-  HW2D m_effdenom;
-  HW2D m_bg;
+  HW2D m_selection_data_inclusive;
+  HW2D m_selection_data_lowNu;
+  HW2D m_selection_data_highNu;
+  HW2D m_selection_mc_inclusive;
+  HW2D m_selection_mc_lowNu;
+  HW2D m_selection_mc_highNu;
+  HW2D m_bg_inclusive;
+  HW2D m_bg_lowNu;
+  HW2D m_bg_highNu;
+  HW2D m_effnum_inclusive;
+  HW2D m_effnum_lowNu;
+  HW2D m_effnum_highNu;
+  HW2D m_effdenom_inclusive;
+  HW2D m_effdenom_lowNu;
+  HW2D m_effdenom_highNu;
 
   //=======================================================================================
   // INITIALIZE ALL HISTOGRAMS
@@ -99,36 +108,101 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
   void InitializeAllHists(T univs, T univs_truth) {
     const bool clear_bands = true;  // we want empty histograms
 
-    MH2D* temp_selection_mc = new MH2D(
-        Form("selection_mc_%s", GetName().c_str()), GetName().c_str(),
+    // Data selected sample
+    MH2D* temp_selection_data_inclusive = new MH2D(
+        Form("selection_data_%s_inclusive", GetName().c_str()), GetName().c_str(),
         GetNBinsX(), GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
-    m_selection_mc = HW2D(temp_selection_mc, univs, clear_bands);
+    m_selection_data_inclusive = HW2D(temp_selection_data_inclusive, univs, clear_bands);
 
-    MH2D* temp_selection_data = new MH2D(
-        Form("selection_data_%s", GetName().c_str()), GetName().c_str(),
+    MH2D* temp_selection_data_lowNu = new MH2D(
+        Form("selection_data_%s_lowNu", GetName().c_str()), GetName().c_str(),
         GetNBinsX(), GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
-    m_selection_data = HW2D(temp_selection_data, univs, clear_bands);
+    m_selection_data_lowNu = HW2D(temp_selection_data_lowNu, univs, clear_bands);
 
-    MH2D* temp_effnum = new MH2D(
-        Form("effnum_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+    MH2D* temp_selection_data_highNu = new MH2D(
+        Form("selection_data_%s_highNu", GetName().c_str()), GetName().c_str(),
+        GetNBinsX(), GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_selection_data_highNu = HW2D(temp_selection_data_highNu, univs, clear_bands);
+
+    // MC selected sample
+    MH2D* temp_selection_mc_inclusive = new MH2D(
+        Form("selection_mc_%s_inclusive", GetName().c_str()), GetName().c_str(),
+        GetNBinsX(), GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_selection_mc_inclusive = HW2D(temp_selection_mc_inclusive, univs, clear_bands);
+
+    MH2D* temp_selection_mc_lowNu = new MH2D(
+        Form("selection_mc_%s_lowNu", GetName().c_str()), GetName().c_str(),
+        GetNBinsX(), GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_selection_mc_lowNu = HW2D(temp_selection_mc_lowNu, univs, clear_bands);
+
+    MH2D* temp_selection_mc_highNu = new MH2D(
+        Form("selection_mc_%s_highNu", GetName().c_str()), GetName().c_str(),
+        GetNBinsX(), GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_selection_mc_highNu = HW2D(temp_selection_mc_highNu, univs, clear_bands);
+
+    // MC background
+    MH2D* temp_bg_inclusive = new MH2D(
+        Form("bg_%s_inclusive", GetName().c_str()), GetName().c_str(), GetNBinsX(),
         GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
-    m_effnum = HW2D(temp_effnum, univs, clear_bands);
+    m_bg_inclusive = HW2D(temp_bg_inclusive, univs, clear_bands);
 
-    MH2D* temp_effdenom = new MH2D(
-        Form("effdenom_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+    MH2D* temp_bg_lowNu = new MH2D(
+        Form("bg_%s_lowNu", GetName().c_str()), GetName().c_str(), GetNBinsX(),
         GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
-    m_effdenom = HW2D(temp_effdenom, univs_truth, clear_bands);
+    m_bg_lowNu = HW2D(temp_bg_lowNu, univs, clear_bands);
 
-    MH2D* temp_bg = new MH2D(
-        Form("bg_%s", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+    MH2D* temp_bg_highNu = new MH2D(
+        Form("bg_%s_highNu", GetName().c_str()), GetName().c_str(), GetNBinsX(),
         GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
-    m_bg = HW2D(temp_bg, univs, clear_bands);
+    m_bg_highNu = HW2D(temp_bg_highNu, univs, clear_bands);
 
-    delete temp_selection_mc;
-    delete temp_selection_data;
-    delete temp_effnum;
-    delete temp_effdenom;
-    delete temp_bg;
+    // MC efficiency numerator
+    MH2D* temp_effnum_inclusive = new MH2D(
+        Form("effnum_%s_inclusive", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+        GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_effnum_inclusive = HW2D(temp_effnum_inclusive, univs, clear_bands);
+
+    MH2D* temp_effnum_lowNu = new MH2D(
+        Form("effnum_%s_lowNu", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+        GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_effnum_lowNu = HW2D(temp_effnum_lowNu, univs, clear_bands);
+
+    MH2D* temp_effnum_highNu = new MH2D(
+        Form("effnum_%s_highNu", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+        GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_effnum_highNu = HW2D(temp_effnum_highNu, univs, clear_bands);
+
+    // MC efficiency denominator
+    MH2D* temp_effdenom_inclusive = new MH2D(
+        Form("effdenom_%s_inclusive", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+        GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_effdenom_inclusive = HW2D(temp_effdenom_inclusive, univs_truth, clear_bands);
+
+    MH2D* temp_effdenom_lowNu = new MH2D(
+        Form("effdenom_%s_lowNu", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+        GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_effdenom_lowNu = HW2D(temp_effdenom_lowNu, univs_truth, clear_bands);
+
+    MH2D* temp_effdenom_highNu = new MH2D(
+        Form("effdenom_%s_highNu", GetName().c_str()), GetName().c_str(), GetNBinsX(),
+        GetBinVecX().data(), GetNBinsY(), GetBinVecY().data());
+    m_effdenom_highNu = HW2D(temp_effdenom_highNu, univs_truth, clear_bands);
+
+    delete temp_selection_data_inclusive;
+    delete temp_selection_data_lowNu;
+    delete temp_selection_data_highNu;
+    delete temp_selection_mc_inclusive;
+    delete temp_selection_mc_lowNu;
+    delete temp_selection_mc_highNu;
+    delete temp_bg_inclusive;
+    delete temp_bg_lowNu;
+    delete temp_bg_highNu;
+    delete temp_effnum_inclusive;
+    delete temp_effnum_lowNu;
+    delete temp_effnum_highNu;
+    delete temp_effdenom_inclusive;
+    delete temp_effdenom_lowNu;
+    delete temp_effdenom_highNu;
   }
 
   //=======================================================================================
@@ -137,11 +211,21 @@ class Variable2D : public PlotUtils::Variable2DBase<CVUniverse> {
   void WriteAllHistogramsToFile(TFile& f, bool isMC) const {
     f.cd();
 
-    m_selection_mc.hist->Write();
-    m_selection_data.hist->Write();
-    m_effnum.hist->Write();
-    m_effdenom.hist->Write();
-    m_bg.hist->Write();
+    m_selection_data_inclusive.hist->Write();
+    m_selection_data_lowNu.hist->Write();
+    m_selection_data_highNu.hist->Write();
+    m_selection_mc_inclusive.hist->Write();
+    m_selection_mc_lowNu.hist->Write();
+    m_selection_mc_highNu.hist->Write();
+    m_bg_inclusive.hist->Write();
+    m_bg_lowNu.hist->Write();
+    m_bg_highNu.hist->Write();
+    m_effnum_inclusive.hist->Write();
+    m_effnum_lowNu.hist->Write();
+    m_effnum_highNu.hist->Write();
+    m_effdenom_inclusive.hist->Write();
+    m_effdenom_lowNu.hist->Write();
+    m_effdenom_highNu.hist->Write();
   }
 };
 

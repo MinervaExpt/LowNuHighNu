@@ -39,6 +39,8 @@ struct LowNuHighNuEvent {
   const SignalDefinition m_signal_definition;
   CVUniverse* m_universe;
   bool m_is_signal;
+  bool m_is_lowNu;
+  bool m_is_lowNu_truth;
   double m_weight;
   WSidebandType m_w_type;
 

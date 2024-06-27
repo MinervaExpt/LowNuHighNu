@@ -17,6 +17,8 @@ LowNuHighNuEvent::LowNuHighNuEvent(const bool is_mc, const bool is_truth,
       m_signal_definition(signal_definition),
       m_universe(universe) {
   m_is_signal = is_mc ? IsSignal(*universe, signal_definition) : false;
+  m_is_lowNu = is_truth ? false : IsLowNu(*universe);
+  m_is_lowNu_truth = is_truth ? IsLowNuTruth(*universe) : false;
   m_weight = is_mc ? universe->GetWeight() : 1.;
   m_w_type = is_mc ? GetWSidebandType(*universe, signal_definition,
                                       sidebands::kNWFitCategories)
@@ -145,10 +147,22 @@ void lownuhighnu_event::FillSelected(
 
     // total = signal & background, together
     if (event.m_is_mc) {
-      var->m_selection_mc.FillUniverse(*event.m_universe, fill_val_x,
-                                       fill_val_y, event.m_weight);
+      var->m_selection_mc_inclusive.FillUniverse(*event.m_universe, fill_val_x,
+                                                 fill_val_y, event.m_weight);
+      if (event.m_is_lowNu) {
+        var->m_selection_mc_lowNu.FillUniverse(*event.m_universe, fill_val_x,
+                                               fill_val_y, event.m_weight);
+      } else {
+        var->m_selection_mc_highNu.FillUniverse(*event.m_universe, fill_val_x,
+                                                fill_val_y, event.m_weight);
+      }
     } else {
-      var->m_selection_data.hist->Fill(fill_val_x, fill_val_y);
+      var->m_selection_data_inclusive.hist->Fill(fill_val_x, fill_val_y);
+      if (event.m_is_lowNu) {
+        var->m_selection_data_lowNu.hist->Fill(fill_val_x, fill_val_y);
+      } else {
+        var->m_selection_data_highNu.hist->Fill(fill_val_x, fill_val_y);
+      }
     }
 
     // done with data
@@ -156,11 +170,25 @@ void lownuhighnu_event::FillSelected(
 
     // signal and background individually
     if (event.m_is_signal) {
-      var->m_effnum.FillUniverse(*event.m_universe, fill_val_x, fill_val_y,
-                                 event.m_weight);
+      var->m_effnum_inclusive.FillUniverse(*event.m_universe, fill_val_x, fill_val_y,
+                                           event.m_weight);
+      if (event.m_is_lowNu) {
+        var->m_effnum_lowNu.FillUniverse(*event.m_universe, fill_val_x, fill_val_y,
+                                         event.m_weight);
+      } else {
+        var->m_effnum_highNu.FillUniverse(*event.m_universe, fill_val_x, fill_val_y,
+                                          event.m_weight);
+      }
     } else {
-      var->m_bg.FillUniverse(*event.m_universe, fill_val_x, fill_val_y,
-                             event.m_weight);
+      var->m_bg_inclusive.FillUniverse(*event.m_universe, fill_val_x, fill_val_y,
+                                       event.m_weight);
+      if (event.m_is_lowNu) {
+        var->m_bg_lowNu.FillUniverse(*event.m_universe, fill_val_x, fill_val_y,
+                                     event.m_weight);
+      } else {
+        var->m_bg_highNu.FillUniverse(*event.m_universe, fill_val_x, fill_val_y,
+                                      event.m_weight);
+      }
     }
   }  // end variables2D
 }
@@ -246,14 +274,21 @@ void lownuhighnu_event::FillEfficiencyDenominator(
     double fill_val_x = var->GetTrueValueX(*event.m_universe);
     double fill_val_y = var->GetTrueValueY(*event.m_universe);
     try {
-      var->m_effdenom.FillUniverse(*event.m_universe, fill_val_x,
-                                   fill_val_y, event.m_weight);
+      var->m_effdenom_inclusive.FillUniverse(*event.m_universe, fill_val_x,
+                                             fill_val_y, event.m_weight);
     } catch (...) {
       std::cerr << "From lownuhighnu_event::FillEfficiencyDenominator\n";
       std::cerr << "2D Variable is " << var->Name() << "\n";
       throw;
     }
-  } // end variables2D
+    if (event.m_is_lowNu_truth) {
+      var->m_effdenom_lowNu.FillUniverse(*event.m_universe, fill_val_x,
+                                         fill_val_y, event.m_weight);
+    } else {
+      var->m_effdenom_highNu.FillUniverse(*event.m_universe, fill_val_x,
+                                          fill_val_y, event.m_weight);
+    }
+  } //end variables2D
 }
 
 //==============================================================================

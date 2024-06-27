@@ -175,6 +175,50 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
       return false;
   }
 }
+
+bool IsLowNu(const CVUniverse& univ) {
+  double Enu = univ.GetEmu()/1000.; // convert to GeV
+  double nu = univ.GetEhad()/1000.; // convert to GeV
+
+  if (Enu < 3) {
+    if (nu < 0.3) return true;
+    else          return false;
+  } else if (Enu < 7) {
+    if (nu < 0.5) return true;
+    else          return false;
+  } else if (Enu < 12) {
+    if (nu <1.0)  return true;
+    else          return false;
+  } else if (nu < 2.0) {
+                  return true;
+  } else          return false;
+}
+
+bool IsLowNuTruth(const CVUniverse& univ) {
+  double EnuTrue = univ.GetEmuTrue()/1000.; // convert to GeV
+  double nuTrue = univ.GetEhadTrue()/1000.; // convert to GeV
+
+  if (EnuTrue < 3) {
+    if (nuTrue < 0.3) return true;
+    else              return false;
+  } else if (EnuTrue < 7) {
+    if (nuTrue < 0.5) return true;
+    else              return false;
+  } else if (EnuTrue < 12) {
+    if (nuTrue <1.0)  return true;
+    else              return false;
+  } else if (nuTrue < 2.0) {
+                      return true;
+  } else              return false;
+}
+
+bool isLowNu_Amit(const CVUniverse& univ) {
+  double Enu = univ.GetEmu();
+  double nu = univ.GetEhad();
+
+  if (nu < 0.8)   return true;
+  else            return false;
+}
 // ---> IMPORTANT FINAL FUNCTION  <----
 
 std::string GetSignalName(SignalDefinition sig_def) {
