@@ -242,7 +242,7 @@ void Plot_CrossSection(Plotter p, MnvH1D* data, MnvH1D* mc,
 
 void TH1_rebin_test() {
   TFile fin(
-      "/minerva/app/users/bmesserl/MATAna/cc-ch-pip-ana/"
+      "/exp/minerva/app/users/bmesserl/MATAna/cc-ch-pip-ana/"
       "DataXSecInputs_2023-02-21.root",
       "READ");
 
@@ -452,7 +452,7 @@ PlotUtils::MnvH1D* RebinQ2Plot(const PlotUtils::MnvH1D& old_hist) {
 void MH1_rebin_test() {
   // I/O
   TFile
-fin("/minerva/app/users/bmesserl/MATAna/cc-ch-pip-ana/DataXSecInputs_2023-02-21.root",
+fin("/exp/minerva/app/users/bmesserl/MATAna/cc-ch-pip-ana/DataXSecInputs_2023-02-21.root",
 "READ"); std::cout << "Reading input from " << fin.GetName() << endl;
 
   // INPUT TUPLES
@@ -501,7 +501,7 @@ hist_u->GetTitle() << "\n";
 
 void fix_q2_plot() {
   TFile fin(
-      "/minerva/app/users/bmesserl/MATAna/cc-ch-pip-ana/"
+      "/exp/minerva/app/users/bmesserl/MATAna/cc-ch-pip-ana/"
       "DataXSecInputs_2023-02-21.root",
       "READ");
   std::cout << "Reading input from " << fin.GetName() << endl;

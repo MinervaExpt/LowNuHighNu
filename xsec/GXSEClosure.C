@@ -22,7 +22,7 @@ void GXSEClosure(int signal_definition_int = 0) {
   // In and outfiles
   // TFile fin("rootfiles/MCXSecInputs_20190903.root", "READ");
   TFile fin(
-      "/minerva/app/users/granados/cmtuser/MATAna/cc-ch-pip-ana/"
+      "/exp/minerva/app/users/granados/cmtuser/MATAna/cc-ch-pip-ana/"
       "MCXSecInputs_20220717_ME1A_NoSys.root",
       "READ");
   cout << "Reading input from " << fin.GetName() << endl;
@@ -32,7 +32,7 @@ void GXSEClosure(int signal_definition_int = 0) {
   std::string data_file_list = GetPlaylistFile(plist, false);
   std::string mc_file_list = GetPlaylistFile(plist, true);
   // std::string mc_file_list =
-  //    "/minerva/app/users/granados/cmtuser/MINERvA101/"
+  //    "/exp/minerva/app/users/granados/cmtuser/MINERvA101/"
   //    "MINERvA-101-Cross-Section/MCME1A.txt";
   bool do_truth = false;
   bool do_systematics = true, do_grid = false;
@@ -213,7 +213,7 @@ void GXSEClosure(int signal_definition_int = 0) {
 
       if (var->Name() == v2U) {
         TFile fin_gxse(
-            Form("/minerva/app/users/granados/cmtuser/MATAna/"
+            Form("/exp/minerva/app/users/granados/cmtuser/MATAna/"
                  "cc-ch-pip-ana/GENIEXSECEXTRACT_MCME1A_%s.root",
                  v2U.c_str()));
 
@@ -318,7 +318,7 @@ void GXSEClosure(int signal_definition_int = 0) {
             (PlotUtils::MnvH1D*)true_var->m_hists.m_effden.hist->Clone(uniq());
 
         TFile fin_gxse(
-            Form("/minerva/app/users/granados/cmtuser/MATAna/"
+            Form("/exp/minerva/app/users/granados/cmtuser/MATAna/"
                  "cc-ch-pip-ana/GENIEXSECEXTRACT_MCME1A_%s.root",
                  v2U.c_str()));
 

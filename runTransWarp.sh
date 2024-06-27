@@ -14,7 +14,7 @@ Ximaxaxis=(1500 10000 1000 100 650 75 4000 100 100 50 550 275 800 10000 10000 20
 #WARPED_FILE=$2
 #RECO_HIST=selection_mc_${VARIABLE}
 
-OUTFILE_NAME="/minerva/app/users/granados/cmtuser/MATAna/cc-ch-pip-ana/WarpingStudies/"
+OUTFILE_NAME="/exp/minerva/app/users/granados/cmtuser/MATAna/cc-ch-pip-ana/WarpingStudies/"
 #OUTFILE_NAME=$(basename $2)
 counter=0
 

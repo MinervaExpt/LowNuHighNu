@@ -203,7 +203,7 @@ void crossSectionClosure(int signal_definition_int = 0) {
     // compare with GenieXSecExtractor results
     if(var->Name() == "pmu") {
       TFile
-    fin_gxse("/minerva/app/users/bmesserl/cmtuser/Minerva_v21r1p1/GENIEXSecExtract/GenieXSecs_20190904_ME1A_pmu.root");
+    fin_gxse("/exp/minerva/app/users/bmesserl/cmtuser/Minerva_v21r1p1/GENIEXSecExtract/GenieXSecs_20190904_ME1A_pmu.root");
 
       // GeV --> MeV
       PlotUtils::MnvH1D* pmu_xsec_dummy =

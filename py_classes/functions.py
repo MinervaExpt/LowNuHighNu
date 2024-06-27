@@ -150,7 +150,7 @@ def declareChain( tree , playlist , test = False):
 
   chain = WrapChain( tree )  
 
-  infile = open( '/minerva/app/users/finer/cmtuser/highNu/analysis/playlists/%s' % playlist, 'r' ).readlines()
+  infile = open( '/exp/minerva/app/users/finer/cmtuser/highNu/analysis/playlists/%s' % playlist, 'r' ).readlines()
   for it,line in enumerate(infile):
     if it%1000==0:
       print "I'm adding file #" , it , ': %s' % line 

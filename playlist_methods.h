@@ -19,8 +19,8 @@ std::string GetPlaylistFile(std::string plist, bool is_mc,
   const std::string is_mc_str = is_mc ? "mc" : "data";
   std::transform(plist.begin(), plist.end(), plist.begin(), ::toupper);
   std::string topdir =
-      is_mc ? "/minerva/data/users/granados/MAD_ana_plists/"
-            : "/minerva/data/users/granados/MAD_ana_plists/";  // correct
+      is_mc ? "/exp/minerva/data/users/granados/MAD_ana_plists/"
+            : "/exp/minerva/data/users/granados/MAD_ana_plists/";  // correct
                                                                // merging method
   topdir += processing_date;
   std::string playlist_file =
@@ -32,9 +32,9 @@ std::string GetPlaylistFile(std::string plist, bool is_mc,
 }
 
 std::string GetTestPlaylist(bool is_mc) {
-  return is_mc ? "/minerva/app/users/finer/MATAna/LowNuHighNu/cache/"
+  return is_mc ? "/exp/minerva/app/users/finer/MATAna/LowNuHighNu/cache/"
                  "ME1A_mc_test_playlist.txt"
-               : "/minerva/app/users/finer/MATAna/LowNuHighNu/cache/"
+               : "/exp/minerva/app/users/finer/MATAna/LowNuHighNu/cache/"
                  "ME1A_data_test_playlist.txt";
 }
 

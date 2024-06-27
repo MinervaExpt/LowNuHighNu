@@ -13,8 +13,8 @@ setup cmake v3_7_1
 
 source /cvmfs/minerva.opensciencegrid.org/minerva/setup/setup_minerva_products.sh
 
-export TOPDIR=/minerva/app/users/$USER/MATAna/
-WORKINGDIR=/minerva/app/users/$USER/MATAna/LowNuHighNu
+export TOPDIR=/exp/minerva/app/users/$USER/MATAna/
+WORKINGDIR=/exp/minerva/app/users/$USER/MATAna/LowNuHighNu
 cd $WORKINGDIR
 
 source ../opt/bin/setupROOT6OnGPVMs.sh

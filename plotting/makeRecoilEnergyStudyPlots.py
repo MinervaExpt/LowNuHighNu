@@ -34,7 +34,7 @@ histFile = ROOT.TFile(histFilePath)
 
 # Define a regular expression pattern to capture relevant substrings from histFilePath
 # Example histFilePath format below. We only care about the file name, not the directory 
-# "/minerva/app/users/finer/MATAna/LowNuHighNu/runStudyTemplate_0000_ME1B_2024-01-04.root"
+# "/exp/minerva/app/users/finer/MATAna/LowNuHighNu/runStudyTemplate_0000_ME1B_2024-01-04.root"
 histFilePath_elements = histFilePath.split('/')
 pattern = r"([^/]+)_([^/]+)_([^/]+)_(\d{4}-\d{2}-\d{2})\.root"
 

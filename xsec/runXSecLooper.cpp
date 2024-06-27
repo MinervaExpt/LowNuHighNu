@@ -229,7 +229,7 @@ int runXSecLooper() {
                               // MnvLatErrorBands (which are TH1Ds).
 
   // const std::string playlistFile =
-  //    "/minerva/app/users/granados/cmtuser/MINERvA101/"
+  //    "/exp/minerva/app/users/granados/cmtuser/MINERvA101/"
   //    "MINERvA-101-Cross-Section/MCME1A.txt";
 
   // shorter playlist for testing
