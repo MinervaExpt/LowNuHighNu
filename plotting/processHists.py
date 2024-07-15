@@ -28,8 +28,8 @@ def AddNOMADErrorBand( inHist , applyWgts = False ):
   NOMAD_uncertainty = 0.036
   uncertaintyWgts = [1.-NOMAD_uncertainty,1.+NOMAD_uncertainty] if applyWgts else [1.,1.]
 
-  #print "Adding NOMAD error band to " , inHist.GetName()
-  #print "Applying these weights: " , uncertaintyWgts
+  #print("Adding NOMAD error band to " , inHist.GetName())
+  #print("Applying these weights: " , uncertaintyWgts)
 
   if not applyWgts: inHist.AddVertErrorBandAndFillWithCV("NOMAD_normalization",2)
   inHist.GetVertErrorBand("NOMAD_normalization").GetHist(0).Scale(uncertaintyWgts[0])
@@ -60,18 +60,18 @@ histOutputFilePath = "{0}/processedHists_2024-06-24.root".format(HISTDIR_ROOT_OU
 ################################################################ Specify indir, outpath above
 
 # Make reference hist that has the binning of this analysis
-referenceHist = PlotUtils.MnvH1D( 'h_flux_reference' , 'h_flux_reference' , nBins_nuE_LE , array('d',bins_nuE_LE))
-referenceHist_lowNuBinning = PlotUtils.MnvH1D( 'h_flux_reference' , 'h_flux_reference' , nBins_nuE_lowNu_ME , array('d',bins_nuE_lowNu_ME))
+referenceHist = PlotUtils.MnvH1D( 'h_flux_reference' , 'h_flux_reference' , nBins_nuE_LE , array('d',bins_nuE_GeV))
 
 ## original PPFX LE
+###################
 # Declare instance of FluxReweighter
 fluxReweighter_LE_originalBinning = PlotUtils.FluxReweighter(14,False,PlotUtils.FluxReweighter.minerva1,PlotUtils.FluxReweighter.gen2thin,PlotUtils.FluxReweighter.g4numiv5,100)
 # Get flux with unaltered binning
 flux_PPFX_LE_originalBinning = fluxReweighter_LE_originalBinning.GetFluxReweighted(14)
 flux_PPFX_LE_originalBinning.SetName('flux_PPFX_LE_originalBinning')
-# Get flux with binning that matches referenceHist
-flux_PPFX_LE_originalBinning_rebinned = fluxReweighter_LE_originalBinning.GetRebinnedFluxReweighted(14,referenceHist)
-flux_PPFX_LE_originalBinning_rebinned.SetName('flux_PPFX_LE_originalBinning_rebinned')
+# Get flux with analysis binning 
+flux_PPFX_LE_analysisBinning = fluxReweighter_LE_originalBinning.GetRebinnedFluxReweighted(14,referenceHist)
+flux_PPFX_LE_analysisBinning.SetName('flux_PPFX_LE_analysisBinning')
 
 ## REVISIT THIS?? RDF 2024-03-26
 ##
@@ -86,22 +86,29 @@ flux_PPFX_LE_originalBinning_rebinned.SetName('flux_PPFX_LE_originalBinning_rebi
 ## flux_PPFX_LE_notBinWidthNormalized = undoBinWidthNormalization(fluxReweighter_LE.GetRebinnedFluxReweighted(14,referenceHist))
 ## flux_PPFX_LE_notBinWidthNormalized.SetName("flux_PPFX_LE_notBinWidthNormalized")
 
-# original PPFX ME
+# original PPFX ME w/ nue constraint
+###################
+#Declare instance of FluxReweighter
 fluxReweighter_ME_withNuEConstraint = PlotUtils.FluxReweighter(14,True,PlotUtils.FluxReweighter.minervame1D1M1NWeightedAve,PlotUtils.FluxReweighter.gen2thin,PlotUtils.FluxReweighter.g4numiv6,100)
-flux_PPFX_ME_originalBinning = fluxReweighter_ME_withNuEConstraint.GetFluxReweighted(14)
-flux_PPFX_ME_originalBinning.SetName('flux_PPFX_ME_originalBinning')
-flux_PPFX_ME = fluxReweighter_ME_withNuEConstraint.GetRebinnedFluxReweighted(14,referenceHist)
-flux_PPFX_ME.SetName('flux_PPFX_ME')
-flux_PPFX_ME_lowNuBinning = fluxReweighter_ME_withNuEConstraint.GetRebinnedFluxReweighted(14,referenceHist_lowNuBinning)
-flux_PPFX_ME_lowNuBinning.SetName('flux_PPFX_ME_lowNuBinning')
+# Get flux with unaltered binning
+flux_PPFX_ME_yesNuEConstraint_originalBinning = fluxReweighter_ME_withNuEConstraint.GetFluxReweighted(14)
+flux_PPFX_ME_yesNuEConstraint_originalBinning.SetName('flux_PPFX_ME_yesNuEConstraint_originalBinning')
+# Get flux with analysis binning 
+flux_PPFX_ME_yesNuEConstraint_analysisBinning = fluxReweighter_ME_withNuEConstraint.GetRebinnedFluxReweighted(14,referenceHist)
+flux_PPFX_ME_yesNuEConstraint_analysisBinning.SetName('flux_PPFX_ME_yesNuEConstraint_analysisBinning')
+
 # original PPFX ME, no nue constraint
+###################
+#Declare instance of FluxReweighter
 fluxReweighter_ME = PlotUtils.FluxReweighter(14,False,PlotUtils.FluxReweighter.minervame1D1M1NWeightedAve,PlotUtils.FluxReweighter.gen2thin,PlotUtils.FluxReweighter.g4numiv6,100)
-# This is the one that will actually be used; undo bin-width normalization
-flux_PPFX_ME_notBinWidthNormalized = undoBinWidthNormalization(fluxReweighter_ME.GetRebinnedFluxReweighted(14,referenceHist))
-flux_PPFX_ME_notBinWidthNormalized.SetName("flux_PPFX_ME_notBinWidthNormalized")
-# This is the lowNuBinning one that will actually be used; undo bin-width normalization
-flux_PPFX_ME_lowNuBinning_notBinWidthNormalized = undoBinWidthNormalization(fluxReweighter_ME.GetRebinnedFluxReweighted(14,referenceHist_lowNuBinning))
-flux_PPFX_ME_lowNuBinning_notBinWidthNormalized.SetName("flux_PPFX_ME_lowNuBinning_notBinWidthNormalized")
+# Get flux with unaltered binning; undo bin-width normalization
+flux_PPFX_ME_originalBinning_notBinWidthNormalized = undoBinWidthNormalization(fluxReweighter_ME.GetRebinnedFluxReweighted(14,referenceHist))
+flux_PPFX_ME_originalBinning_notBinWidthNormalized.SetName("flux_PPFX_ME_originalBinning_notBinWidthNormalized")
+# Get flux with analysis binning; undo bin-width normalization
+# THIS IS THE FLUX THAT GETS USED FOR THE ANALYSIS
+flux_PPFX_ME_analysisBinning_notBinWidthNormalized = undoBinWidthNormalization(fluxReweighter_ME.GetRebinnedFluxReweighted(14,referenceHist))
+flux_PPFX_ME_analysisBinning_notBinWidthNormalized.SetName("flux_PPFX_ME_analysisBinning_notBinWidthNormalized")
+
 ################################################################ Get fluxes above
 
 PLAYLISTS_LE = [
@@ -160,22 +167,12 @@ histOutputDir_allME = histOutputFile.mkdir('all-ME')
 histOutputDir_dataMCRatios = histOutputFile.mkdir('dataMCRatios')
 histOutputDir_migrationMatrices = histOutputFile.mkdir('migrationMatrices')
 
-#writeHist(flux_PPFX_LE_newOriginalBinning,histOutputDir_flux) ## See above RDF 2024-03-26
-writeHist(flux_PPFX_LE_originalBinning,histOutputDir_flux)
-writeHist(flux_PPFX_LE_originalBinning_rebinned,histOutputDir_flux)
-#writeHist(flux_PPFX_LE,histOutputDir_flux) ## See above RDF 2024-03-26
-
-writeHist(flux_PPFX_ME_originalBinning,histOutputDir_flux)
-writeHist(flux_PPFX_ME,histOutputDir_flux)
-writeHist(flux_PPFX_ME_lowNuBinning,histOutputDir_flux)
-writeHist(flux_PPFX_ME_lowNuBinning_notBinWidthNormalized,histOutputDir_flux)
-
 ## See above RDF 2024-03-26
 ## # I don't quite remember why this is, but something to do with getting rid of the fluxReweighter object once we don't explicitly need it...
 ## del fluxReweighter_LE
 
 nTargets = targetUtils.GetTrackerNNucleons(106,False) # 106 planes, not sure what the False is about
-print 'nTargets: ' , nTargets
+print('nTargets: ' , nTargets)
 totalDataPOT_LE = 0.0
 totalDataPOT_ME = 0.0
 
@@ -187,9 +184,9 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
     # Make new directory in output file for this playlist
     histOutputDir_playlist = histOutputFile.mkdir(playlist)
    
-    print 'playlist: ' , playlist
-    print 'HISTDIR: ' , HISTDIR
-    print 'isME: ' , isME
+    print('playlist: ' , playlist)
+    print('HISTDIR: ' , HISTDIR)
+    print('isME: ' , isME)
 
     # Define file locations
     #fileString = "XSecInputs_1110_{0}_2024-05-07.root".format(playlist)
@@ -198,7 +195,7 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
     histsFileLocation = "{0}/{1}".format(HISTDIR,fileString)
     histsFile = ROOT.TFile(histsFileLocation)
 
-    print 'Opening hists file: ' , histsFileLocation
+    print('Opening hists file: ' , histsFileLocation)
 
     #############################################################################
     ## Old POT methodology, some aspects may yet be needed
@@ -209,7 +206,7 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
     ## mcPOT_ratio = mcPOT_used/mcPOT_total # POT-counting-bug correction factor 
     ## if not playlist == '2p2h': # There is no 2p2h data
     ##   dataPOT = getPOT('data',dataHistsFileLocation)
-    ##   print 'POT of playlist {0}: {1}'.format(playlist,dataPOT)
+    ##   print('POT of playlist {0}: {1}'.format(playlist,dataPOT))
     ##   if isME:  totalDataPOT_ME += dataPOT
     ##   else:     totalDataPOT_LE += dataPOT
     ##   scaleFactor = dataPOT/mcPOT_used
@@ -225,8 +222,8 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
     dataPOT_hist = histsFile.Get("data_pot")
     dataPOT = dataPOT_hist.GetBinContent(1)
 
-    print 'mc POT of playlist {0}: {1}'.format(playlist,mcPOT)
-    print 'data POT of playlist {0}: {1}'.format(playlist,dataPOT)
+    print('mc POT of playlist {0}: {1}'.format(playlist,mcPOT))
+    print('data POT of playlist {0}: {1}'.format(playlist,dataPOT))
 
     if isME:  totalDataPOT_ME += dataPOT
     else:     totalDataPOT_LE += dataPOT
@@ -299,7 +296,7 @@ if True:
   # Add all playlists to container hists
   for playlist in PLAYLISTS:
     if playlist == firstPlaylist or playlist == '2p2h': continue # We'll come back to 2p2h (LE only), which has to be handled separately, and we've already added the first playlist to our cumulative hists
-    print 'adding playlist {0} to cumulative {1} hists.'.format(playlist,LEMEString)
+    print('adding playlist {0} to cumulative {1} hists.'.format(playlist,LEMEString))
     for sigDef in SIGNAL_DEFINITIONS:
       for component in FLUX_COMPONENTS: 
         exec("{0}Hist_{1}_{2}.Add({0}Hist_{1}_{3})".format(component,sigDef,LEMEString,playlist))
@@ -311,14 +308,14 @@ if True:
       #exec("EMu_rangeAndCurve_{0}_{1}.Add(EMu_rangeAndCurve_{0}_{2})".format(sigDef,LEMEString,playlist))
 
   exec("totalDataPOT = totalDataPOT_{0}".format(LEMEString))
-  print 'totalDataPOT_{0}: {1}'.format(LEMEString,totalDataPOT)
+  print('totalDataPOT_{0}: {1}'.format(LEMEString,totalDataPOT))
 
   if not isME: # The below is LE only: Add 2p2h into cumulative LE objects
     scaleFactor_2p2h = totalDataPOT/mcPOT_used_2p2h
-    print 'scaleFactor_2p2h: ' , scaleFactor_2p2h
-    print 'mcPOT_ratio_2p2h: ' , mcPOT_ratio_2p2h
+    print('scaleFactor_2p2h: ' , scaleFactor_2p2h)
+    print('mcPOT_ratio_2p2h: ' , mcPOT_ratio_2p2h)
     
-    print 'adding 2p2h to cumulative LE hists.'
+    print('adding 2p2h to cumulative LE hists.')
     for sigDef in SIGNAL_DEFINITIONS:
       # POT scale 2p2h samples
       exec("effNumeratorHist_{0}_2p2h.Scale(scaleFactor_2p2h)".format(sigDef))
@@ -353,7 +350,7 @@ if True:
     for component in FLUX_COMPONENTS: 
       exec("AddNOMADErrorBand({0}Hist_{1}_{2})".format(component,sigDef,LEMEString))
       exec("AddNOMADErrorBand({0}Hist2D_{1}_{2})".format(component,sigDef,LEMEString))
-      print "Adding NOMAD error band to {0}Hist_{1}_{2}".format(component,sigDef,LEMEString)
+      print("Adding NOMAD error band to {0}Hist_{1}_{2}".format(component,sigDef,LEMEString))
     exec("AddNOMADErrorBand(eff_{0}_{1})".format(sigDef,LEMEString))
     #exec("AddNOMADErrorBand(eff_geometric_{0}_{1})".format(sigDef,LEMEString))
     exec("AddNOMADErrorBand(migrationMatrix_Enu_{0}_{1})".format(sigDef,LEMEString))
@@ -384,9 +381,9 @@ if True:
 ### Swap out above when running with LE
 
   exec("temp1 = dataRateHist_inclusive_{0}.GetVertErrorBand(\"Flux\").GetNHists()".format(LEMEString))
-  print "universe in dataRateHist_inclusive_{0}: {1}".format(LEMEString,temp1)
+  print("universe in dataRateHist_inclusive_{0}: {1}".format(LEMEString,temp1))
   exec("temp2 = effNumeratorHist_inclusive_{0}.GetVertErrorBand(\"Flux\").GetNHists()".format(LEMEString))
-  print "universe in effNumeratorHist_inclusive_{0}: {1}".format(LEMEString,temp2)
+  print("universe in effNumeratorHist_inclusive_{0}: {1}".format(LEMEString,temp2))
 
   for sigDef in SIGNAL_DEFINITIONS:
   
@@ -421,33 +418,42 @@ xSection_lowNu_LE_Lu.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_M
 writeHist(xSection_lowNu_LE_Lu,histOutputDir_xSections)
 
 #############################################################################################################
-### A bit more PPFX Flux business  ##########################################################################
+### Give PPFX Flux Hists Correct Error Bands and Write to Output File #######################################
 #############################################################################################################
 
-# Before we use the PPFX flux to extract the shape of the low-nu xSection, we need to give the PPFX hists the correct set of error bands to know about
-#flux_PPFX_LE_notBinWidthNormalized.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_LE) # Using effNumeratorHist_highNu_LE as the reference hist for no particular reason
-flux_PPFX_ME_notBinWidthNormalized.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_ME) # Using effNumeratorHist_highNu_ME as the reference hist for no particular reason
-flux_PPFX_ME_lowNuBinning_notBinWidthNormalized.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_ME) # Using effNumeratorHist_highNu_ME as the reference hist for no particular reason
-flux_PPFX_ME.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_ME) 
-flux_PPFX_ME_lowNuBinning.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_ME) 
+# PPFX fluxes needd to be given the correct set of error bands to know about
+# Using effNumeratorHist_highNu_ME as the reference hist for no particular reason
 
-# There are some legacy systematics universes propagated into the fluxes that aren't used any more, and can be removed
+#flux_PPFX_LE_notBinWidthNormalized.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_LE) # Using effNumeratorHist_highNu_LE as the reference hist for no particular reason
+flux_PPFX_ME_yesNuEConstraint_originalBinning.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_ME) 
+flux_PPFX_ME_yesNuEConstraint_analysisBinning.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_ME) 
+flux_PPFX_ME_originalBinning_notBinWidthNormalized.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_ME) 
+flux_PPFX_ME_analysisBinning_notBinWidthNormalized.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_ME) # Using effNumeratorHist_highNu_ME as the reference hist for no particular reason
+
+# There are some legacy systematics universes propagated into the fluxes that aren't used any more which can be removed
 #flux_PPFX_LE_notBinWidthNormalized.PopVertErrorBand("Flux_BeamFocus")
 #flux_PPFX_LE_notBinWidthNormalized.PopVertErrorBand("ppfx1_Total")
-flux_PPFX_ME_notBinWidthNormalized.PopVertErrorBand("Flux_BeamFocus")
-flux_PPFX_ME_notBinWidthNormalized.PopVertErrorBand("ppfx1_Total")
-flux_PPFX_ME.PopVertErrorBand("Flux_BeamFocus")
-flux_PPFX_ME.PopVertErrorBand("ppfx1_Total")
-flux_PPFX_ME_lowNuBinning_notBinWidthNormalized.PopVertErrorBand("Flux_BeamFocus")
-flux_PPFX_ME_lowNuBinning_notBinWidthNormalized.PopVertErrorBand("ppfx1_Total")
-flux_PPFX_ME_lowNuBinning.PopVertErrorBand("Flux_BeamFocus")
-flux_PPFX_ME_lowNuBinning.PopVertErrorBand("ppfx1_Total")
+flux_PPFX_ME_yesNuEConstraint_originalBinning.PopVertErrorBand("Flux_BeamFocus")
+flux_PPFX_ME_yesNuEConstraint_originalBinning.PopVertErrorBand("ppfx1_Total")
+flux_PPFX_ME_yesNuEConstraint_analysisBinning.PopVertErrorBand("Flux_BeamFocus")
+flux_PPFX_ME_yesNuEConstraint_analysisBinning.PopVertErrorBand("ppfx1_Total")
+flux_PPFX_ME_originalBinning_notBinWidthNormalized.PopVertErrorBand("Flux_BeamFocus")
+flux_PPFX_ME_originalBinning_notBinWidthNormalized.PopVertErrorBand("ppfx1_Total")
+flux_PPFX_ME_analysisBinning_notBinWidthNormalized.PopVertErrorBand("Flux_BeamFocus")
+flux_PPFX_ME_analysisBinning_notBinWidthNormalized.PopVertErrorBand("ppfx1_Total")
 
-# Write fluxes that we'll use to output file
+# Write fluxes to output file
 #writeHist(flux_PPFX_LE_notBinWidthNormalized,histOutputDir_flux)
-writeHist(flux_PPFX_ME_notBinWidthNormalized,histOutputDir_flux)
-writeHist(flux_PPFX_ME,histOutputDir_flux)
-writeHist(flux_PPFX_ME_lowNuBinning,histOutputDir_flux)
+writeHist(flux_PPFX_LE_originalBinning,histOutputDir_flux)
+writeHist(flux_PPFX_LE_analysisBinning,histOutputDir_flux)
+writeHist(flux_PPFX_ME_yesNuEConstraint_originalBinning,histOutputDir_flux)
+writeHist(flux_PPFX_ME_yesNuEConstraint_analysisBinning,histOutputDir_flux)
+writeHist(flux_PPFX_ME_originalBinning_notBinWidthNormalized,histOutputDir_flux)
+writeHist(flux_PPFX_ME_analysisBinning_notBinWidthNormalized,histOutputDir_flux)
+
+## These need to get sorted out. They're the LE fluxes derived using alternate binnings (I think?)
+#writeHist(flux_PPFX_LE_newOriginalBinning,histOutputDir_flux) ## See above RDF 2024-03-26
+#writeHist(flux_PPFX_LE,histOutputDir_flux) ## See above RDF 2024-03-26
 
 #############################################################################################################
 ### Common low-nu extraction infrastructure  ################################################################
@@ -543,7 +549,7 @@ if True:
 
     ## If ME, we need to use the PPFX flux that has the ME-lowNu-specific binning
     if LEMEString == "ME":
-      exec('xSection_lowNu_{0}_GENIE_nuCut_{1}.Divide(xSection_lowNu_{0}_GENIE_nuCut_{1},flux_PPFX_{0}_lowNuBinning_notBinWidthNormalized)'.format(LEMEString,nuCut))
+      exec('xSection_lowNu_{0}_GENIE_nuCut_{1}.Divide(xSection_lowNu_{0}_GENIE_nuCut_{1},flux_PPFX_{0}_analysisBinning_notBinWidthNormalized)'.format(LEMEString,nuCut))
     else:
       exec('xSection_lowNu_{0}_GENIE_nuCut_{1}.Divide(xSection_lowNu_{0}_GENIE_nuCut_{1},flux_PPFX_{0}_notBinWidthNormalized)'.format(LEMEString,nuCut))
     exec('xSection_lowNu_{0}_GENIE_nuCut_{1}.Scale(1./(nTargets*totalDataPOT_{0}))'.format(LEMEString,nuCut)) 
