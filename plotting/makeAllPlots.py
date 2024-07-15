@@ -68,7 +68,7 @@ PLOTDIR_ROOT = "/minerva/data/users/finer/highNu/analysisPlots"
 plotDir = "{0}/{1}".format(PLOTDIR_ROOT,HISTFILE_NAME)
 
 if not os.path.isdir(plotDir):
-  print "Making plot directory {0}".format(plotDir)
+  print("Making plot directory {0}".format(plotDir))
   os.system( "mkdir %s" % plotDir )
 
 horizontalAxis_lowerBound = 2
@@ -405,7 +405,7 @@ for LEMEString in ['LE','ME']:
     # Create local, scaled copies of the flux components for various nu cuts
     for sigDef in SIGNAL_DEFINITIONS:
       for component in FLUX_COMPONENTS:
-        print 'Attempting: {0}Hist_{1}_{2}_nuCut_{3}_scaled = {0}Hist_{1}_{2}_nuCut_{3}.Clone()'.format(component,sigDef,LEMEString,nuCut)
+        print('Attempting: {0}Hist_{1}_{2}_nuCut_{3}_scaled = {0}Hist_{1}_{2}_nuCut_{3}.Clone()'.format(component,sigDef,LEMEString,nuCut))
         exec('{0}Hist_{1}_{2}_nuCut_{3}_scaled = {0}Hist_{1}_{2}_nuCut_{3}.Clone()'.format(component,sigDef,LEMEString,nuCut))
         exec('{0}Hist_{1}_{2}_nuCut_{3}_scaled.Scale(10**-4,"width")'.format(component,sigDef,LEMEString,nuCut))
     # Create local, scaled copies of the xSections for various nu cuts
@@ -634,7 +634,7 @@ ppfxFlux_LE_rebinned_chi2.PopVertErrorBand("Muon_Energy_MINOS")
 
 ## options:    <        ...      >(       hist1                    hist2            mcScale,useDataErrorMatrix,useOnlyShapeErrors,useModelStat,Chi2ByBin
 chi2_LE_lowNu = plotter.Chi2DataMC(flux_lowNu_LE_chi2,ppfxFlux_LE_rebinned_chi2,1.0,True,False,False,chi2_LE_lowNu_matrix)
-print 'chi2_LE_lowNu: ', chi2_LE_lowNu
+print('chi2_LE_lowNu: ', chi2_LE_lowNu)
 
 with makeEnv_TCanvas('{0}/covariance/Chi2ContributionMatrix_lowNuFlux_LE.png'.format(plotDir)):
   chi2_LE_lowNu_matrix.Draw("colz")
@@ -650,7 +650,7 @@ for sigDef in ['lowNu','highNu']:
   exec("ppfxFlux_ME_{0}_rebinned_chi2.PopVertErrorBand(\"Muon_Energy_MINOS\")".format(sigDef))
 
   exec("chi2_ME_{0} = plotter.Chi2DataMC(flux_{0}_ME_chi2,ppfxFlux_ME_{0}_rebinned_chi2,1.0,True,False,False,chi2_ME_{0}_matrix)".format(sigDef))
-  exec("print 'chi2_ME_{0}: ',chi2_ME_{0}".format(sigDef))
+  exec("print('chi2_ME_{0}: ',chi2_ME_{0}".format(sigDef)))
 
   with makeEnv_TCanvas("{0}/covariance/Chi2ContributionMatrix_{1}Flux_ME.png".format(plotDir,sigDef)):
     exec("chi2_ME_{0}_matrix.Draw(\"colz\")".format(sigDef))
@@ -658,7 +658,7 @@ for sigDef in ['lowNu','highNu']:
 ## ME low-nu vs high-nu
 #chi2_ME_lowNu_highNu_matrix = ROOT.TMatrixD(15,15)
 #chi2_ME_lowNU_highNu = plotter.Chi2DataMC(flux_lowNu_ME_scaled,flux_highNu_ME_scaled,1.0,True,False,False,chi2_ME_lowNu_highNu_matrix)
-#print 'chi2_ME_lowNu_highNu: ' , chi2_ME_lowNu_highNu
+#print('chi2_ME_lowNu_highNu: ' , chi2_ME_lowNu_highNu)
 
 #############################################################################################################
 ### Extracted Fluxes vs PPFX Comparison Plots ###############################################################
@@ -1043,7 +1043,7 @@ for LEMEString in ['LE','ME']:
 
 #scaleFactor = nEntries_LE/nEntries_ME
 #dataRateHist2D_inclusive_ME.Scale(scaleFactor)
-#print 'scaleFactor: ' , 1/scaleFactor
+#print('scaleFactor: ' , 1/scaleFactor)
 
 # Write out cumulative 2D inclusive hist
 for LEMEString in ['LE','ME']:

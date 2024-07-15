@@ -54,7 +54,7 @@ class WrapChain(ROOT.TChain):
 ##         self.eventToUnivMap[systematicUniverseClass]={}
 ##         self.hist.AddVertErrorBand(systematicUniverseClass,len(self.systematicUniverses[systematicUniverseClass]))
 ##       elif not systematicUniverseClass == 'Flux':
-##         print 'Error: You\'re trying to create an error band that already exists...'
+##         print('Error: You\'re trying to create an error band that already exists...')
 ## 
 ##       for i,systematicUniverse in enumerate(self.systematicUniverses[systematicUniverseClass]):
 ## 
@@ -146,33 +146,33 @@ class WrapChain(ROOT.TChain):
 ## 
 def declareChain( tree , playlist , test = False):
 
-  print "I'm inside declareChain()"
+  print("I'm inside declareChain()")
 
   chain = WrapChain( tree )  
 
   infile = open( '/exp/minerva/app/users/finer/cmtuser/highNu/analysis/playlists/%s' % playlist, 'r' ).readlines()
   for it,line in enumerate(infile):
     if it%1000==0:
-      print "I'm adding file #" , it , ': %s' % line 
+      print("I'm adding file #" , it , ': %s' % line)
     if test == True and it > 2: break
     chain.Add( line.rstrip('\n') )
 
-  print "I'm returning a declared chain"
+  print("I'm returning a declared chain")
 
   return chain
 
 def declareChainExplicit( tree , playlistPath ):
 
-  print "I'm inside declareChainExplicit()"
+  print("I'm inside declareChainExplicit()")
   chain = WrapChain( tree )
 
   infile = open( playlistPath ).readlines()
   for it,line in enumerate(infile):
     if it%500==0:
-      print "I'm adding file#" , it , ':%s' % line
+      print("I'm adding file#" , it , ':%s' % line)
     chain.Add( line.rstrip('\n') )
 
-  print "I'm returning a declared chain"
+  print("I'm returning a declared chain")
 
   return chain
 

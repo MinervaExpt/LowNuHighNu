@@ -68,7 +68,7 @@ plot_subdir = "{0}_highNu_{1}_{2}_{3}".format(file_specs["date"],file_specs["lab
 PLOTDIR_ROOT = "/minerva/data/users/finer/highNu/analysisPlots/highNu_studies"
 plot_dir = "{0}/{1}".format(PLOTDIR_ROOT,plot_subdir)
 if not os.path.isdir(plot_dir):
-  print "Making plot directory {0}".format(plot_dir)
+  print("Making plot directory {0}".format(plot_dir))
   os.system( "mkdir %s" % plot_dir )
 
 #############################################################################################################
