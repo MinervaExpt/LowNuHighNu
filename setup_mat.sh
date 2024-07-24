@@ -9,8 +9,6 @@ spack load cmake
 spack load gcc
 spack load fife-utils
 
-source /cvmfs/minerva.opensciencegrid.org/minerva/setup/setup_minerva_products.sh
-
 export TOPDIR=/exp/minerva/app/users/$USER/MATAna/
 WORKINGDIR=/exp/minerva/app/users/$USER/MATAna/LowNuHighNu
 cd $WORKINGDIR
@@ -23,3 +21,7 @@ export IFDH_DEBUG=0
 export PYTHONPATH=$PYTHONPATH:$WORKINGDIR/py_classes
 export PLOTROOT=$WORKINGDIR/plotting
 export LD_LIBRARY_PATH=${ROOTSYS}/lib/root:${LD_LIBRARY_PATH}
+export X509_USER_PROXY=/tmp/x509up_minerva_Analysis_`id -u`
+
+# this will renew my proxy if needed
+jobsub_q -G minerva --user finer
