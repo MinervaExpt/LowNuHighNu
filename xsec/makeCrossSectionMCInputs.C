@@ -338,8 +338,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   // INPUT TUPLES
   const bool is_mc = true;
   std::string mc_file_list, data_file_list;
-  assert(!(is_grid && input_file.empty()) &&
-         "On the grid, infile must be specified.");
+  assert(!(is_grid && (mc_input_file.empty() || data_input_file.empty())) &&
+         "On the grid, both mc_input_file and data_input_file must be specified.");
   // const bool use_xrootd = false;
   mc_file_list = mc_input_file.empty()
                      ? GetPlaylistFile(plist, true /*, use_xrootd*/)
