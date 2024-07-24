@@ -177,8 +177,8 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
 }
 
 bool IsLowNu(const CVUniverse& univ) {
-  double Enu = univ.GetEmu()/1000.; // convert to GeV
-  double nu = univ.GetEhad()/1000.; // convert to GeV
+  double Enu = univ.GetEmu_GeV();
+  double nu = univ.GetEhad_GeV();
 
   if (Enu < 3) {
     if (nu < 0.3) return true;
@@ -195,8 +195,8 @@ bool IsLowNu(const CVUniverse& univ) {
 }
 
 bool IsLowNuTruth(const CVUniverse& univ) {
-  double EnuTrue = univ.GetEmuTrue()/1000.; // convert to GeV
-  double nuTrue = univ.GetEhadTrue()/1000.; // convert to GeV
+  double EnuTrue = univ.GetEmuTrue_GeV();
+  double nuTrue = univ.GetEhadTrue_GeV();
 
   if (EnuTrue < 3) {
     if (nuTrue < 0.3) return true;

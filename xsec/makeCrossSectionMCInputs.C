@@ -51,10 +51,10 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
               CCPi::GetBinning("thetamu_deg"), &CVUniverse::GetThetamuDeg);
 
   Var* enu = new Var("enu", "E_{#nu}", "MeV", CCPi::GetBinning("enu"),
-                     &CVUniverse::GetEnu);
+                     &CVUniverse::GetEnu_GeV);
 
   Var* ehad = new Var("ehad", "ehad", "MeV", CCPi::GetBinning("ehad"),
-                      &CVUniverse::GetEhad);
+                      &CVUniverse::GetEhad_GeV);
 
   // True Variables
   bool is_true = true;
@@ -69,11 +69,11 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
 
   Var* enu_true =
       new Var("enu_true", "E_{#nu} True", enu->m_units,
-              enu->m_hists.m_bins_array, &CVUniverse::GetEnuTrue, is_true);
+              enu->m_hists.m_bins_array, &CVUniverse::GetEnuTrue_GeV, is_true);
 
   Var* ehad_true =
       new Var("ehad_true", "ehad True", "MeV", ehad->m_hists.m_bins_array,
-              &CVUniverse::GetEhadTrue, is_true);
+              &CVUniverse::GetEhadTrue_GeV, is_true);
 
   std::vector<Var*> variables = {pmu, thetamu_deg, enu, ehad};
 
@@ -90,7 +90,7 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
 std::vector<VariableMAT*> GetLowNuHighNuMATVariables(bool include_truth_vars = true) {
   VarMAT* vmat_ehad = new VarMAT(
     "vmat_ehad", "vmat_ehad", ConvertTArrayDToStdVector(CCPi::GetBinning("ehad_fine")),
-    &CVUniverse::GetEhad, &CVUniverse::GetEhadTrue);
+    &CVUniverse::GetEhad_GeV, &CVUniverse::GetEhadTrue_GeV);
   return std::vector<VarMAT*>{vmat_ehad};
 }
 
@@ -98,13 +98,13 @@ std::vector<Variable2D*> GetLowNuHighNu2DVariables(
     bool include_truth_vars = true) {
   VarMAT* vmat_enu = new VarMAT(
       "enu", "enu", ConvertTArrayDToStdVector(CCPi::GetBinning("enu")),
-      &CVUniverse::GetEnu, &CVUniverse::GetEnuTrue);
+      &CVUniverse::GetEnu_GeV, &CVUniverse::GetEnuTrue_GeV);
   VarMAT* vmat_ehad = new VarMAT(
       "ehad", "ehad", ConvertTArrayDToStdVector(CCPi::GetBinning("ehad")),
-      &CVUniverse::GetEhad, &CVUniverse::GetEhadTrue);
+      &CVUniverse::GetEhad_GeV, &CVUniverse::GetEhadTrue_GeV);
   VarMAT* vmat_ehad_fine = new VarMAT(
       "ehad_fine", "ehad_fine", ConvertTArrayDToStdVector(CCPi::GetBinning("ehad_fine")),
-      &CVUniverse::GetEhad, &CVUniverse::GetEhadTrue);
+      &CVUniverse::GetEhad_GeV, &CVUniverse::GetEhadTrue_GeV);
   Var2D* enu_ehad = new Var2D(*vmat_enu, *vmat_ehad);
   Var2D* enu_ehad_fine = new Var2D(*vmat_enu, *vmat_ehad_fine);
 

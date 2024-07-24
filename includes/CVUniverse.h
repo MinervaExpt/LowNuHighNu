@@ -56,6 +56,14 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
   virtual double Getq0() const;
   virtual double Getq3() const;
 
+  // return in GeV
+  virtual double GetEhad_GeV() const;
+  virtual double GetEmu_GeV() const;
+  virtual double GetEnu_GeV() const;
+  virtual double GetEhadTrue_GeV() const;
+  virtual double GetEmuTrue_GeV() const;
+  virtual double GetEnuTrue_GeV() const;
+
   //==============================================================================
   // Truth
   //==============================================================================

@@ -93,6 +93,14 @@ double CVUniverse::Getq0() const { return Calcq0(GetEnu(), GetEmu()); }
 
 double CVUniverse::Getq3() const { return Calcq3(GetQ2(), GetEnu(), GetEmu()); }
 
+// return in GeV
+double CVUniverse::GetEhad_GeV() const { return GetEhad()/1000.; }
+double CVUniverse::GetEmu_GeV() const { return GetEmu()/1000.; }
+double CVUniverse::GetEnu_GeV() const { return GetEnu()/1000.; }
+double CVUniverse::GetEhadTrue_GeV() const { return GetEhadTrue()/1000.; }
+double CVUniverse::GetEmuTrue_GeV() const { return GetEmuTrue()/1000.; }
+double CVUniverse::GetEnuTrue_GeV() const { return GetEnuTrue()/1000.; }
+
 //==============================================================================
 // Truth
 //==============================================================================
