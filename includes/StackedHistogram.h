@@ -22,6 +22,7 @@ class StackedHistogram {
                    const TArrayD& bins_array, int nhists, int color_scheme = 0);
 
   StackedHistogram(const StackedHistogram& h);
+  StackedHistogram& operator=(const StackedHistogram& h); // Declaration of copy assignment operator
 
   //==========================================================================
   // Data Members
