@@ -8,3 +8,5 @@ cache/
 *.#*
 *#
 *~
+*ACLiC*
+.pre-commit-config.yaml
