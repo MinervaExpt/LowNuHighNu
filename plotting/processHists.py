@@ -492,7 +492,7 @@ for LEMEString in ["LE","ME"]:
     #for binNum in range(11,21):  transformVec_LE_nuCut_4[binNum] = 1. 
     for binNum in range(3,7):   transformVec_LE_nuCut_2[binNum] = 1. 
     for binNum in range(7,11):   transformVec_LE_nuCut_3[binNum] = 1. 
-    for binNum in range(11,25):  transformVec_LE_nuCut_4[binNum] = 1. 
+    for binNum in range(11,23):  transformVec_LE_nuCut_4[binNum] = 1. 
     #for binNum in range(3,7):   transformVec_LE_nuCut_2[binNum] = 1. 
     #for binNum in range(7,12):   transformVec_LE_nuCut_3[binNum] = 1. 
     #for binNum in range(12,27):  transformVec_LE_nuCut_4[binNum] = 1. 
@@ -502,7 +502,7 @@ for LEMEString in ["LE","ME"]:
     #for binNum in range(11,21): transformVec_ME_nuCut_4[binNum] = 1. 
     for binNum in range(3,7):   transformVec_ME_nuCut_2[binNum] = 1. 
     for binNum in range(7,11):   transformVec_ME_nuCut_3[binNum] = 1. 
-    for binNum in range(11,25):  transformVec_ME_nuCut_4[binNum] = 1. 
+    for binNum in range(11,23):  transformVec_ME_nuCut_4[binNum] = 1. 
   for nuCut in range(1,5):
     # Create TH1D out of transformation vector defined above
     exec("transformVecHist_{0}_nuCut_{1} = ROOT.TH1D( 'transformVecHist_{0}_nuCut_{1}' , 'transformVecHist_{0}_nuCut_{1}' , nBins_nuE_lowNu_{0} , array('d',bins_nuE_lowNu_{0}))".format(LEMEString,nuCut))

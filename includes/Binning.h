@@ -17,10 +17,12 @@ namespace CCPi {
 TArrayD GetBinning(const std::string var_name) {
   std::vector<double> bins_vec;
   if (var_name == "enu") {
-    //bins_vec = {0., 1.e3, 3.e3, 4.e3, 6.5e3, 9.5e3, 14.e3, 30.e3};
+    //bins_vec = {0., 1.e3, 2.e3, 3.e3, 4.e3, 5.e3, 6.e3, 7.e3, 8.e3,
+    //            9.e3 ,1.e4, 1.2e4, 1.4e4, 1.6e4, 1.8e4, 2.e4, 2.2e4,
+    //            2.8e4, 3.4e4, 4.e4, 5.e4, 6.e4, 8.e4, 1.e5, 1.2e5};
     bins_vec = {0., 1.e3, 2.e3, 3.e3, 4.e3, 5.e3, 6.e3, 7.e3, 8.e3,
-                9.e3 ,1.e4, 1.2e4, 1.4e4, 1.6e4, 1.8e4, 2.e4, 2.2e4,
-                2.8e4, 3.4e4, 4.e4, 5.e4, 6.e4, 8.e4, 1.e5, 1.2e5};
+                9.e3 ,1.e4, 1.2e4, 1.4e4, 1.6e4, 1.8e4, 2.e4, 3.e4,
+                4.e4, 5.e4, 6.e4, 8.e4, 1.e5, 1.2e5};
   } else if (var_name == "pmu") {
     bins_vec = {0.,    1.e3,  2.e3,  3.e3,  4.e3, 5.5e3,
                 7.5e3, 10.e3, 13.e3, 20.e3, 30.e3};
