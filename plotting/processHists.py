@@ -50,12 +50,24 @@ def getPOT( dataSwitch , filePath ):
   else:
     return [pot_used,pot_total] 
 
+def debugIntegral(hist,dim=1):
+  # grab an arbitrary hist from an arbitrary systematic universe
+  arbitrary_error_band = hist.GetVertErrorBand("Muon_Energy_MINOS")
+  arbitrary_sys_hist = arbitrary_error_band.GetHist(0)
+  # Print out integral over arbitrary subset of bins in the hist
+  if(dim==1):
+    print("DEBUG INTEGRAL:\t{0}\tintegral b/w bins 2-6: {1}".format(hist.GetName(),arbitrary_sys_hist.Integral(2,6)))
+  else:
+    print("DEBUG INTEGRAL:\t{0}\tintegral b/w bins 2-6: {1}".format(hist.GetName(),arbitrary_sys_hist.Integral(2,6,2,6)))
+
 ################################################################ Define functions above
 
-HISTDIR = "/exp/minerva/data/users/finer/MATAna/2024-06_development/root"
+HISTDIR = "/exp/minerva/data/users/finer/MATAna/2024-11_development/root"
+#HISTDIR = "/exp/minerva/data/users/finer/MATAna/2024-11_development/root_testruns"
 
-HISTDIR_ROOT_OUTPUT = "/exp/minerva/data/users/finer/MATAna/2024-06_development"
-histOutputFilePath = "{0}/processedHists_2024-06-24.root".format(HISTDIR_ROOT_OUTPUT)
+HISTDIR_ROOT_OUTPUT = "/exp/minerva/data/users/finer/MATAna/2025-02_development"
+#histOutputFilePath = "{0}/processedHists_2024-12-05.root".format(HISTDIR_ROOT_OUTPUT)
+histOutputFilePath = "{0}/processedHists_2025-02-12.root".format(HISTDIR_ROOT_OUTPUT)
 
 ################################################################ Specify indir, outpath above
 
@@ -132,14 +144,14 @@ PLAYLISTS_ME = [
   #'minervame1N',
   #'minervame1O',
   #'minervame1P'
-  #'ME1A',
+  'ME1A',
   'ME1B',
   'ME1C',
-  #'ME1D',
+  'ME1D',
   #'ME1E',
   #'ME1F',
   #'ME1G',
-  'ME1L',
+  #'ME1L',
   #'ME1M',
 ]
 
@@ -190,12 +202,18 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
 
     # Define file locations
     #fileString = "XSecInputs_1110_{0}_2024-05-07.root".format(playlist)
-    dateString = "2024-06-21" if playlist == "ME1C" else "2024-06-20"
+    #dateString = "2024-06-21" if playlist == "ME1C" else "2024-06-20"
+    #dateString = "2024-07-24"
+    dateString = "2024-11-01"
     fileString = "XSecInputs_1110_{0}_{1}.root".format(playlist,dateString)
     histsFileLocation = "{0}/{1}".format(HISTDIR,fileString)
     histsFile = ROOT.TFile(histsFileLocation)
 
     print('Opening hists file: ' , histsFileLocation)
+
+    ## Define reference hist for systematic universes (arbitrary choice of effNum/highNu/ME
+    print("DEBUG\tsystematicsReferenceHist: \"effnum_enu_ehad_highNu\"")
+    systematicsReferenceHist = histsFile.Get("effnum_enu_ehad_highNu").ProjectionX()
 
     #############################################################################
     ## Old POT methodology, some aspects may yet be needed
@@ -235,10 +253,24 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
       if not playlist == '2p2h': # There is no 2p2h data 
         exec("dataRateHist2D_{0} = histsFile.Get('selection_data_enu_ehad_{1}')".format(key,sigDef))
         exec("dataRateHist_{0} = histsFile.Get('selection_data_enu_ehad_{1}').ProjectionX()".format(key,sigDef))
+        ## Data hists come with empty error bands in the current event loop framework
+        ## So we need to delete the empty ones, then repopulate the MnvH1D with the CV in every systematic universe
+        exec("dataRateHist2D_{0}.ClearAllErrorBands()".format(key,sigDef))
+        exec("dataRateHist2D_{0}.AddMissingErrorBandsAndFillWithCV(systematicsReferenceHist)".format(key,sigDef))
+        exec("dataRateHist_{0}.ClearAllErrorBands()".format(key,sigDef))
+        exec("dataRateHist_{0}.AddMissingErrorBandsAndFillWithCV(systematicsReferenceHist)".format(key,sigDef))
+      ## DEBUG INTEGRAL
+      exec("debugIntegral(dataRateHist2D_{0},2)".format(key))
+      ## DEBUG INTEGRAL
+      exec("debugIntegral(dataRateHist_{0})".format(key))
       exec("effNumeratorHist2D_{0} = histsFile.Get('effnum_enu_ehad_{1}')".format(key,sigDef))
       exec("effNumeratorHist_{0} = histsFile.Get('effnum_enu_ehad_{1}').ProjectionX()".format(key,sigDef))
+      ## DEBUG INTEGRAL
+      exec("debugIntegral(effNumeratorHist_{0})".format(key))
       exec("effDenominatorHist2D_{0} = histsFile.Get('effdenom_enu_ehad_{1}')".format(key,sigDef))
       exec("effDenominatorHist_{0} = histsFile.Get('effdenom_enu_ehad_{1}').ProjectionX()".format(key,sigDef))
+      ## DEBUG INTEGRAL
+      exec("debugIntegral(effDenominatorHist_{0})".format(key))
       ##exec("effDenominatorHist2D_addKinematicCuts_{0} = histsFile.Get('h_ENu_VS_nu_{1}_truth_addKinematicCuts')".format(key,sigDef))
       ##exec("effDenominatorHist_addKinematicCuts_{0} = histsFile.Get('h_ENu_VS_nu_{1}_truth_addKinematicCuts').ProjectionX()".format(key,sigDef))
       exec("migrationMatrix_Enu_{0} = histsFile.Get('migration_enu')".format(key,sigDef))
@@ -463,13 +495,15 @@ writeHist(flux_PPFX_ME_analysisBinning_notBinWidthNormalized,histOutputDir_flux)
 NOMAD_DataPoint = (0.699*10**-38)*10 # per-GeV integrated cross section in 12-22 GeV bin, multiplied by its bin-width; in units of m^2, not cm^2
 
 ## For LE low-nu calculation
-binCenterVals_list = [0.5e3,1.5e3,2.5e3,3.5e3,4.5e3,5.5e3,6.5e3,7.5e3,8.5e3,9.5e3,1.1e4,1.3e4,
-                      1.5e4,1.7e4,1.9e4,2.1e4,2.5e4,3.1e4,3.7e4,4.5e4,5.5e4,7.0e4,9.0e4,1.1e5]
+binCenterVals_list_MeV = [0.5e3,1.5e3,2.5e3,3.5e3,4.5e3,5.5e3,6.5e3,7.5e3,8.5e3,9.5e3,1.1e4,1.3e4,
+                          1.5e4,1.7e4,1.9e4,2.1e4,2.5e4,3.1e4,3.7e4,4.5e4,5.5e4,7.0e4,9.0e4,1.1e5]
+binCenterVals_list_GeV = [0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5,11,13,15,17,19,21,25,31,37,45,55,70,90,110]
 binCenterVals_LE = PlotUtils.MnvH1D( 'h_binCenterVals_LE' , 'h_binCenterVals_LE' , nBins_nuE_LE , array('d',bins_nuE_LE)) ## Preserve ability to use distinct binning for LE/ME in the future
 binCenterVals_ME = PlotUtils.MnvH1D( 'h_binCenterVals_ME' , 'h_binCenterVals_ME' , nBins_nuE_ME, array('d',bins_nuE_ME)) ## Preserve ability to use distinct binning for LE/ME in the future
 
 for i in range(nBins_nuE_LE):
-  local_binCenterVal = binCenterVals_list[i]
+  #local_binCenterVal = binCenterVals_list_MeV[i]
+  local_binCenterVal = binCenterVals_list_GeV[i] ## DEBUG 2025-02-12 Double-check that the units are being handled correctly, but this seem to yield the correct order of magnitude for sigma/E
   binCenterVals_LE.SetBinContent(i+1,local_binCenterVal)
   binCenterVals_ME.SetBinContent(i+1,local_binCenterVal)
 binCenterVals_LE.AddMissingErrorBandsAndFillWithCV(effNumeratorHist_highNu_ME)
@@ -531,9 +565,17 @@ if True:
       exec('eff_{2}_{0}_nuCut_{1}.Divide(effNumeratorHist_{2}_{0}_nuCut_{1},effDenominatorHist_{2}_{0}_nuCut_{1})'.format(LEMEString,nuCut,sigDef))
       # Write data rate and efficiency components to output file for each nu cut
       exec('writeHist(dataRateHist_{2}_{0}_nuCut_{1},histOutputDir_all{0})'.format(LEMEString,nuCut,sigDef))
+      ## DEBUG INTEGRAL
+      exec("debugIntegral(dataRateHist_{2}_{0}_nuCut_{1})".format(LEMEString,nuCut,sigDef))
       exec('writeHist(effNumeratorHist_{2}_{0}_nuCut_{1},histOutputDir_all{0})'.format(LEMEString,nuCut,sigDef))
+      ## DEBUG INTEGRAL
+      exec("debugIntegral(effNumeratorHist_{2}_{0}_nuCut_{1})".format(LEMEString,nuCut,sigDef))
       exec('writeHist(effDenominatorHist_{2}_{0}_nuCut_{1},histOutputDir_all{0})'.format(LEMEString,nuCut,sigDef))
+      ## DEBUG INTEGRAL
+      exec("debugIntegral(effDenominatorHist_{2}_{0}_nuCut_{1})".format(LEMEString,nuCut,sigDef))
       exec('writeHist(eff_{2}_{0}_nuCut_{1},histOutputDir_all{0})'.format(LEMEString,nuCut,sigDef))
+      ## DEBUG INTEGRAL
+      exec("debugIntegral(eff_{2}_{0}_nuCut_{1})".format(LEMEString,nuCut,sigDef))
 
   # Create GENIE xsection object, which will be used in the denominator of the low-nu xsection extraction
   exec("xSection_inclusive_{0}_GENIE_2D_local = effDenominatorHist2D_inclusive_{0}.Clone()".format(LEMEString))
@@ -555,8 +597,15 @@ if True:
     exec('xSection_lowNu_{0}_GENIE_nuCut_{1}.Scale(1./(nTargets*totalDataPOT_{0}))'.format(LEMEString,nuCut)) 
     exec('xSection_lowNu_{0}_GENIE_nuCut_{1}.Scale(10**4)'.format(LEMEString,nuCut)) # Change units of flux from m^{-2} to cm^{-2}
   
+    ## DEBUG INTEGRAL
+    exec("debugIntegral(xSection_lowNu_{0}_GENIE_nuCut_{1})".format(LEMEString,nuCut))
+
     # Calculate the flux expliclity, though we don't actually use this to calculate the inclusive cross section
     exec("flux_lowNu_{0}_nuCut_{1} = dataRateHist_lowNu_{0}_nuCut_{1}.Clone('flux_lowNu_{0}_nuCut_{1}')".format(LEMEString,nuCut))
+    ## DEBUG INTEGRAL
+    exec("debugIntegral(dataRateHist_lowNu_{0}_nuCut_{1})".format(LEMEString,nuCut))
+    ## DEBUG INTEGRAL
+    exec("debugIntegral(flux_lowNu_{0}_nuCut_{1})".format(LEMEString,nuCut))
     exec('flux_lowNu_{0}_nuCut_{1}.Divide(flux_lowNu_{0}_nuCut_{1},eff_lowNu_{0}_nuCut_{1})'.format(LEMEString,nuCut))
     exec('flux_lowNu_{0}_nuCut_{1}.Divide(flux_lowNu_{0}_nuCut_{1},xSection_lowNu_{0}_GENIE_nuCut_{1})'.format(LEMEString,nuCut))
     exec('flux_lowNu_{0}_nuCut_{1}.Scale(1./(nTargets*totalDataPOT_{0}))'.format(LEMEString,nuCut))
@@ -564,6 +613,9 @@ if True:
     # Write flux out
     exec('writeHist(flux_lowNu_{0}_nuCut_{1},histOutputDir_flux)'.format(LEMEString,nuCut))
  
+    ## DEBUG INTEGRAL
+    exec("debugIntegral(flux_lowNu_{0}_nuCut_{1})".format(LEMEString,nuCut))
+
     # Extract inclusive cross section for each nu cut, which we do with a shortcut that side-steps calculating the flux explicitly
     exec("xSection_inclusive_{0}_nuCut_{1} = dataRateHist_inclusive_{0}.Clone('xSection_inclusive_{0}_nuCut_{1}')".format(LEMEString,nuCut))
     exec('xSection_inclusive_{0}_nuCut_{1}.Divide(dataRateHist_inclusive_{0},dataRateHist_lowNu_{0}_nuCut_{1})'.format(LEMEString,nuCut))
@@ -573,13 +625,7 @@ if True:
     exec('xSection_inclusive_{0}_nuCut_{1}.Multiply(xSection_inclusive_{0}_nuCut_{1},xSection_lowNu_{0}_GENIE_nuCut_{1})'.format(LEMEString,nuCut))
   
     exec("xSectionPerE_inclusive_{0}_nuCut_{1} = xSection_inclusive_{0}_nuCut_{1}.Clone('xSectionPerE_inclusive_{0}_nuCut_{1}')".format(LEMEString,nuCut))
-    ## DEBUG
-    exec("testA = xSectionPerE_inclusive_{0}_nuCut_{1}.Clone('testA')".format(LEMEString,nuCut))
-    writeHist(testA,histOutputDir_xSections)
     exec("xSectionPerE_inclusive_{0}_nuCut_{1}.Divide(xSectionPerE_inclusive_{0}_nuCut_{1},binCenterVals_{0})".format(LEMEString,nuCut))
-    ## DEBUG
-    exec("testB = xSectionPerE_inclusive_{0}_nuCut_{1}.Clone('testB')".format(LEMEString,nuCut))
-    writeHist(testB,histOutputDir_xSections)
   
     # Get list of systematic universes to loop through 
     exec('errorBandNames = xSectionPerE_inclusive_{0}_nuCut_{1}.GetVertErrorBandNames()'.format(LEMEString,nuCut))
@@ -589,25 +635,33 @@ if True:
     exec('externalNormalizationScaleFactors_{0}_nuCut_{1}.Divide(externalNormalizationScaleFactors_{0}_nuCut_{1},xSectionPerE_inclusive_{0}_nuCut_{1})'.format(LEMEString,nuCut))
   
     # Construct CV scale factor and add into MnvH1D of scale factors 
-    #integralLowerBound = 9 if LEMEString == "LE" else 12
-    #integralUpperBound = 11 if LEMEString == "LE" else 15
-    #integralLowerBound = 12 if LEMEString == "LE" else 12
-    #integralUpperBound = 15 if LEMEString == "LE" else 15
-    #integralLowerBound = 13 if LEMEString == "LE" else 12
-    #integralUpperBound = 21 if LEMEString == "LE" else 15
     integralLowerBound = 12
-    integralUpperBound = 16
+    #integralUpperBound = 16
+    integralUpperBound = 15 ## DEBUG 2025-02-12 This is a kludge! The binning for the event loop needs to be adjusted so that there is a boundary at 22 GeV, but I think that involves accessing a different PPFX flux, so for now the calculation of the scale factor below is kludged to use only the 12-20 GeV bins on the MINERVA side and use only 80% of the NOMAD value (which spans from 12-22 GeV)
     exec('CV_xSectionIntegral_{0} = xSectionPerE_inclusive_{0}_nuCut_{1}.Integral(integralLowerBound,integralUpperBound,"width")'.format(LEMEString,nuCut))
-    exec('CV_scaleFactor = NOMAD_DataPoint/CV_xSectionIntegral_{0}'.format(LEMEString))
+    ## DEBUG INTEGRAL
+    print("CV")
+    print("NOMAD_DataPoint: {0}".format(NOMAD_DataPoint))
+    print("CV_xSectionIntegral_ME: {0}".format(CV_xSectionIntegral_ME))
+    #exec('CV_scaleFactor = NOMAD_DataPoint/CV_xSectionIntegral_{0}'.format(LEMEString))
+    exec('CV_scaleFactor = 0.8*NOMAD_DataPoint/CV_xSectionIntegral_{0}'.format(LEMEString)) ## DEBUG 2025-02-12 This is part of the kludge described above
     exec('externalNormalizationScaleFactors_{0}_nuCut_{1}.Scale({2},\"\",False)'.format(LEMEString,nuCut,CV_scaleFactor)) #False here tells Scale to not scale the universes, rather only the CV
- 
+
+    ## DEBUG INTEGRAL
+    exec("debugIntegral(xSectionPerE_inclusive_{0}_nuCut_{1})".format(LEMEString,nuCut))
+
     # Loop over SUs
     for errorBandName in errorBandNames:
       exec('errorBand = xSectionPerE_inclusive_{0}_nuCut_{1}.GetVertErrorBand(\"{2}\")'.format(LEMEString,nuCut,errorBandName))
       for iHist in range(errorBand.GetNHists()):
         systematicUniverse = errorBand.GetHist(iHist)
         xSectionIntegral = systematicUniverse.Integral(integralLowerBound,integralUpperBound,"width")
+        # ## DEBUG INTEGRAL
+        # print("errorBandName: {0}".format(errorBandName))
+        # print("iHist: {0}".format(iHist))
+        # print("xSectionIntegral: {0}".format(xSectionIntegral))
         scaleFactor = NOMAD_DataPoint/xSectionIntegral
+        #scaleFactor = 1.0
         exec('externalNormalizationScaleFactors_{0}_nuCut_{1}.GetVertErrorBand(\"{2}\").GetHist({3}).Scale({4})'.format(LEMEString,nuCut,errorBandName,iHist,scaleFactor))
     
     for sigDef in ['xSection_lowNu_{0}_GENIE'.format(LEMEString),'xSection_inclusive_{0}'.format(LEMEString),'xSectionPerE_inclusive_{0}'.format(LEMEString)]:
@@ -674,6 +728,7 @@ if True:
   exec("writeHist(xSection_highNu_{0},histOutputDir_xSections)".format(LEMEString))
 
 os.sys.exit(1)
+histOutputFile.Close() ## Temp until I come back with LE data to extract the high-nu flux!
 
 #############################################################################################################
 ### Extract Lu-style Deliverables ###########################################################################
