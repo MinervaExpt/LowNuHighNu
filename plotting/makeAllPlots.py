@@ -7,7 +7,7 @@ from errorMaps import *
 ROOT.gROOT.SetBatch()
 
 #Load and implement Phil's plot style header file
-ROOT.gROOT.ProcessLine(".L ../style/myPlotStyle.h")
+ROOT.gROOT.ProcessLine(".L myPlotStyle.h")
 ROOT.myPlotStyle()
 
 # This helps python and ROOT not fight over deleting something, by stopping ROOT from trying to own the histogram. Thanks, Phil!
@@ -44,28 +44,21 @@ FLUX_COMPONENTS = [
   'effDenominator'
 ]
 
-#HISTFILE_NAME = "Checkpoint_ZExpansionFixedSyncHistos_noFluxConstraint_noMuonCVShift_2020-05-05"
-#HISTFILE_NAME = "ResponseSystematicsTest_noFluxConstraint_noMuonCVShift_2020-05-07"
-#HISTFILE_NAME = "ResponseSystematicsOnlyInME_noFluxConstraint_noMuonCVShift_2020-05-11"
-#HISTFILE_NAME = "CCQE3DFits_FirstAttempt_noFluxConstraint_noMuonCVShift_2020-05-14"
-#HISTFILE_NAME = 'CCQE3DFits_SecondAttempt_noFluxConstraint_noMuonCVShift_2020-05-15'
-#HISTFILE_NAME = 'CCQE3DFits_FourthAttempt_noFluxConstraint_noMuonCVShift_2020-05-20'
-#HISTFILE_NAME = 'alternativeHighNuBinning1_noFluxConstraint_noMuonCVShift_2020-05-22'
-#HISTFILE_NAME = 'alternativeHighNuBinningVeryFine_noFluxConstraint_noMuonCVShift_2020-05-22'
-#HISTFILE_NAME = 'nowWithMigrationMatrices_noFluxConstraint_noMuonCVShift_2020-05-25'
-#HISTFILE_NAME = 'nowWithMigrationMatrices_noFluxConstraint_yesMuonCVShift_2020-05-25'
-#HISTFILE_NAME = 'newBinning_noFluxConstraint_noMuonCVShift_2020-05-27'
-#HISTFILE_NAME = 'newBinning_noFluxConstraint_yesMuonCVShift_2020-05-27'
-HISTFILE_NAME = 'thesisProcessing_noFluxConstraint_noMuonCVShift_2020-06-18'
-#HISTFILE_NAME = 'thesisProcessing_noFluxConstraint_yesMuonCVShift_2020-06-13'
+#HISTFILE_NAME = 'thesisProcessing_noFluxConstraint_noMuonCVShift_2020-06-18'
+#HISTFILE_NAME = "processedHists_2024-11-01_test"
+HISTFILE_NAME = "processedHists_2025-02-12"
+#OUTFILE_NAME = "plots_2024-11-01"
+OUTFILE_NAME = "plots_2025-02-12"
 
-HISTDIR_NAME = "/minerva/data/users/finer/highNu/analysisHists"
+#HISTDIR_NAME = "/minerva/data/users/finer/highNu/analysisHists"
+HISTDIR_NAME = "/exp/minerva/data/users/finer/MATAna/2025-02_development"
 histFileLocation = "{0}/{1}.root".format(HISTDIR_NAME,HISTFILE_NAME)
 
 histFile = ROOT.TFile(histFileLocation)
 
-PLOTDIR_ROOT = "/minerva/data/users/finer/highNu/analysisPlots"
-plotDir = "{0}/{1}".format(PLOTDIR_ROOT,HISTFILE_NAME)
+#PLOTDIR_ROOT = "/minerva/data/users/finer/highNu/analysisPlots"
+PLOTDIR_ROOT = "/exp/minerva/data/users/finer/MATAna/2025-02_development/plots"
+plotDir = "{0}/{1}".format(PLOTDIR_ROOT,OUTFILE_NAME)
 
 if not os.path.isdir(plotDir):
   print("Making plot directory {0}".format(plotDir))
@@ -86,23 +79,29 @@ horizontalAxis_upperBound = 22
 for fakeFold in [1]:
 
   ppfxFlux_LE_Nom = histFile.Get('flux/flux_PPFX_LE_originalBinning')
-  ppfxFlux_LE_Nom_rebinned = histFile.Get('flux/flux_PPFX_LE_originalBinning_rebinned')
+  ppfxFlux_LE_originalBinning = histFile.Get('flux/flux_PPFX_LE_originalBinning')
+  ppfxFlux_LE_analysisBinning = histFile.Get('flux/flux_PPFX_LE_analysisBinning')
+  ## ppfxFlux_LE_Nom_rebinned = histFile.Get('flux/flux_PPFX_LE_originalBinning_rebinned') ## REVISIT
   ppfxFlux_LE_Nom_fineBins = histFile.Get('flux/flux_PPFX_LE_newOriginalBinning')
-  ppfxFlux_LE_rebinned = histFile.Get('flux/flux_PPFX_LE')
+  ## ppfxFlux_LE_rebinned = histFile.Get('flux/flux_PPFX_LE') ## REVISIT
   
-  ppfxFlux_ME_originalBinning = histFile.Get('flux/flux_PPFX_ME_originalBinning')
-  ppfxFlux_ME_lowNu_rebinned = histFile.Get('flux/flux_PPFX_ME_lowNuBinning')
-  ppfxFlux_ME_highNu_rebinned = histFile.Get('flux/flux_PPFX_ME')
+  ppfxFlux_ME_originalBinning = histFile.Get('flux/flux_PPFX_ME_yesNuEConstraint_originalBinning')
+  ppfxFlux_ME_lowNu_rebinned = histFile.Get('flux/flux_PPFX_ME_yesNuEConstraint_analysisBinning')
+  ppfxFlux_ME_highNu_rebinned = histFile.Get('flux/flux_PPFX_ME_analysisBinning_notBinWidthNormalized')
   
   # Create local copy of PPFX fluxes that we'll scale
   ppfxFlux_LE_Nom_scaled = ppfxFlux_LE_Nom.Clone()
-  ppfxFlux_LE_Nom_scaled.Scale(10**6)
-  ppfxFlux_LE_Nom_rebinned_scaled = ppfxFlux_LE_Nom_rebinned.Clone()
-  ppfxFlux_LE_Nom_rebinned_scaled.Scale(10**6)
-  ppfxFlux_LE_Nom_fineBins_scaled = ppfxFlux_LE_Nom_fineBins.Clone()
-  ppfxFlux_LE_Nom_fineBins_scaled.Scale(10**6)
-  ppfxFlux_LE_rebinned_scaled = ppfxFlux_LE_rebinned.Clone()
-  ppfxFlux_LE_rebinned_scaled.Scale(10**6)
+  ppfxFlux_LE_originalBinning_scaled = ppfxFlux_LE_originalBinning.Clone()
+  ppfxFlux_LE_originalBinning_scaled.Scale(10**6)
+  ppfxFlux_LE_analysisBinning_scaled = ppfxFlux_LE_analysisBinning.Clone()
+  ppfxFlux_LE_analysisBinning_scaled.Scale(10**6)
+  ## REVISIT
+  ##  ppfxFlux_LE_Nom_rebinned_scaled = ppfxFlux_LE_Nom_rebinned.Clone()
+  ##  ppfxFlux_LE_Nom_rebinned_scaled.Scale(10**6)
+  ##  ppfxFlux_LE_Nom_fineBins_scaled = ppfxFlux_LE_Nom_fineBins.Clone()
+  ##  ppfxFlux_LE_Nom_fineBins_scaled.Scale(10**6)
+  ## ppfxFlux_LE_rebinned_scaled = ppfxFlux_LE_rebinned.Clone()
+  ## ppfxFlux_LE_rebinned_scaled.Scale(10**6)
   
   ppfxFlux_ME_originalBinning_scaled = ppfxFlux_ME_originalBinning.Clone()
   ppfxFlux_ME_originalBinning_scaled.Scale(10**6)
@@ -111,78 +110,82 @@ for fakeFold in [1]:
   ppfxFlux_ME_highNu_rebinned_scaled = ppfxFlux_ME_highNu_rebinned.Clone("ppfxFlux_ME_highNu_rebinned_scaled")
   ppfxFlux_ME_highNu_rebinned_scaled.Scale(10**6)
 
-  with makeEnv_TCanvas('{0}/flux/ppfxFlux_LE.png'.format(plotDir)):
-    ppfxFlux_LE_Nom_fineBins_scaled.SetLineColor(ROOT.kGray)
-    ppfxFlux_LE_Nom_fineBins_scaled.SetMarkerColor(ROOT.kGray)
-    ppfxFlux_LE_Nom_fineBins_scaled.SetMarkerSize(0.5)
-    ppfxFlux_LE_Nom_fineBins_scaled.Draw()
-    ppfxFlux_LE_Nom_fineBins_scaled.GetXaxis().SetRangeUser(0,40)
-    ppfxFlux_LE_Nom_scaled.SetMarkerSize(0.5)
-    ppfxFlux_LE_Nom_scaled.Draw("same")
-    #ppfxFlux_LE_Nom_scaled.GetYaxis().SetRangeUser(0,10**-5) # zoom in on tail
-    ppfxFlux_LE_rebinned_scaled.SetLineColor(ROOT.kRed)
-    ppfxFlux_LE_rebinned_scaled.SetMarkerColor(ROOT.kRed)
-    ppfxFlux_LE_rebinned_scaled.Draw("same")
-    leg = declareLegend(3,1,"UR-Flux")
-    leg.AddEntry(ppfxFlux_LE_Nom_scaled,"original LE PPFX flux","p")
-    leg.AddEntry(ppfxFlux_LE_Nom_fineBins_scaled,"LE PPFX flux,","p")
-    leg.AddEntry(None,"regenerated","")
-    leg.AddEntry(ppfxFlux_LE_rebinned_scaled,"LE PPFX flux, ","lep")
-    leg.AddEntry(None,"regenerated, rebinned","")
-    leg.Draw()
-  
-  with makeEnv_TCanvas('{0}/flux/ppfxFlux_LE_ratios.png'.format(plotDir)):
-    # Divide each of the fluxes by the nominal PPFX flux
-    setPlotSpecs_fluxRatio(ppfxFlux_LE_rebinned)
-    ppfxFlux_LE_rebinned.Divide(ppfxFlux_LE_rebinned,ppfxFlux_LE_Nom_rebinned)
-    ppfxFlux_LE_Nom_rebinned.Divide(ppfxFlux_LE_Nom_rebinned,ppfxFlux_LE_Nom_rebinned)
-  
-    ppfxFlux_LE_rebinned.GetYaxis().SetRangeUser(0,2)
-    ppfxFlux_LE_rebinned.SetMarkerColor(ROOT.kRed)
-    ppfxFlux_LE_rebinned.SetLineColor(ROOT.kRed)
-    
-    ppfxFlux_LE_rebinned.Draw()
-    ppfxFlux_LE_Nom_rebinned.Draw("same")
-    
-    box = ROOT.TBox(18,0,22,2)
-    box.SetFillColor(ROOT.kGray)
-    box.SetFillStyle(3001)
-    box.Draw()
-  
-    leg = declareLegend(2,1,"UL")
-    leg.AddEntry(ppfxFlux_LE_Nom_rebinned,"original LE PPFX flux,","l")
-    leg.AddEntry(None,"rebinned","")
-    leg.AddEntry(ppfxFlux_LE_rebinned,"LE PPFX flux, ","l")
-    leg.AddEntry(None,"regenerated, rebinned","")
-    leg.Draw()
+  ## REVISIT
+  ## with makeEnv_TCanvas('{0}/flux/ppfxFlux_LE.png'.format(plotDir)):
+  ##   ppfxFlux_LE_Nom_fineBins_scaled.SetLineColor(ROOT.kGray)
+  ##   ppfxFlux_LE_Nom_fineBins_scaled.SetMarkerColor(ROOT.kGray)
+  ##   ppfxFlux_LE_Nom_fineBins_scaled.SetMarkerSize(0.5)
+  ##   ppfxFlux_LE_Nom_fineBins_scaled.Draw()
+  ##   ppfxFlux_LE_Nom_fineBins_scaled.GetXaxis().SetRangeUser(0,40)
+  ##   ppfxFlux_LE_Nom_scaled.SetMarkerSize(0.5)
+  ##   ppfxFlux_LE_Nom_scaled.Draw("same")
+  ##   #ppfxFlux_LE_Nom_scaled.GetYaxis().SetRangeUser(0,10**-5) # zoom in on tail
+  ##   ppfxFlux_LE_rebinned_scaled.SetLineColor(ROOT.kRed)
+  ##   ppfxFlux_LE_rebinned_scaled.SetMarkerColor(ROOT.kRed)
+  ##   ppfxFlux_LE_rebinned_scaled.Draw("same")
+  ##   leg = declareLegend(3,1,"UR-Flux")
+  ##   leg.AddEntry(ppfxFlux_LE_Nom_scaled,"original LE PPFX flux","p")
+  ##   leg.AddEntry(ppfxFlux_LE_Nom_fineBins_scaled,"LE PPFX flux,","p")
+  ##   leg.AddEntry(None,"regenerated","")
+  ##   leg.AddEntry(ppfxFlux_LE_rebinned_scaled,"LE PPFX flux, ","lep")
+  ##   leg.AddEntry(None,"regenerated, rebinned","")
+  ##   leg.Draw()
  
-  for sigDef in ["lowNu","highNu"]: 
-    with makeEnv_TCanvas('{0}/flux/ppfxFlux_ME.png'.format(plotDir)):
-      ppfxFlux_ME_originalBinning_scaled.SetLineColor(ROOT.kGray)
-      ppfxFlux_ME_originalBinning_scaled.SetMarkerColor(ROOT.kGray)
-      ppfxFlux_ME_originalBinning_scaled.SetMarkerSize(0.5)
-      ppfxFlux_ME_originalBinning_scaled.Draw()
-      ppfxFlux_ME_originalBinning_scaled.GetXaxis().SetRangeUser(0,40)
-      exec("ppfxFlux_ME_{0}_rebinned_scaled.SetMarkerSize(0.5)".format(sigDef))
-      exec("ppfxFlux_ME_{0}_rebinned_scaled.Draw(\"same\")".format(sigDef))
-      leg = declareLegend(2,1,"UR-Flux")
-      leg.AddEntry(ppfxFlux_ME_originalBinning_scaled,"original ME PPFX flux","p")
-      exec("leg.AddEntry(ppfxFlux_ME_{0}_rebinned_scaled,\"ME PPFX flux,\",\"p\")".format(sigDef))
-      leg.AddEntry(None,"rebinned","")
-      leg.Draw()
+  ## REVISIT 
+  ## with makeEnv_TCanvas('{0}/flux/ppfxFlux_LE_ratios.png'.format(plotDir)):
+  ##   # Divide each of the fluxes by the nominal PPFX flux
+  ##   setPlotSpecs_fluxRatio(ppfxFlux_LE_rebinned)
+  ##   ppfxFlux_LE_rebinned.Divide(ppfxFlux_LE_rebinned,ppfxFlux_LE_Nom_rebinned)
+  ##   ppfxFlux_LE_Nom_rebinned.Divide(ppfxFlux_LE_Nom_rebinned,ppfxFlux_LE_Nom_rebinned)
+  ## 
+  ##   ppfxFlux_LE_rebinned.GetYaxis().SetRangeUser(0,2)
+  ##   ppfxFlux_LE_rebinned.SetMarkerColor(ROOT.kRed)
+  ##   ppfxFlux_LE_rebinned.SetLineColor(ROOT.kRed)
+  ##   
+  ##   ppfxFlux_LE_rebinned.Draw()
+  ##   ppfxFlux_LE_Nom_rebinned.Draw("same")
+  ##   
+  ##   box = ROOT.TBox(18,0,22,2)
+  ##   box.SetFillColor(ROOT.kGray)
+  ##   box.SetFillStyle(3001)
+  ##   box.Draw()
+  ## 
+  ##   leg = declareLegend(2,1,"UL")
+  ##   leg.AddEntry(ppfxFlux_LE_Nom_rebinned,"original LE PPFX flux,","l")
+  ##   leg.AddEntry(None,"rebinned","")
+  ##   leg.AddEntry(ppfxFlux_LE_rebinned,"LE PPFX flux, ","l")
+  ##   leg.AddEntry(None,"regenerated, rebinned","")
+  ##   leg.Draw()
 
-  with makeEnv_TCanvas('{0}/flux/errorSummary_ppfxFlux_ME.png'.format(plotDir)):
-    setPlotSpecs_flux(ppfxFlux_ME_highNu_rebinned)
-    localDrawErrorSummary(plotter,ppfxFlux_ME_highNu_rebinned)
-  with makeEnv_TCanvas('{0}/flux/correlationMatrix_ppfxFlux_ME.png'.format(plotDir)):
-    tmp = localDrawCorrelationMatrix(ppfxFlux_ME_highNu_rebinned)
-    tmp.Draw("colz")
+  ## REVISIT 
+  ## for sigDef in ["lowNu","highNu"]: 
+  ##   with makeEnv_TCanvas('{0}/flux/ppfxFlux_ME.png'.format(plotDir)):
+  ##     ppfxFlux_ME_originalBinning_scaled.SetLineColor(ROOT.kGray)
+  ##     ppfxFlux_ME_originalBinning_scaled.SetMarkerColor(ROOT.kGray)
+  ##     ppfxFlux_ME_originalBinning_scaled.SetMarkerSize(0.5)
+  ##     ppfxFlux_ME_originalBinning_scaled.Draw()
+  ##     ppfxFlux_ME_originalBinning_scaled.GetXaxis().SetRangeUser(0,40)
+  ##     exec("ppfxFlux_ME_{0}_rebinned_scaled.SetMarkerSize(0.5)".format(sigDef))
+  ##     exec("ppfxFlux_ME_{0}_rebinned_scaled.Draw(\"same\")".format(sigDef))
+  ##     leg = declareLegend(2,1,"UR-Flux")
+  ##     leg.AddEntry(ppfxFlux_ME_originalBinning_scaled,"original ME PPFX flux","p")
+  ##     exec("leg.AddEntry(ppfxFlux_ME_{0}_rebinned_scaled,\"ME PPFX flux,\",\"p\")".format(sigDef))
+  ##     leg.AddEntry(None,"rebinned","")
+  ##     leg.Draw()
+
+  ## with makeEnv_TCanvas('{0}/flux/errorSummary_ppfxFlux_ME.png'.format(plotDir)):
+  ##   setPlotSpecs_flux(ppfxFlux_ME_highNu_rebinned)
+  ##   localDrawErrorSummary(plotter,ppfxFlux_ME_highNu_rebinned)
+  ## with makeEnv_TCanvas('{0}/flux/correlationMatrix_ppfxFlux_ME.png'.format(plotDir)):
+  ##   tmp = localDrawCorrelationMatrix(ppfxFlux_ME_highNu_rebinned)
+  ##   tmp.Draw("colz")
 
 #############################################################################################################
 ### Flux Component Plots ####################################################################################
 #############################################################################################################
 
-for LEMEString in ['LE','ME']:
+#for LEMEString in ['LE','ME']:
+for LEMEString in ['ME']:
 
   # Extract all hists from histFile
   for sigDef in SIGNAL_DEFINITIONS:
@@ -222,27 +225,29 @@ for LEMEString in ['LE','ME']:
 ### Plot Total and Kinematic Efficiencies ###################################################################
 #############################################################################################################
 
-for LEMEString in ['LE','ME']:
-  for sigDef in SIGNAL_DEFINITIONS:
-
-    with makeEnv_TCanvas('{0}/eff/eff_geometric_{1}_{2}.png'.format(plotDir,sigDef,LEMEString)):
-      exec("local_eff_geometric_{0}_{1} = eff_geometric_{0}_{1}.GetCVHistoWithError()".format(sigDef,LEMEString))
-      exec("local_eff_{0}_{1}.Draw(\"PE\")".format(sigDef,LEMEString))
-      exec("local_eff_geometric_{0}_{1}.SetMarkerColor(ROOT.kRed)".format(sigDef,LEMEString))
-      exec("local_eff_geometric_{0}_{1}.SetLineColor(ROOT.kRed)".format(sigDef,LEMEString))
-      exec("local_eff_geometric_{0}_{1}.Draw(\"PE,same\")".format(sigDef,LEMEString))
-      leg = ROOT.TLegend(0.45,0.2,0.85,0.3)
-      setPlotSpecs_legend(leg)
-      exec("leg.AddEntry(local_eff_geometric_{0}_{1},\"Restricted phase space \",\"l\")".format(sigDef,LEMEString))
-      exec("leg.AddEntry(local_eff_{0}_{1},\"Full phase space\",\"l\")".format(sigDef,LEMEString))
-      leg.Draw()
-
-    with makeEnv_TCanvas('{0}/eff/errorSummary_eff_geometric_{1}_{2}.png'.format(plotDir,sigDef,LEMEString)):
-      exec("setPlotSpecs_eff(eff_geometric_{0}_{1})".format(sigDef,LEMEString))
-      exec("localDrawErrorSummary(plotter,eff_geometric_{0}_{1})".format(sigDef,LEMEString))
-    with makeEnv_TCanvas('{0}/eff/correlationMatrix_eff_geometric_{1}_{2}.png'.format(plotDir,sigDef,LEMEString)):
-      exec("tmp = localDrawCorrelationMatrix(eff_geometric_{0}_{1})".format(sigDef,LEMEString))
-      tmp.Draw("colz")
+## REVISIT
+## #for LEMEString in ['LE','ME']:
+## for LEMEString in ['ME']:
+##   for sigDef in SIGNAL_DEFINITIONS:
+## 
+##     with makeEnv_TCanvas('{0}/eff/eff_geometric_{1}_{2}.png'.format(plotDir,sigDef,LEMEString)):
+##       exec("local_eff_geometric_{0}_{1} = eff_geometric_{0}_{1}.GetCVHistoWithError()".format(sigDef,LEMEString))
+##       exec("local_eff_{0}_{1}.Draw(\"PE\")".format(sigDef,LEMEString))
+##       exec("local_eff_geometric_{0}_{1}.SetMarkerColor(ROOT.kRed)".format(sigDef,LEMEString))
+##       exec("local_eff_geometric_{0}_{1}.SetLineColor(ROOT.kRed)".format(sigDef,LEMEString))
+##       exec("local_eff_geometric_{0}_{1}.Draw(\"PE,same\")".format(sigDef,LEMEString))
+##       leg = ROOT.TLegend(0.45,0.2,0.85,0.3)
+##       setPlotSpecs_legend(leg)
+##       exec("leg.AddEntry(local_eff_geometric_{0}_{1},\"Restricted phase space \",\"l\")".format(sigDef,LEMEString))
+##       exec("leg.AddEntry(local_eff_{0}_{1},\"Full phase space\",\"l\")".format(sigDef,LEMEString))
+##       leg.Draw()
+## 
+##     with makeEnv_TCanvas('{0}/eff/errorSummary_eff_geometric_{1}_{2}.png'.format(plotDir,sigDef,LEMEString)):
+##       exec("setPlotSpecs_eff(eff_geometric_{0}_{1})".format(sigDef,LEMEString))
+##       exec("localDrawErrorSummary(plotter,eff_geometric_{0}_{1})".format(sigDef,LEMEString))
+##     with makeEnv_TCanvas('{0}/eff/correlationMatrix_eff_geometric_{1}_{2}.png'.format(plotDir,sigDef,LEMEString)):
+##       exec("tmp = localDrawCorrelationMatrix(eff_geometric_{0}_{1})".format(sigDef,LEMEString))
+##       tmp.Draw("colz")
 
 #############################################################################################################
 ### Plot Data/MC Event Rate Ratios ##########################################################################
@@ -253,7 +258,8 @@ lineAt1.SetLineColor(ROOT.kGray+2)
 lineAt1.SetLineWidth(3)
 lineAt1.SetLineStyle(9)
 
-for LEMEString in ['LE','ME']:
+#for LEMEString in ['LE','ME']:
+for LEMEString in ['ME']:
   for sigDef in SIGNAL_DEFINITIONS:
 
     # Extract hists
@@ -298,48 +304,60 @@ for fakeFold in [1]:
   with makeEnv_TCanvas('{0}/xSections/correlationMatrix_xSection_lowNu_LE_Lu.png'.format(plotDir)):
     tmp = localDrawCorrelationMatrix(xSection_lowNu_LE_Lu_scaled)
     tmp.Draw("colz")
-  
-  # Fetch Lu's flux histogram
-  flux_lowNu_LE_Lu = histFile.Get('flux/flux_lowNu_LE_Lu')
-  
-  # Create local copy of fluxes that we'll scale
-  flux_lowNu_LE_Lu_scaled = flux_lowNu_LE_Lu.Clone() 
-  flux_lowNu_LE_Lu_scaled.Scale(10**6,"width") # Remove units for nicer plotting
-  
-  # Plot lowNu Fluxes
-  with makeEnv_TCanvas('{0}/flux/flux_lowNu_LE_Lu.png'.format(plotDir)):
-    setPlotSpecs_flux(flux_lowNu_LE_Lu_scaled)
-    flux_lowNu_LE_Lu_scaled.GetYaxis().SetRangeUser(0,100)
-    flux_lowNu_LE_Lu_scaled.Draw()
-  with makeEnv_TCanvas('{0}/flux/errorSummary_flux_lowNu_LE_Lu.png'.format(plotDir)):
-    localDrawErrorSummary(plotter,flux_lowNu_LE_Lu_scaled)
-  with makeEnv_TCanvas('{0}/flux/correlationMatrix_flux_lowNu_LE_Lu.png'.format(plotDir)):
-    tmp = localDrawCorrelationMatrix(flux_lowNu_LE_Lu_scaled)
-    tmp.Draw("colz")
-  
-  xSection_inclusive_LE_Lu = histFile.Get('xSections/xSection_inclusive_LE_Lu')
-  
-  # Create local copy of inclusive xSections that we'll scale
-  xSection_inclusive_LE_Lu_scaled = xSection_inclusive_LE_Lu.Clone() 
-  xSection_inclusive_LE_Lu_scaled.Scale(10**38) # Remove units for nicer plotting
-  
-  # Plot inclusive xSections
-  with makeEnv_TCanvas('{0}/xSections/xSection_inclusive_LE_Lu.png'.format(plotDir)):
-    setPlotSpecs_xSection(xSection_inclusive_LE_Lu_scaled)
-    xSection_inclusive_LE_Lu_scaled.Draw('PE')
-  with makeEnv_TCanvas('{0}/xSections/errorSummary_xSection_inclusive_LE_Lu.png'.format(plotDir)):
-    localDrawErrorSummary(plotter,xSection_inclusive_LE_Lu_scaled)
-  with makeEnv_TCanvas('{0}/xSections/correlationMatrix_xSection_inclusive_LE_Lu.png'.format(plotDir)):
-    tmp = localDrawCorrelationMatrix(xSection_inclusive_LE_Lu_scaled)
-    tmp.Draw("colz")
+ 
+  ## REVISIT 
+  ## # Fetch Lu's flux histogram
+  ## flux_lowNu_LE_Lu = histFile.Get('flux/flux_lowNu_LE_Lu')
+  ## 
+  ## # Create local copy of fluxes that we'll scale
+  ## flux_lowNu_LE_Lu_scaled = flux_lowNu_LE_Lu.Clone() 
+  ## flux_lowNu_LE_Lu_scaled.Scale(10**6,"width") # Remove units for nicer plotting
+  ## 
+  ## # Plot lowNu Fluxes
+  ## with makeEnv_TCanvas('{0}/flux/flux_lowNu_LE_Lu.png'.format(plotDir)):
+  ##   setPlotSpecs_flux(flux_lowNu_LE_Lu_scaled)
+  ##   flux_lowNu_LE_Lu_scaled.GetYaxis().SetRangeUser(0,100)
+  ##   flux_lowNu_LE_Lu_scaled.Draw()
+  ## with makeEnv_TCanvas('{0}/flux/errorSummary_flux_lowNu_LE_Lu.png'.format(plotDir)):
+  ##   localDrawErrorSummary(plotter,flux_lowNu_LE_Lu_scaled)
+  ## with makeEnv_TCanvas('{0}/flux/correlationMatrix_flux_lowNu_LE_Lu.png'.format(plotDir)):
+  ##   tmp = localDrawCorrelationMatrix(flux_lowNu_LE_Lu_scaled)
+  ##   tmp.Draw("colz")
+  ## 
+  ## xSection_inclusive_LE_Lu = histFile.Get('xSections/xSection_inclusive_LE_Lu')
+  ## 
+  ## # Create local copy of inclusive xSections that we'll scale
+  ## xSection_inclusive_LE_Lu_scaled = xSection_inclusive_LE_Lu.Clone() 
+  ## xSection_inclusive_LE_Lu_scaled.Scale(10**38) # Remove units for nicer plotting
+  ## 
+  ## # Plot inclusive xSections
+  ## with makeEnv_TCanvas('{0}/xSections/xSection_inclusive_LE_Lu.png'.format(plotDir)):
+  ##   setPlotSpecs_xSection(xSection_inclusive_LE_Lu_scaled)
+  ##   xSection_inclusive_LE_Lu_scaled.Draw('PE')
+  ## with makeEnv_TCanvas('{0}/xSections/errorSummary_xSection_inclusive_LE_Lu.png'.format(plotDir)):
+  ##   localDrawErrorSummary(plotter,xSection_inclusive_LE_Lu_scaled)
+  ## with makeEnv_TCanvas('{0}/xSections/correlationMatrix_xSection_inclusive_LE_Lu.png'.format(plotDir)):
+  ##   tmp = localDrawCorrelationMatrix(xSection_inclusive_LE_Lu_scaled)
+  ##   tmp.Draw("colz")
 
 #############################################################################################################
 ### Nu cut Breakdown Plots ##################################################################################
 #############################################################################################################
 
 def plotNuCutBreakout( plotPath , plotType , plotsByNuCut , yMax , lowNuOrInclusive , legPos='UR',addLu=False , addNOMAD=False ):
-  for nuCut in range(1,5):
-    exec('localPlot_nuCut_{0} = plotsByNuCut[{1}].GetCVHistoWithError()'.format(nuCut,nuCut-1))
+  #for nuCut in range(1,5):
+  #  exec('localPlot_nuCut_{0} = plotsByNuCut[{1}].GetCVHistoWithError()'.format(nuCut,nuCut-1))
+  #  exec("test_nentries = localPlot_nuCut_{0}.GetEntries()".format(nuCut))
+  #  exec("a = 12".format(nuCut))
+  #  print("DEBUG: ",a)
+
+  ## Python3 doesn't like using exec() to make assignments to local
+  ## variables, so instead declare the local curve explicitly
+  localPlot_nuCut_1 = plotsByNuCut[0].GetCVHistoWithError()
+  localPlot_nuCut_2 = plotsByNuCut[1].GetCVHistoWithError()
+  localPlot_nuCut_3 = plotsByNuCut[2].GetCVHistoWithError()
+  localPlot_nuCut_4 = plotsByNuCut[3].GetCVHistoWithError()
+
   with makeEnv_TCanvas(plotPath):
     exec('setPlotSpecs_{0}(localPlot_nuCut_1)'.format(plotType))
     localPlot_nuCut_1.Draw()
@@ -376,7 +394,8 @@ def plotNuCutBreakout( plotPath , plotType , plotsByNuCut , yMax , lowNuOrInclus
       exec('leg.AddEntry(localPlot_nuCut_{0},"#sigma^{{#nu<{1}}}_{{{2}}} ","lep")'.format(nuCut,nuVal,sigDef))
     leg.Draw()
 
-for LEMEString in ['LE','ME']:
+#for LEMEString in ['LE','ME']:
+for LEMEString in ['ME']:
 
   # Fetch flux components, efficiency, xSection histograms
   for nuCut in range(1,5):
@@ -391,7 +410,7 @@ for LEMEString in ['LE','ME']:
     exec("flux_lowNu_normalized_{0}_nuCut_{1} = histFile.Get('flux/flux_lowNu_normalized_{0}_nuCut_{1}')".format(LEMEString,nuCut))
   
   # For debugging
-  exec("ppfxFlux_{0}_tmp = histFile.Get('flux/flux_PPFX_{0}_notBinWidthNormalized')".format(LEMEString))
+  exec("ppfxFlux_{0}_tmp = histFile.Get('flux/flux_PPFX_{0}_analysisBinning_notBinWidthNormalized')".format(LEMEString))
   with makeEnv_TCanvas('{0}/xSections/fluxUniverses_PPFX_{1}.png'.format(plotDir,LEMEString)):
     exec("tmp = ppfxFlux_{0}_tmp.GetVertErrorBand(\"Flux\")".format(LEMEString))
     tmp.GetXaxis().SetRangeUser(0,10)
@@ -526,7 +545,8 @@ for LEMEString in ['LE','ME']:
 ### LE,ME Low Nu XSection Plots #############################################################################
 #############################################################################################################
 
-for LEMEString in ['LE','ME']:
+#for LEMEString in ['LE','ME']:
+for LEMEString in ['ME']:
 
   exec("xSection_lowNu_{0} = histFile.Get('xSections/xSection_lowNu_{0}')".format(LEMEString))
   
@@ -549,7 +569,8 @@ for LEMEString in ['LE','ME']:
 ### LE,ME Low Nu Flux Plots #################################################################################
 #############################################################################################################
 
-for LEMEString in ['LE','ME']:
+#for LEMEString in ['LE','ME']:
+for LEMEString in ['ME']:
 
   exec("flux_lowNu_{0} = histFile.Get('flux/flux_lowNu_{0}')".format(LEMEString))
   
@@ -575,7 +596,8 @@ for LEMEString in ['LE','ME']:
 ### LE,ME Inclusive, high Nu XS Plots #######################################################################
 #############################################################################################################
 
-for LEMEString in ['LE','ME']:
+#for LEMEString in ['LE','ME']:
+for LEMEString in ['ME']:
   for sigDef in ['highNu','inclusive']:
 
     exec("xSection_{0}_{1} = histFile.Get('xSections/xSection_{0}_{1}')".format(sigDef,LEMEString))
@@ -593,6 +615,8 @@ for LEMEString in ['LE','ME']:
     with makeEnv_TCanvas('{0}/xSections/correlationMatrix_xSection_{1}_{2}.png'.format(plotDir,sigDef,LEMEString)):
       exec("tmp = localDrawCorrelationMatrix(xSection_{0}_{1})".format(sigDef,LEMEString))
       tmp.Draw("colz")
+
+os.sys.exit(1)
 
 #############################################################################################################
 ### ME high Nu Flux Plot ####################################################################################
@@ -650,7 +674,8 @@ for sigDef in ['lowNu','highNu']:
   exec("ppfxFlux_ME_{0}_rebinned_chi2.PopVertErrorBand(\"Muon_Energy_MINOS\")".format(sigDef))
 
   exec("chi2_ME_{0} = plotter.Chi2DataMC(flux_{0}_ME_chi2,ppfxFlux_ME_{0}_rebinned_chi2,1.0,True,False,False,chi2_ME_{0}_matrix)".format(sigDef))
-  exec("print('chi2_ME_{0}: ',chi2_ME_{0}".format(sigDef)))
+  #exec("print('chi2_ME_{0}: ',chi2_ME_{0}".format(sigDef))) ## Below line swapped in per ChatGPT guidance following AL9 upgrad -- is this right?
+  exec("print('chi2_ME_{0}: '.format(sigDef), chi2_ME_{0})".format(sigDef))
 
   with makeEnv_TCanvas("{0}/covariance/Chi2ContributionMatrix_{1}Flux_ME.png".format(plotDir,sigDef)):
     exec("chi2_ME_{0}_matrix.Draw(\"colz\")".format(sigDef))
@@ -983,7 +1008,8 @@ for LEMEString in ["LE","ME"]:
 ### Migration Matrices ######################################################################################
 #############################################################################################################
 
-for LEMEString in ['LE','ME']:
+#for LEMEString in ['LE','ME']:
+for LEMEString in ['ME']:
   for sigDef in SIGNAL_DEFINITIONS:
 
     exec("migrationMatrix_Enu_{0}_{1} = histFile.Get('migrationMatrices/migrationMatrix_Enu_{0}_{1}')".format(sigDef,LEMEString))
@@ -998,7 +1024,8 @@ for LEMEString in ['LE','ME']:
 ### Emu by Range and Curve ##################################################################################
 #############################################################################################################
 
-for LEMEString in ['LE','ME']:
+#for LEMEString in ['LE','ME']:
+for LEMEString in ['ME']:
   for sigDef in SIGNAL_DEFINITIONS:
 
     exec("EMu_rangeOnly_{0}_{1} = histFile.Get('all-{1}/EMu_rangeOnly_{0}_{1}')".format(sigDef,LEMEString))
@@ -1036,7 +1063,8 @@ amitNuLine = ROOT.TLine(horizontalAxis_lowerBound,.8,horizontalAxis_upperBound,.
 amitNuLine.SetLineColor(ROOT.kGreen+1)
 amitNuLine.SetLineWidth(3)
 
-for LEMEString in ['LE','ME']:
+#for LEMEString in ['LE','ME']:
+for LEMEString in ['ME']:
   exec("dataRateHist2D_inclusive_{0} = histFile.Get('all-{0}/dataRateHist2D_inclusive_{0}')".format(LEMEString))
   exec("dataRateHist2D_inclusive_{0}.Scale(1,\"width\") # bin-width normalize".format(LEMEString))
   exec("nEntries_{0} = dataRateHist2D_inclusive_{0}.GetEntries()".format(LEMEString))
@@ -1046,7 +1074,8 @@ for LEMEString in ['LE','ME']:
 #print('scaleFactor: ' , 1/scaleFactor)
 
 # Write out cumulative 2D inclusive hist
-for LEMEString in ['LE','ME']:
+#for LEMEString in ['LE','ME']:
+for LEMEString in ['ME']:
 
   with makeEnv_TCanvas('{0}/2D/dataRate_2DInclusive_{1}.png'.format(plotDir,LEMEString)) as canvas:
     canvas.canvas.SetLeftMargin(0.12);
