@@ -7,7 +7,7 @@ source /cvmfs/larsoft.opensciencegrid.org/spack-packages/setup-env.sh
 spack load root@6.28.12
 spack load cmake
 spack load gcc
-spack load fife-utils
+spack load fife-utils@3.7.4
 
 export TOPDIR=/exp/minerva/app/users/$USER/MATAna/
 WORKINGDIR=/exp/minerva/app/users/$USER/MATAna/LowNuHighNu
