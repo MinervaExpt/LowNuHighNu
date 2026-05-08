@@ -108,6 +108,11 @@ def setPlotSpecs_dataMCRatio(hist,hor='ENu'):
   if hor == 'ENu': setPlotSpecs_ENu(hist)
   hist.GetYaxis().SetTitle('data/MC Ratio')
 
+def setPlotSpecs_thesisComparisonRatio(hist,hor='ENu'):
+  if hor == 'ENu': setPlotSpecs_ENu(hist)
+  hist.GetYaxis().SetTitle('thesis/current Ratio')
+  hist.GetYaxis().SetRangeUser(0.5,3)
+
 def setPlotSpecs_xSection(hist,hor='ENu'):
   if hor == 'ENu': setPlotSpecs_ENu(hist)
   hist.GetYaxis().SetTitle('#sigma (10^{-38}cm^{2}/nucleon)')
