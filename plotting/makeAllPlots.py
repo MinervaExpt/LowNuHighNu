@@ -46,18 +46,22 @@ FLUX_COMPONENTS = [
 
 #HISTFILE_NAME = 'thesisProcessing_noFluxConstraint_noMuonCVShift_2020-06-18'
 #HISTFILE_NAME = "processedHists_2024-11-01_test"
-HISTFILE_NAME = "processedHists_2025-02-12"
+#HISTFILE_NAME = "processedHists_2025-02-12"
+HISTFILE_NAME = "processedHists_2025-12-10"
 #OUTFILE_NAME = "plots_2024-11-01"
-OUTFILE_NAME = "plots_2025-02-12"
+#OUTFILE_NAME = "plots_2025-02-12"
+OUTFILE_NAME = "plots_2025-12-10"
 
 #HISTDIR_NAME = "/minerva/data/users/finer/highNu/analysisHists"
-HISTDIR_NAME = "/exp/minerva/data/users/finer/MATAna/2025-02_development"
+#HISTDIR_NAME = "/exp/minerva/data/users/finer/MATAna/2025-02_development"
+HISTDIR_NAME = "/exp/minerva/data/users/finer/MATAna/2025-12_development"
 histFileLocation = "{0}/{1}.root".format(HISTDIR_NAME,HISTFILE_NAME)
 
 histFile = ROOT.TFile(histFileLocation)
 
 #PLOTDIR_ROOT = "/minerva/data/users/finer/highNu/analysisPlots"
-PLOTDIR_ROOT = "/exp/minerva/data/users/finer/MATAna/2025-02_development/plots"
+#PLOTDIR_ROOT = "/exp/minerva/data/users/finer/MATAna/2025-02_development/plots"
+PLOTDIR_ROOT = "/exp/minerva/data/users/finer/MATAna/2025-12_development/plots"
 plotDir = "{0}/{1}".format(PLOTDIR_ROOT,OUTFILE_NAME)
 
 if not os.path.isdir(plotDir):

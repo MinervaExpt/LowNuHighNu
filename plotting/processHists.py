@@ -1,4 +1,4 @@
-import ROOT
+import ROOT,os,glob
 from functions import *
 from plottingClasses import *
 from binning import *
@@ -35,6 +35,7 @@ def AddNOMADErrorBand( inHist , applyWgts = False ):
   inHist.GetVertErrorBand("NOMAD_normalization").GetHist(0).Scale(uncertaintyWgts[0])
   inHist.GetVertErrorBand("NOMAD_normalization").GetHist(1).Scale(uncertaintyWgts[1])
 
+## This can be removed ## RDF 2025-04-30
 def getPOT( dataSwitch , filePath ):
   meta_tree = WrapChain( "Meta" )
   meta_tree.Add(filePath)
@@ -62,12 +63,14 @@ def debugIntegral(hist,dim=1):
 
 ################################################################ Define functions above
 
-HISTDIR = "/exp/minerva/data/users/finer/MATAna/2024-11_development/root"
+#HISTDIR = "/exp/minerva/data/users/finer/MATAna/2025-12_development/root"
+HISTDIR = "/exp/minerva/data/users/finer/MATAna/2026-01_development/root"
 #HISTDIR = "/exp/minerva/data/users/finer/MATAna/2024-11_development/root_testruns"
 
-HISTDIR_ROOT_OUTPUT = "/exp/minerva/data/users/finer/MATAna/2025-02_development"
-#histOutputFilePath = "{0}/processedHists_2024-12-05.root".format(HISTDIR_ROOT_OUTPUT)
-histOutputFilePath = "{0}/processedHists_2025-02-12.root".format(HISTDIR_ROOT_OUTPUT)
+#HISTDIR_ROOT_OUTPUT = "/exp/minerva/data/users/finer/MATAna/2025-12_development"
+HISTDIR_ROOT_OUTPUT = "/exp/minerva/data/users/finer/MATAna/2026-02_development"
+#histOutputFilePath = "{0}/processedHists_2025-12-10.root".format(HISTDIR_ROOT_OUTPUT)
+histOutputFilePath = "{0}/processedHists_2026-02-19.root".format(HISTDIR_ROOT_OUTPUT)
 
 ################################################################ Specify indir, outpath above
 
@@ -132,27 +135,30 @@ PLAYLISTS_LE = [
 ]
 
 PLAYLISTS_ME = [
-  #'minervame1A',
-  #'minervame1B',
-  #'minervame1C',
-  #'minervame1D',
-  #'minervame1E',
-  #'minervame1F',
-  #'minervame1G',
-  #'minervame1L',
-  #'minervame1M',
-  #'minervame1N',
-  #'minervame1O',
-  #'minervame1P'
-  'ME1A',
-  'ME1B',
-  'ME1C',
+  ##'minervame1A',
+  ##'minervame1B',
+  ##'minervame1C',
+  ##'minervame1D',
+  ##'minervame1E',
+  ##'minervame1F',
+  ##'minervame1G',
+  ##'minervame1L',
+  ##'minervame1M',
+  ##'minervame1N',
+  ##'minervame1O',
+  ##'minervame1P'
+  #'ME1A',
+  #'ME1B',
+  #'ME1C',
   'ME1D',
   #'ME1E',
   #'ME1F',
   #'ME1G',
   #'ME1L',
   #'ME1M',
+  #'ME1N',
+  #'ME1O',
+  #'ME1P'
 ]
 
 SIGNAL_DEFINITIONS = [
@@ -200,14 +206,26 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
     print('HISTDIR: ' , HISTDIR)
     print('isME: ' , isME)
 
-    # Define file locations
-    #fileString = "XSecInputs_1110_{0}_2024-05-07.root".format(playlist)
-    #dateString = "2024-06-21" if playlist == "ME1C" else "2024-06-20"
-    #dateString = "2024-07-24"
-    dateString = "2024-11-01"
-    fileString = "XSecInputs_1110_{0}_{1}.root".format(playlist,dateString)
-    histsFileLocation = "{0}/{1}".format(HISTDIR,fileString)
-    histsFile = ROOT.TFile(histsFileLocation)
+    # Find file corresponding to playlist
+    try:
+        filename_pattern = os.path.join(HISTDIR, f"XSecInputs_1110_{playlist}_*.root")
+        filename_matches = glob.glob(filename_pattern)
+        
+        if not filename_matches:
+            raise FileNotFoundError(f"No histogram file found for playlist {playlist} with pattern {filename_pattern}")
+        
+        if len(filename_matches) > 1:
+            # If this happens, you can sort or pick the newest, e.g.:
+            filename_matches.sort(key=os.path.getmtime, reverse=True)
+            # Now matches[0] is the newest file
+        
+        histsFileLocation = filename_matches[0]
+        histsFile = ROOT.TFile(histsFileLocation)
+
+    except FileNotFoundError as e:
+        print(e)
+        print(f"Skipping playlist {playlist} due to missing histogram file.")
+        continue
 
     print('Opening hists file: ' , histsFileLocation)
 
