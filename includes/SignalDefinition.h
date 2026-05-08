@@ -3,6 +3,7 @@
 
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h"  // namespace CCIncConsts
+#include "includes/LowNuBoundary.h"  // GetLowNuCutValue_GeV
 
 enum SignalDefinition { kInclusive, kLowNuHighNu, kNSignalDefTypes };
 
@@ -177,40 +178,14 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
   }
 }
 
+// Staircase classifier delegates to GetLowNuCutValue_GeV (in LowNuBoundary.h)
+// so the boundary value is defined exactly once in the codebase.
 bool IsLowNu(const CVUniverse& univ) {
-  double Enu = univ.GetEnu_GeV();
-  double nu = univ.GetEhad_GeV();
-
-  if (Enu < 3) {
-    if (nu < 0.3) return true;
-    else          return false;
-  } else if (Enu < 7) {
-    if (nu < 0.5) return true;
-    else          return false;
-  } else if (Enu < 12) {
-    if (nu <1.0)  return true;
-    else          return false;
-  } else if (nu < 2.0) {
-                  return true;
-  } else          return false;
+  return univ.GetEhad_GeV() < GetLowNuCutValue_GeV(univ.GetEnu_GeV());
 }
 
 bool IsLowNuTruth(const CVUniverse& univ) {
-  double EnuTrue = univ.GetEnuTrue_GeV();
-  double nuTrue = univ.GetEhadTrue_GeV();
-
-  if (EnuTrue < 3) {
-    if (nuTrue < 0.3) return true;
-    else              return false;
-  } else if (EnuTrue < 7) {
-    if (nuTrue < 0.5) return true;
-    else              return false;
-  } else if (EnuTrue < 12) {
-    if (nuTrue <1.0)  return true;
-    else              return false;
-  } else if (nuTrue < 2.0) {
-                      return true;
-  } else              return false;
+  return univ.GetEhadTrue_GeV() < GetLowNuCutValue_GeV(univ.GetEnuTrue_GeV());
 }
 
 bool isLowNu_Amit(const CVUniverse& univ) {

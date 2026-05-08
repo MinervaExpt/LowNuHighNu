@@ -8,6 +8,7 @@
 #include <algorithm>  // max_element
 #include <cmath>      //isfinite
 
+#include "LowNuBoundary.h"  // GetLowNuCutValue_GeV
 #include "PlotUtils/MnvTuneSystematics.h"
 #include "utilities.h"  // FixAngle
 
@@ -100,6 +101,14 @@ double CVUniverse::GetEnu_GeV() const { return GetEnu()/1000.; }
 double CVUniverse::GetEhadTrue_GeV() const { return GetEhadTrue()/1000.; }
 double CVUniverse::GetEmuTrue_GeV() const { return GetEmuTrue()/1000.; }
 double CVUniverse::GetEnuTrue_GeV() const { return GetEnuTrue()/1000.; }
+
+// Signed distance from the low-nu staircase cut.  See LowNuBoundary.h.
+double CVUniverse::GetDeltaNu_GeV() const {
+  return GetEhad_GeV() - GetLowNuCutValue_GeV(GetEnu_GeV());
+}
+double CVUniverse::GetDeltaNuTrue_GeV() const {
+  return GetEhadTrue_GeV() - GetLowNuCutValue_GeV(GetEnuTrue_GeV());
+}
 
 //==============================================================================
 // Truth

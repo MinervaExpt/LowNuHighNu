@@ -64,6 +64,12 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
   virtual double GetEmuTrue_GeV() const;
   virtual double GetEnuTrue_GeV() const;
 
+  // Signed distance from the low-nu staircase cut, in GeV:
+  // Delta_nu = nu - nu_cut(Enu).  Negative => classified low-nu.
+  // Used by the boundary-region diagnostic histograms.
+  virtual double GetDeltaNu_GeV() const;
+  virtual double GetDeltaNuTrue_GeV() const;
+
   //==============================================================================
   // Truth
   //==============================================================================

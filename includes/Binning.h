@@ -73,6 +73,16 @@ TArrayD GetBinning(const std::string var_name) {
                 3.,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,
                 4.,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,
                 5.};
+  } else if (var_name == "delta_nu") { // signed distance from low-nu staircase, GeV
+    // 60 uniform bins on [-1.0, 2.0] GeV; asymmetric range because the
+    // interesting leakage tail is on the high-nu side of the cut.
+    for (int i = 0; i <= 60; ++i) bins_vec.push_back(-1.0 + 0.05 * i);
+  } else if (var_name == "enu_boundary") { // fine GeV binning across staircase corners
+    // 60 uniform bins on [0, 15] GeV; resolves the 3, 7, 12 GeV corners.
+    for (int i = 0; i <= 60; ++i) bins_vec.push_back(0.25 * i);
+  } else if (var_name == "ehad_boundary") { // fine GeV binning across cut levels
+    // 50 uniform bins on [0, 2.5] GeV; covers all four staircase plateaus.
+    for (int i = 0; i <= 50; ++i) bins_vec.push_back(0.05 * i);
   } else if (var_name == "ehad_res") { // for recoil energy study
     bins_vec = {-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,
                 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};

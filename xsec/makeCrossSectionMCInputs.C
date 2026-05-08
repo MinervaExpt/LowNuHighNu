@@ -56,6 +56,12 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
   Var* ehad = new Var("ehad", "ehad", "MeV", CCPi::GetBinning("ehad"),
                       &CVUniverse::GetEhad_GeV);
 
+  // Boundary-region diagnostic: signed distance from the low-nu staircase.
+  // Negative => classified low-nu, positive => high-nu.  See LowNuBoundary.h.
+  Var* delta_nu =
+      new Var("delta_nu", "#nu - #nu_{cut}(E_{#nu})", "GeV",
+              CCPi::GetBinning("delta_nu"), &CVUniverse::GetDeltaNu_GeV);
+
   // True Variables
   bool is_true = true;
   Var* pmu_true =
@@ -75,13 +81,19 @@ std::vector<Variable*> GetLowNuHighNuVariables(bool include_truth_vars = true) {
       new Var("ehad_true", "ehad True", "MeV", ehad->m_hists.m_bins_array,
               &CVUniverse::GetEhadTrue_GeV, is_true);
 
-  std::vector<Var*> variables = {pmu, thetamu_deg, enu, ehad};
+  Var* delta_nu_true =
+      new Var("delta_nu_true", "#nu - #nu_{cut}(E_{#nu}) True",
+              delta_nu->m_units, delta_nu->m_hists.m_bins_array,
+              &CVUniverse::GetDeltaNuTrue_GeV, is_true);
+
+  std::vector<Var*> variables = {pmu, thetamu_deg, enu, ehad, delta_nu};
 
   if (include_truth_vars) {
     variables.push_back(pmu_true);
     variables.push_back(thetamu_deg_true);
     variables.push_back(enu_true);
     variables.push_back(ehad_true);
+    variables.push_back(delta_nu_true);
   }
 
   return variables;
@@ -108,7 +120,22 @@ std::vector<Variable2D*> GetLowNuHighNu2DVariables(
   Var2D* enu_ehad = new Var2D(*vmat_enu, *vmat_ehad);
   Var2D* enu_ehad_fine = new Var2D(*vmat_enu, *vmat_ehad_fine);
 
-  return std::vector<Var2D*>{enu_ehad,enu_ehad_fine};
+  // Boundary-region 2D map: fine-binned (E_nu, nu) for visualizing the
+  // staircase cut directly with events overlaid.  The standard `enu` binning
+  // doesn't resolve the corners at 3, 7, 12 GeV cleanly; `enu_boundary`
+  // and `ehad_boundary` are uniform fine binnings defined in Binning.h.
+  VarMAT* vmat_enu_boundary = new VarMAT(
+      "enu_boundary", "enu_boundary",
+      ConvertTArrayDToStdVector(CCPi::GetBinning("enu_boundary")),
+      &CVUniverse::GetEnu_GeV, &CVUniverse::GetEnuTrue_GeV);
+  VarMAT* vmat_ehad_boundary = new VarMAT(
+      "ehad_boundary", "ehad_boundary",
+      ConvertTArrayDToStdVector(CCPi::GetBinning("ehad_boundary")),
+      &CVUniverse::GetEhad_GeV, &CVUniverse::GetEhadTrue_GeV);
+  Var2D* enu_ehad_boundary =
+      new Var2D(*vmat_enu_boundary, *vmat_ehad_boundary);
+
+  return std::vector<Var2D*>{enu_ehad, enu_ehad_fine, enu_ehad_boundary};
 }
 
 std::vector<Variable*> GetInclusiveVariables(bool include_truth_vars = true) {
