@@ -10,3 +10,5 @@ cache/
 *~
 *ACLiC*
 .pre-commit-config.yaml
+*.out
+*.log
