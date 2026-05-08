@@ -150,14 +150,15 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
       univ.GetVec<int>("mc_FSPartPDG"), univ.GetVec<double>("mc_FSPartE"));
   if (univ.GetInt("mc_current") == 1 && univ.GetBool("truth_is_fiducial") &&
       ZVtxIsSignal(univ) && XYVtxIsSignal(univ) &&
-      univ.GetInt("mc_incoming") == 14 &&
-      univ.GetThetalepTrue() < CCIncConsts::kThetamuMaxCutVal &&
+      univ.GetInt("mc_incoming") == 14 // && ## Adjusting signal def to align with thesis-era def ## RDF 2025-04-30
+      // univ.GetThetalepTrue() < CCIncConsts::kThetamuMaxCutVal &&
       // 0. < univ.GetWexpTrue() && univ.GetWexpTrue() < GetWCutValue(sig_def)
       // &&
       // && NOtherParticles(univ) == 0
       // particles.at("piplus_range") == 1 && Is1PiPlus(particles) &&
-      CCIncConsts::kPmuMinCutVal < univ.GetPmuTrue() &&
-      univ.GetPmuTrue() < CCIncConsts::kPmuMaxCutVal) {
+      // CCIncConsts::kPmuMinCutVal < univ.GetPmuTrue() &&
+      //univ.GetPmuTrue() < CCIncConsts::kPmuMaxCutVal) {
+      ) {
   } else {
     return false;
   }
@@ -177,7 +178,7 @@ bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
 }
 
 bool IsLowNu(const CVUniverse& univ) {
-  double Enu = univ.GetEmu_GeV();
+  double Enu = univ.GetEnu_GeV();
   double nu = univ.GetEhad_GeV();
 
   if (Enu < 3) {
@@ -195,7 +196,7 @@ bool IsLowNu(const CVUniverse& univ) {
 }
 
 bool IsLowNuTruth(const CVUniverse& univ) {
-  double EnuTrue = univ.GetEmuTrue_GeV();
+  double EnuTrue = univ.GetEnuTrue_GeV();
   double nuTrue = univ.GetEhadTrue_GeV();
 
   if (EnuTrue < 3) {
