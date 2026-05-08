@@ -172,13 +172,28 @@ def plot_enu_ehad_boundary(h_2d, out_path, title_extra=""):
     print("  wrote {0}".format(out_path))
 
 
-def safe_get(f, name):
-    """TFile.Get, returning None on miss with a clear log message."""
+def safe_get(f, name, fallback_substring=None):
+    """TFile.Get, returning None on miss.
+
+    On miss, if `fallback_substring` is provided, list all top-level keys in
+    the file whose names contain that substring -- helps diagnose naming
+    drift (e.g. Var2D's auto-joined names) without requiring a separate
+    file inspection.
+    """
     h = f.Get(name)
-    if not h:
-        print("  WARN: '{0}' not found in input file -- skipping plots that need it.".format(name))
-        return None
-    return h
+    if h:
+        return h
+    print("  WARN: '{0}' not found.".format(name))
+    if fallback_substring is not None:
+        matches = [k.GetName() for k in f.GetListOfKeys()
+                   if fallback_substring in k.GetName()]
+        if matches:
+            print("        Keys in file containing '{0}':".format(fallback_substring))
+            for m in sorted(matches):
+                print("          {0}".format(m))
+        else:
+            print("        (no keys containing '{0}' found either)".format(fallback_substring))
+    return None
 
 
 def main():
@@ -206,16 +221,43 @@ def main():
         plot_delta_nu_truth(h_mc_true, "{0}/delta_nu_truth.png".format(out_dir))
 
     # ---- 2D enu_ehad_boundary (inclusive: all events passing cuts) ----
-    h_2d_data = safe_get(f, "selection_data_enu_ehad_boundary_inclusive")
-    if h_2d_data:
+    # Var2D auto-joins its two VarMAT names. With VarMATs named
+    # "enu_boundary" and "ehad_boundary" this produces the (ugly) joined
+    # name "enu_boundary_ehad_boundary".  Look there first, then fall back
+    # to the cleaner "enu_ehad_boundary" in case the event-loop code is
+    # later cleaned up to produce the better name.
+    candidate_names_data = [
+        "selection_data_enu_boundary_ehad_boundary_inclusive",
+        "selection_data_enu_ehad_boundary_inclusive",
+    ]
+    candidate_names_mc = [
+        "selection_mc_enu_boundary_ehad_boundary_inclusive",
+        "selection_mc_enu_ehad_boundary_inclusive",
+    ]
+    h_2d_data = None
+    for name in candidate_names_data:
+        h_2d_data = f.Get(name)
+        if h_2d_data:
+            print("  using {0}".format(name))
+            break
+    if not h_2d_data:
+        safe_get(f, candidate_names_data[0], fallback_substring="boundary")
+    else:
         plot_enu_ehad_boundary(
             h_2d_data,
             "{0}/enu_ehad_boundary_data.png".format(out_dir),
             title_extra=" -- data",
         )
 
-    h_2d_mc = safe_get(f, "selection_mc_enu_ehad_boundary_inclusive")
-    if h_2d_mc:
+    h_2d_mc = None
+    for name in candidate_names_mc:
+        h_2d_mc = f.Get(name)
+        if h_2d_mc:
+            print("  using {0}".format(name))
+            break
+    if not h_2d_mc:
+        safe_get(f, candidate_names_mc[0], fallback_substring="boundary")
+    else:
         plot_enu_ehad_boundary(
             h_2d_mc,
             "{0}/enu_ehad_boundary_mc.png".format(out_dir),
