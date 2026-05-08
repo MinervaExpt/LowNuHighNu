@@ -11,7 +11,8 @@ def copyHist( inHist ):
 
   return tempHist
 
-class WrapChain(ROOT.TChain):
+## For some reason this didn't work when I tried in 2025
+class WrapChainOriginal(ROOT.TChain):
 
   def __init__(self, name):
     ROOT.TChain.__init__(self, name)
@@ -22,6 +23,25 @@ class WrapChain(ROOT.TChain):
   def __getattr__(self, name):
     ROOT.TChain.GetBranch(self, name).GetEntry(self.local_entry)
     return ROOT.TChain.__getattr__(self, name)
+
+## This version, written by ChatGPT does work
+class WrapChain(ROOT.TChain):
+  def __init__(self, name):
+    super().__init__(name)
+    self._buffers = {}
+
+  def bind(self, branch_name, c_type='d'):
+    """
+    Bind a branch to a 1-element array.
+    c_type = 'd' for double, 'f' for float, 'i' for int, etc.
+    """
+    buf = array(c_type, [0])
+    self.SetBranchAddress(branch_name, buf)
+    self._buffers[branch_name] = buf
+
+  def __getitem__(self, name):
+    return self._buffers[name][0]
+
 
 ## class HistWrapper():
 ##  
