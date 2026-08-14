@@ -235,6 +235,27 @@ void SyncAllHists(Variable& v) {
   v.m_hists.m_effden.SyncCVHistos();
 }
 
+// 2D analogue of SyncAllHists(Variable&): push each filled universe into the
+// MnvH2D vertical error bands before writing.  Only the MC wrappers are synced;
+// the data wrappers are filled on the CV hist directly (MnvH2D propagates a
+// plain Fill to its bands) and carry only statistical uncertainty, matching the
+// 1D data treatment.  This is the "// to-do follow up on this" from the write
+// loop below -- needed for systematic bands on the (E_nu, nu) map + E_nu slices.
+void SyncAllHists(Variable2D& v) {
+  v.m_selection_mc_inclusive.SyncCVHistos();
+  v.m_selection_mc_lowNu.SyncCVHistos();
+  v.m_selection_mc_highNu.SyncCVHistos();
+  v.m_bg_inclusive.SyncCVHistos();
+  v.m_bg_lowNu.SyncCVHistos();
+  v.m_bg_highNu.SyncCVHistos();
+  v.m_effnum_inclusive.SyncCVHistos();
+  v.m_effnum_lowNu.SyncCVHistos();
+  v.m_effnum_highNu.SyncCVHistos();
+  v.m_effdenom_inclusive.SyncCVHistos();
+  v.m_effdenom_lowNu.SyncCVHistos();
+  v.m_effdenom_highNu.SyncCVHistos();
+}
+
 //==============================================================================
 // Loop and Fill
 //==============================================================================
@@ -397,22 +418,23 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   const bool do_truth_vars = true;
   std::vector<Variable*> variables =
       GetAnalysisVariables(util.m_signal_definition, do_truth_vars);
-  std::vector<Variable*> variables_lessTruth =
-      GetAnalysisVariables(util.m_signal_definition, !do_truth_vars);
-  std::vector<VariableMAT*> variables_MAT = 
+  std::vector<VariableMAT*> variables_MAT =
       make_xsec_mc_inputs::GetLowNuHighNuMATVariables(do_truth_vars);
   std::vector<Variable2D*> variables2D =
       make_xsec_mc_inputs::GetLowNuHighNu2DVariables(do_truth_vars);
 
   for (auto v : variables)
     v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
-  for (auto v : variables_lessTruth)
-    v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
   for (auto v : variables_MAT) v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
   for (auto v : variables2D) v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
 
   // LOOP DATA
-  LoopAndFillData(util, variables_lessTruth, variables_MAT, variables2D, test_run);
+  // Uses the full `variables` (incl. truth vars); FillSelected skips truth vars
+  // per-variable on data (the `continue` in LowNuHighNuEvent.cxx), so the 1D
+  // selection_data histos fill into the same objects the write loop below emits.
+  // (Previously a separate truth-free `variables_lessTruth` was looped here but
+  // never written, leaving selection_data_<var> empty in the output.)
+  LoopAndFillData(util, variables, variables_MAT, variables2D, test_run);
 
   // LOOP MC RECO
   for (auto band : util.m_error_bands) {
@@ -444,7 +466,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
     v->WriteAllHistogramsToFile(fout, true);
   }
   for (auto v : variables2D) {
-    // SyncAllHists(*v); // to-do follow up on this
+    SyncAllHists(*v);
     v->WriteAllHistogramsToFile(fout, true);
   }
 }

@@ -82,7 +82,11 @@ void lownuhighnu_event::FillSelected(
     const std::vector<Variable2D*>& variables2D) {
   for (auto var : variables) {
     // Sanity Checks
-    if (var->m_is_true && !event.m_is_mc) return;  // truth, but not MC?
+    // Truth var on a data event: skip THIS variable and keep going. (Was
+    // `return`, which aborted the whole fill on the first truth var -- that
+    // dropped the variables_MAT/variables2D fills below whenever a
+    // truth-carrying `variables` vector was used for the data loop. RDF.)
+    if (var->m_is_true && !event.m_is_mc) continue;
 
     // Get fill value
     double fill_val = var->GetValue(*event.m_universe);
