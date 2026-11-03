@@ -30,6 +30,28 @@ util::CaloCorrection InclusiveSpline(splines_file.c_str(), "CCInclusive");
 // https://github.com/MinervaExpt/NSFNukeCCInclusive/blob/de94f6fdee7693a4f3fb86f2dc6d0b5bba90476d/NUKECCSRC/src/CVUniverse.cxx
 
 //==============================================================================
+// CV tune (see CVUniverse.h)
+//==============================================================================
+static CVUniverse::ETune g_cv_tune = CVUniverse::kTuneMnvTunev441;
+
+// FSI weight variant for MnvTune v4.4.1 (argument of MAT-MINERvA's
+// GetFSIWeight): 1 = the elastic-FSI fix only (tune digit Z=1), 0 = elastic
+// fix x absorption reweight (the legacy CV).
+// TODO(Rob): confirm against the internal MnvTune v4.4.1 documentation.
+static const int kFSIWeightIndexV441 = 1;
+
+CVUniverse::ETune CVUniverse::GetTune() { return g_cv_tune; }
+void CVUniverse::SetTune(ETune tune) { g_cv_tune = tune; }
+std::string CVUniverse::GetTuneName(ETune tune) {
+  return tune == kTuneLegacyCCPi ? "legacy" : "v4.4.1";
+}
+bool CVUniverse::SetTuneByName(const std::string& name) {
+  if (name == "legacy") { SetTune(kTuneLegacyCCPi); return true; }
+  if (name == "v4.4.1") { SetTune(kTuneMnvTunev441); return true; }
+  return false;
+}
+
+//==============================================================================
 // Constructor
 //==============================================================================
 CVUniverse::CVUniverse(PlotUtils::ChainWrapper* chw, double nsigma)
@@ -321,6 +343,11 @@ double CVUniverse::GetLowQ2PiWeight(double q2, std::string channel) const {
 }
 
 double CVUniverse::GetWeight() const {
+  // Tune-dependent pieces are marked [legacy] / [v4.4.1].  The GENIE weight's
+  // z-expansion factor (v4.4.1) is switched by MinervaUniverse's
+  // ZExpansionFaReweight flag, which MacroUtil sets from GetTune().
+  const bool legacy_tune = (GetTune() == kTuneLegacyCCPi);
+
   // Warping strategy is to only turn on one of these at a time.
   const bool do_genie_warping = false;
   const bool do_aniso_warping = false;
@@ -356,8 +383,8 @@ double CVUniverse::GetWeight() const {
   // 2p2h
   wgt_2p2h = GetLowRecoil2p2hWeight();
 
-  // low q2
-  wgt_lowq2 = (GetQ2True() > 0)
+  // low q2 pion suppression [legacy only; not part of v4.4.1]
+  wgt_lowq2 = (legacy_tune && GetQ2True() > 0)
                   ? GetLowQ2PiWeight(CCNuPionIncShifts::kLowQ2PiChannel)
                   : 1.;
 
@@ -365,8 +392,8 @@ double CVUniverse::GetWeight() const {
   if (do_aniso_warping)
     wgt_anisodd = GetVecElem("truth_genie_wgt_Theta_Delta2Npi", 4);
 
-  // Diffractive
-  wgt_diffractive = GetDiffractiveWeight();
+  // Diffractive [legacy only; not part of v4.4.1]
+  wgt_diffractive = legacy_tune ? GetDiffractiveWeight() : 1.;
 
   // MK Weight
   if (do_mk_warping) wgt_mk = GetMKWeight();
@@ -376,7 +403,8 @@ double CVUniverse::GetWeight() const {
 
   // New Weights added taking as reference Aaron's weights
 
-  wgt_fsi = GetFSIWeight(0);
+  // FSI: [legacy] elastic fix x absorption; [v4.4.1] see kFSIWeightIndexV441
+  wgt_fsi = GetFSIWeight(legacy_tune ? 0 : kFSIWeightIndexV441);
 
   wgt_geant = GetGeantHadronWeight();
 

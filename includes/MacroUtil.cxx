@@ -62,6 +62,9 @@ void CCPi::MacroUtil::PrintMacroConfiguration(std::string macro_name) {
             << "\n** NFluxUniverses = " << MinervaUniverse::GetNFluxUniverses()
             << "\n** DeuteriumGeniePiTune = "
             << MinervaUniverse::UseDeuteriumGeniePiTune()
+            << "\n** CV tune = " << CVUniverse::GetTuneName(CVUniverse::GetTune())
+            << "\n** ZExpansionFaReweight = "
+            << MinervaUniverse::UseZExpansionFaReweight()
             << "\n** POT scale = " << m_pot_scale << "\n\n";
 }
 
@@ -78,7 +81,12 @@ void CCPi::MacroUtil::Init(const int signal_definition) {
 // Call GetSystematicsUniversesMap from Systematics.h
 // Initialize all the booleans that DCVU asks for
 void CCPi::MacroUtil::InitSystematics() {
-  MinervaUniverse::SetZExpansionFaReweight(false);  // before genie
+  // CV tune (CVUniverse::GetTune(), set by the macro before MacroUtil is
+  // built).  MnvTune v4.4.1 uses the Meyer z-expansion axial form factor for
+  // QE.  The flag must be set before the GENIE universes are built: it also
+  // replaces the MaCCQE knob with 100 GENIE_MaZExpCCQE universes.
+  MinervaUniverse::SetZExpansionFaReweight(CVUniverse::GetTune() ==
+                                           CVUniverse::kTuneMnvTunev441);
 
   m_data_universe = new CVUniverse(m_data);
 

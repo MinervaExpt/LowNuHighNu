@@ -9,6 +9,7 @@
 #   TAG=wk45 ./run_playlists.sh 1D            # tagged run: coexists with untagged/other-tag runs
 #   TAG=wk45 SPLIT=2 ./run_playlists.sh 1D    # split each playlist's file lists in 2 parallel jobs
 #   TUPLES=p9 TAG=wk45-p9 ./run_playlists.sh 1D   # same, on the P9 data-preservation tuples
+#   TUNE=legacy TAG=legacy ./run_playlists.sh 1D  # CV tune: v4.4.1 (default) or legacy
 #
 # Playlists may be given as 1B or ME1B.  For each job (P = ME1B, plus _<TAG>,
 # plus _p<i>of<N> when split, plus _TEST in test mode):
@@ -57,6 +58,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OD="${OPENDATA_DIR:-/pnfs/minerva/persistent/OpenData/MediumEnergy_FHC}"
 P9D="${P9_DIR:-/pnfs/minerva/persistent/DataPreservation/p9}"
 TUPLES="${TUPLES:-opendata}"
+TUNE="${TUNE:-v4.4.1}"
 TEST="${TEST:-0}"
 TAG="${TAG:-}"
 SPLIT="${SPLIT:-1}"
@@ -67,6 +69,10 @@ if [ $# -eq 0 ]; then
   sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'
   exit 1
 fi
+case "$TUNE" in
+  v4.4.1|legacy) ;;
+  *) echo "ERROR: TUNE must be 'v4.4.1' or 'legacy' (got '$TUNE')." >&2; exit 1 ;;
+esac
 case "$TUPLES" in
   opendata|p9) ;;
   *) echo "ERROR: TUPLES must be 'opendata' or 'p9' (got '$TUPLES')." >&2; exit 1 ;;
@@ -114,10 +120,10 @@ launch_job() {
   cat > "$JOB" <<JOBEOF
 #!/bin/bash
 cd "$REPO"
-echo "=== start \$(date -u)  (TOPDIR=\$TOPDIR, TUPLES=$TUPLES)" > "$LOG"
+echo "=== start \$(date -u)  (TOPDIR=\$TOPDIR, TUPLES=$TUPLES, TUNE=$TUNE)" > "$LOG"
 echo "=== MC list: $MCL" >> "$LOG"
 echo "=== data list: $DATAL" >> "$LOG"
-root -l -q -b loadLibs.C+ 'xsec/makeCrossSectionMCInputs.C+(1,"$PL",true,true,false,"$MCL","$DATAL",$TESTFLAG,"$OUT_TAG")' >> "$LOG" 2>&1
+root -l -q -b loadLibs.C+ 'xsec/makeCrossSectionMCInputs.C+(1,"$PL",true,true,false,"$MCL","$DATAL",$TESTFLAG,"$OUT_TAG","$TUNE")' >> "$LOG" 2>&1
 rc=\$?
 echo "=== root exit code \$rc, \$(date -u)" >> "$LOG"
 JOBEOF

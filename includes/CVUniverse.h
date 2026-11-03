@@ -16,6 +16,19 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
 #include "PlotUtils/RecoilEnergyFunctions.h"
 #include "PlotUtils/TruthFunctions.h"
 #include "PlotUtils/WeightFunctions.h"
+  // CV interaction-model tune.  Set once per job, by the event-loop macro
+  // before MacroUtil builds the universes; read by GetWeight() and by
+  // MacroUtil (z-expansion flag).  Default: MnvTune v4.4.1.
+  //   kTuneLegacyCCPi   the CV inherited from the CC-CH-pip-ana fork (roughly
+  //                     MnvTune v4.3.1 without the coherent-pion
+  //                     normalization); kept so old results stay reproducible
+  //   kTuneMnvTunev441  MnvTune v4.4.1 (Rob, 2026-11-03, following Kevin)
+  enum ETune { kTuneLegacyCCPi = 0, kTuneMnvTunev441 = 1 };
+  static ETune GetTune();
+  static void SetTune(ETune tune);
+  static std::string GetTuneName(ETune tune);
+  static bool SetTuneByName(const std::string& name);  // "legacy" | "v4.4.1"
+
   // CTOR
   CVUniverse(PlotUtils::ChainWrapper* chw, double nsigma = 0);
 

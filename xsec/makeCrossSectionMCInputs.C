@@ -380,7 +380,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
                               std::string mc_input_file = "",
                               std::string data_input_file = "",
                               bool test_run = false,
-                              std::string out_tag = "") {
+                              std::string out_tag = "",
+                              std::string tune = "v4.4.1") {
   // Only signal definition 1 (kLowNuHighNu) is supported; it writes the
   // inclusive, lowNu and highNu samples.  Definition 0 (kInclusive: Anne's
   // DIS/sideband variant, InclusiveEvent) was removed 2026-11-03.
@@ -388,6 +389,15 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
     std::cerr << "ERROR: only signal definition 1 (kLowNuHighNu) is supported.\n";
     std::exit(1);
   }
+
+  // CV TUNE: must be set before MacroUtil builds the universes
+  if (!CVUniverse::SetTuneByName(tune)) {
+    std::cerr << "ERROR: unknown tune '" << tune
+              << "' (use \"v4.4.1\" or \"legacy\").\n";
+    std::exit(1);
+  }
+  std::cout << "CV tune: " << CVUniverse::GetTuneName(CVUniverse::GetTune())
+            << "\n";
 
   // INPUT TUPLES
   const bool is_mc = true;
@@ -445,6 +455,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
     fout.cd();
     TNamed("git_describe", describe.Data()).Write();
     TNamed("git_diff_md5", diff_md5.Data()).Write();
+    TNamed("tune", CVUniverse::GetTuneName(CVUniverse::GetTune()).c_str())
+        .Write();
   }
 
   // INIT VARS, HISTOS, AND EVENT COUNTERS
