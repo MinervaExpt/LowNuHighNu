@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""compare_xsecinputs.py -- regression check between two event-loop output files.
+"""compare_xsecinputs.py -- regression check between two output files.
 
 Usage:
     python compare_xsecinputs.py <reference.root> <candidate.root> [--rtol 1e-9] [--verbose]
@@ -9,6 +9,11 @@ For every histogram present in both files, compares the CV contents
 vertical and lateral error band (band names and universe counts must match).
 Lists histograms present in only one file.  Non-histogram objects (e.g. the
 git_describe / git_diff_md5 provenance stamps) are reported, not compared.
+
+Subdirectories are compared too, so the script also checks two processedHists
+files (processHists.py output).  Objects are named by their path, "ME1D/eff_lowNu_ME1D";
+a name written more than once in one directory is compared cycle by cycle,
+"ME1D/migration_enu;2".
 
 Use it on two runs over the same events (e.g. two TEST=1 runs of the same
 playlist built from different code) to show that a change is
@@ -102,8 +107,23 @@ def compare(href, hcan, rtol):
     return problems
 
 
-def keys(f):
-    return {k.GetName(): k.GetClassName() for k in f.GetListOfKeys()}
+def keys(directory, prefix=""):
+    """{path: class name} for every object under directory, descending into subdirectories."""
+    listed = list(directory.GetListOfKeys())
+    counts = {}
+    for k in listed:
+        counts[k.GetName()] = counts.get(k.GetName(), 0) + 1
+    out = {}
+    for k in listed:
+        name = prefix + k.GetName()
+        cls = ROOT.TClass.GetClass(k.GetClassName())
+        if cls and cls.InheritsFrom("TDirectory"):
+            out.update(keys(k.ReadObj(), name + "/"))
+            continue
+        if counts[k.GetName()] > 1:
+            name += ";%d" % k.GetCycle()
+        out[name] = k.GetClassName()
+    return out
 
 
 def main():
