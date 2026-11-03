@@ -1,4 +1,63 @@
-import ROOT,os,glob
+"""processHists.py -- ME low-nu flux and CC-inclusive cross-section extraction.
+
+Usage (GPVM, after `source setup_mat.sh`):
+  python processHists.py -o <output.root> <XSecInputs.root> [<XSecInputs.root> ...] [--force]
+
+Each input is one playlist's event-loop output, XSecInputs_1110_<PL>_<...>.root.
+The playlist is read from the file name, or given as <PL>=<path> (for example
+ME1D=/path/renamed.root).  One file per playlist: MC is scaled to the data POT
+playlist by playlist, then all playlists are summed into all-ME.  A full-ME
+set is a shell glob, e.g. .../2025-12_development/root/XSecInputs_1110_ME1*.root.
+The output is refused if it exists, unless --force.  What the script computes:
+CODE-GUIDE.md section 5 (Claude project docs).
+"""
+import argparse,os,re,sys
+
+def parseArguments():
+  parser = argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)
+  parser.add_argument('inputs',nargs='+',metavar='[PL=]XSecInputs.root',help='event-loop output files, one per playlist')
+  parser.add_argument('-o','--output',required=True,help='processedHists output file')
+  parser.add_argument('--force',action='store_true',help='overwrite the output file if it exists')
+  args = parser.parse_args()
+
+  outputPath = os.path.abspath(args.output)
+  if os.path.exists(outputPath) and not args.force:
+    parser.error('{0} exists; use --force to overwrite it'.format(outputPath))
+  if not os.path.isdir(os.path.dirname(outputPath)):
+    parser.error('output directory {0} does not exist'.format(os.path.dirname(outputPath)))
+
+  inputFiles = {}
+  for spec in args.inputs:
+    playlist,sep,path = spec.partition('=')
+    if not sep:
+      path = spec
+      match = re.search(r'XSecInputs_\d{4}_(ME1[A-Z])_',os.path.basename(path))
+      if not match:
+        parser.error('cannot tell the playlist from the name of {0}; give it as <PL>=<path>, e.g. ME1D={0}'.format(path))
+      playlist = match.group(1)
+    if not re.match(r'^ME1[A-Z]$',playlist):
+      parser.error('{0}: the playlist must look like ME1D (got {1})'.format(spec,playlist))
+    path = os.path.abspath(path)
+    if not os.path.isfile(path):
+      parser.error('no such file: {0}'.format(path))
+    if path == outputPath:
+      parser.error('the output would overwrite the input {0}'.format(path))
+    if playlist in inputFiles:
+      parser.error('two inputs for playlist {0} ({1}, {2}); they would be double-counted'.format(playlist,inputFiles[playlist],path))
+    name = os.path.basename(path)
+    if '_TEST' in name:
+      print('WARNING: {0} is a TEST output (1,000 entries per loop): plumbing only'.format(name))
+    if re.search(r'_p\d+of\d+',name):
+      print('WARNING: {0} is one part of a split run; merge the parts first (merge_parts.sh) unless that is intended'.format(name))
+    if name.startswith('XSecInputs_') and not name.startswith('XSecInputs_1110_'):
+      print('WARNING: {0} was not made with systematics + truth on (XSecInputs_1110_...); this script needs both'.format(name))
+    inputFiles[playlist] = path
+  return outputPath,inputFiles
+
+OUTPUT_FILE_PATH,INPUT_FILES = parseArguments()
+sys.argv = sys.argv[:1] # this script's options are not for ROOT
+
+import ROOT
 from functions import *
 from plottingClasses import *
 from binning import *
@@ -35,42 +94,11 @@ def AddNOMADErrorBand( inHist , applyWgts = False ):
   inHist.GetVertErrorBand("NOMAD_normalization").GetHist(0).Scale(uncertaintyWgts[0])
   inHist.GetVertErrorBand("NOMAD_normalization").GetHist(1).Scale(uncertaintyWgts[1])
 
-## This can be removed ## RDF 2025-04-30
-def getPOT( dataSwitch , filePath ):
-  meta_tree = WrapChain( "Meta" )
-  meta_tree.Add(filePath)
-  pot_used = 0.0
-  pot_total = 0.0
-  for entry in range(meta_tree.GetEntries()):
-    meta_tree.LoadTree(entry)
-    pot_used += meta_tree.POT_Used
-    pot_total += meta_tree.POT_Total
-
-  if dataSwitch == 'data':
-    return pot_used
-  else:
-    return [pot_used,pot_total] 
-
-def debugIntegral(hist,dim=1):
-  # grab an arbitrary hist from an arbitrary systematic universe
-  arbitrary_error_band = hist.GetVertErrorBand("Muon_Energy_MINOS")
-  arbitrary_sys_hist = arbitrary_error_band.GetHist(0)
-  # Print out integral over arbitrary subset of bins in the hist
-  if(dim==1):
-    print("DEBUG INTEGRAL:\t{0}\tintegral b/w bins 2-6: {1}".format(hist.GetName(),arbitrary_sys_hist.Integral(2,6)))
-  else:
-    print("DEBUG INTEGRAL:\t{0}\tintegral b/w bins 2-6: {1}".format(hist.GetName(),arbitrary_sys_hist.Integral(2,6,2,6)))
-
 ################################################################ Define functions above
 
-#HISTDIR = "/exp/minerva/data/users/finer/MATAna/2025-12_development/root"
-HISTDIR = "/exp/minerva/data/users/finer/MATAna/2026-01_development/root"
-#HISTDIR = "/exp/minerva/data/users/finer/MATAna/2024-11_development/root_testruns"
-
-#HISTDIR_ROOT_OUTPUT = "/exp/minerva/data/users/finer/MATAna/2025-12_development"
-HISTDIR_ROOT_OUTPUT = "/exp/minerva/data/users/finer/MATAna/2026-02_development"
-#histOutputFilePath = "{0}/processedHists_2025-12-10.root".format(HISTDIR_ROOT_OUTPUT)
-histOutputFilePath = "{0}/processedHists_2026-02-19.root".format(HISTDIR_ROOT_OUTPUT)
+## Input files and output path come from the command line (parseArguments, above)
+histOutputFilePath = OUTPUT_FILE_PATH
+print('Output file: ' , histOutputFilePath)
 
 ################################################################ Specify indir, outpath above
 
@@ -134,32 +162,8 @@ PLAYLISTS_LE = [
   #'2p2h'
 ]
 
-PLAYLISTS_ME = [
-  ##'minervame1A',
-  ##'minervame1B',
-  ##'minervame1C',
-  ##'minervame1D',
-  ##'minervame1E',
-  ##'minervame1F',
-  ##'minervame1G',
-  ##'minervame1L',
-  ##'minervame1M',
-  ##'minervame1N',
-  ##'minervame1O',
-  ##'minervame1P'
-  #'ME1A',
-  #'ME1B',
-  #'ME1C',
-  'ME1D',
-  #'ME1E',
-  #'ME1F',
-  #'ME1G',
-  #'ME1L',
-  #'ME1M',
-  #'ME1N',
-  #'ME1O',
-  #'ME1P'
-]
+## One ME playlist per input file, in name order (ME1A, ME1B, ...) like the old hand-edited list
+PLAYLISTS_ME = sorted(INPUT_FILES)
 
 SIGNAL_DEFINITIONS = [
   'inclusive',
@@ -203,29 +207,13 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
     histOutputDir_playlist = histOutputFile.mkdir(playlist)
    
     print('playlist: ' , playlist)
-    print('HISTDIR: ' , HISTDIR)
     print('isME: ' , isME)
 
-    # Find file corresponding to playlist
-    try:
-        filename_pattern = os.path.join(HISTDIR, f"XSecInputs_1110_{playlist}_*.root")
-        filename_matches = glob.glob(filename_pattern)
-        
-        if not filename_matches:
-            raise FileNotFoundError(f"No histogram file found for playlist {playlist} with pattern {filename_pattern}")
-        
-        if len(filename_matches) > 1:
-            # If this happens, you can sort or pick the newest, e.g.:
-            filename_matches.sort(key=os.path.getmtime, reverse=True)
-            # Now matches[0] is the newest file
-        
-        histsFileLocation = filename_matches[0]
-        histsFile = ROOT.TFile(histsFileLocation)
-
-    except FileNotFoundError as e:
-        print(e)
-        print(f"Skipping playlist {playlist} due to missing histogram file.")
-        continue
+    # The input file for this playlist (from the command line)
+    histsFileLocation = INPUT_FILES[playlist]
+    histsFile = ROOT.TFile(histsFileLocation)
+    if not histsFile or histsFile.IsZombie():
+      sys.exit('ERROR: could not open {0}'.format(histsFileLocation))
 
     print('Opening hists file: ' , histsFileLocation)
 
@@ -277,18 +265,10 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
         exec("dataRateHist2D_{0}.AddMissingErrorBandsAndFillWithCV(systematicsReferenceHist)".format(key,sigDef))
         exec("dataRateHist_{0}.ClearAllErrorBands()".format(key,sigDef))
         exec("dataRateHist_{0}.AddMissingErrorBandsAndFillWithCV(systematicsReferenceHist)".format(key,sigDef))
-      ## DEBUG INTEGRAL
-      exec("debugIntegral(dataRateHist2D_{0},2)".format(key))
-      ## DEBUG INTEGRAL
-      exec("debugIntegral(dataRateHist_{0})".format(key))
       exec("effNumeratorHist2D_{0} = histsFile.Get('effnum_enu_ehad_{1}')".format(key,sigDef))
       exec("effNumeratorHist_{0} = histsFile.Get('effnum_enu_ehad_{1}').ProjectionX()".format(key,sigDef))
-      ## DEBUG INTEGRAL
-      exec("debugIntegral(effNumeratorHist_{0})".format(key))
       exec("effDenominatorHist2D_{0} = histsFile.Get('effdenom_enu_ehad_{1}')".format(key,sigDef))
       exec("effDenominatorHist_{0} = histsFile.Get('effdenom_enu_ehad_{1}').ProjectionX()".format(key,sigDef))
-      ## DEBUG INTEGRAL
-      exec("debugIntegral(effDenominatorHist_{0})".format(key))
       ##exec("effDenominatorHist2D_addKinematicCuts_{0} = histsFile.Get('h_ENu_VS_nu_{1}_truth_addKinematicCuts')".format(key,sigDef))
       ##exec("effDenominatorHist_addKinematicCuts_{0} = histsFile.Get('h_ENu_VS_nu_{1}_truth_addKinematicCuts').ProjectionX()".format(key,sigDef))
       exec("migrationMatrix_Enu_{0} = histsFile.Get('migration_enu')".format(key,sigDef))
@@ -583,17 +563,9 @@ if True:
       exec('eff_{2}_{0}_nuCut_{1}.Divide(effNumeratorHist_{2}_{0}_nuCut_{1},effDenominatorHist_{2}_{0}_nuCut_{1})'.format(LEMEString,nuCut,sigDef))
       # Write data rate and efficiency components to output file for each nu cut
       exec('writeHist(dataRateHist_{2}_{0}_nuCut_{1},histOutputDir_all{0})'.format(LEMEString,nuCut,sigDef))
-      ## DEBUG INTEGRAL
-      exec("debugIntegral(dataRateHist_{2}_{0}_nuCut_{1})".format(LEMEString,nuCut,sigDef))
       exec('writeHist(effNumeratorHist_{2}_{0}_nuCut_{1},histOutputDir_all{0})'.format(LEMEString,nuCut,sigDef))
-      ## DEBUG INTEGRAL
-      exec("debugIntegral(effNumeratorHist_{2}_{0}_nuCut_{1})".format(LEMEString,nuCut,sigDef))
       exec('writeHist(effDenominatorHist_{2}_{0}_nuCut_{1},histOutputDir_all{0})'.format(LEMEString,nuCut,sigDef))
-      ## DEBUG INTEGRAL
-      exec("debugIntegral(effDenominatorHist_{2}_{0}_nuCut_{1})".format(LEMEString,nuCut,sigDef))
       exec('writeHist(eff_{2}_{0}_nuCut_{1},histOutputDir_all{0})'.format(LEMEString,nuCut,sigDef))
-      ## DEBUG INTEGRAL
-      exec("debugIntegral(eff_{2}_{0}_nuCut_{1})".format(LEMEString,nuCut,sigDef))
 
   # Create GENIE xsection object, which will be used in the denominator of the low-nu xsection extraction
   exec("xSection_inclusive_{0}_GENIE_2D_local = effDenominatorHist2D_inclusive_{0}.Clone()".format(LEMEString))
@@ -615,15 +587,9 @@ if True:
     exec('xSection_lowNu_{0}_GENIE_nuCut_{1}.Scale(1./(nTargets*totalDataPOT_{0}))'.format(LEMEString,nuCut)) 
     exec('xSection_lowNu_{0}_GENIE_nuCut_{1}.Scale(10**4)'.format(LEMEString,nuCut)) # Change units of flux from m^{-2} to cm^{-2}
   
-    ## DEBUG INTEGRAL
-    exec("debugIntegral(xSection_lowNu_{0}_GENIE_nuCut_{1})".format(LEMEString,nuCut))
 
     # Calculate the flux expliclity, though we don't actually use this to calculate the inclusive cross section
     exec("flux_lowNu_{0}_nuCut_{1} = dataRateHist_lowNu_{0}_nuCut_{1}.Clone('flux_lowNu_{0}_nuCut_{1}')".format(LEMEString,nuCut))
-    ## DEBUG INTEGRAL
-    exec("debugIntegral(dataRateHist_lowNu_{0}_nuCut_{1})".format(LEMEString,nuCut))
-    ## DEBUG INTEGRAL
-    exec("debugIntegral(flux_lowNu_{0}_nuCut_{1})".format(LEMEString,nuCut))
     exec('flux_lowNu_{0}_nuCut_{1}.Divide(flux_lowNu_{0}_nuCut_{1},eff_lowNu_{0}_nuCut_{1})'.format(LEMEString,nuCut))
     exec('flux_lowNu_{0}_nuCut_{1}.Divide(flux_lowNu_{0}_nuCut_{1},xSection_lowNu_{0}_GENIE_nuCut_{1})'.format(LEMEString,nuCut))
     exec('flux_lowNu_{0}_nuCut_{1}.Scale(1./(nTargets*totalDataPOT_{0}))'.format(LEMEString,nuCut))
@@ -631,8 +597,6 @@ if True:
     # Write flux out
     exec('writeHist(flux_lowNu_{0}_nuCut_{1},histOutputDir_flux)'.format(LEMEString,nuCut))
  
-    ## DEBUG INTEGRAL
-    exec("debugIntegral(flux_lowNu_{0}_nuCut_{1})".format(LEMEString,nuCut))
 
     # Extract inclusive cross section for each nu cut, which we do with a shortcut that side-steps calculating the flux explicitly
     exec("xSection_inclusive_{0}_nuCut_{1} = dataRateHist_inclusive_{0}.Clone('xSection_inclusive_{0}_nuCut_{1}')".format(LEMEString,nuCut))
@@ -665,8 +629,6 @@ if True:
     exec('CV_scaleFactor = 0.8*NOMAD_DataPoint/CV_xSectionIntegral_{0}'.format(LEMEString)) ## DEBUG 2025-02-12 This is part of the kludge described above
     exec('externalNormalizationScaleFactors_{0}_nuCut_{1}.Scale({2},\"\",False)'.format(LEMEString,nuCut,CV_scaleFactor)) #False here tells Scale to not scale the universes, rather only the CV
 
-    ## DEBUG INTEGRAL
-    exec("debugIntegral(xSectionPerE_inclusive_{0}_nuCut_{1})".format(LEMEString,nuCut))
 
     # Loop over SUs
     for errorBandName in errorBandNames:
@@ -745,41 +707,48 @@ if True:
   exec("writeHist(xSection_inclusive_{0},histOutputDir_xSections)".format(LEMEString))
   exec("writeHist(xSection_highNu_{0},histOutputDir_xSections)".format(LEMEString))
 
-os.sys.exit(1)
-histOutputFile.Close() ## Temp until I come back with LE data to extract the high-nu flux!
-
 #############################################################################################################
-### Extract Lu-style Deliverables ###########################################################################
+### LE-dependent deliverables: off until the LE inputs exist ################################################
 #############################################################################################################
+## The two blocks below need the LE low-nu analysis (dataRateHist_lowNu_LE, eff_lowNu_LE, xSection_highNu_LE, ...),
+## which is not run: PLAYLISTS_LE is empty. Until 2026-11-03 the script stopped here with os.sys.exit(1) before
+## closing the output file, so these blocks never ran and the exit status was 1 even on success.
+## Turn the switch on once the LE processing is back (high-nu, GLOBAL-TODO M4).
+RUN_LE_DELIVERABLES = False
 
-# Also extract LE lowNu flux using Lu's lowNu XS
-flux_lowNu_LE_Lu = dataRateHist_lowNu_LE.Clone('flux_lowNu_LE_Lu')
-flux_lowNu_LE_Lu.Divide(flux_lowNu_LE_Lu,eff_lowNu_LE)
-flux_lowNu_LE_Lu.Divide(flux_lowNu_LE_Lu,xSection_lowNu_LE_Lu)
-flux_lowNu_LE_Lu.Scale(1./(nTargets*totalDataPOT_LE))
-flux_lowNu_LE_Lu.Scale(10**4) # Change units of flux from cm^{-2} to m^{-2}, via the xSection, hence the inverted factor
+if RUN_LE_DELIVERABLES:
+  #############################################################################################################
+  ### Extract Lu-style Deliverables ###########################################################################
+  #############################################################################################################
 
-# Propagate Lu LE low nu cross section to inclusive measurement
-xSection_inclusive_LE_Lu = xSection_inclusive_LE.Clone('xSection_inclusive_LE_Lu')
-xSection_inclusive_LE_Lu.Multiply(xSection_inclusive_LE_Lu,xSection_lowNu_LE_Lu)
+  # Also extract LE lowNu flux using Lu's lowNu XS
+  flux_lowNu_LE_Lu = dataRateHist_lowNu_LE.Clone('flux_lowNu_LE_Lu')
+  flux_lowNu_LE_Lu.Divide(flux_lowNu_LE_Lu,eff_lowNu_LE)
+  flux_lowNu_LE_Lu.Divide(flux_lowNu_LE_Lu,xSection_lowNu_LE_Lu)
+  flux_lowNu_LE_Lu.Scale(1./(nTargets*totalDataPOT_LE))
+  flux_lowNu_LE_Lu.Scale(10**4) # Change units of flux from cm^{-2} to m^{-2}, via the xSection, hence the inverted factor
 
-writeHist(flux_lowNu_LE_Lu,histOutputDir_flux)
-writeHist(xSection_inclusive_LE_Lu,histOutputDir_xSections)
+  # Propagate Lu LE low nu cross section to inclusive measurement
+  xSection_inclusive_LE_Lu = xSection_inclusive_LE.Clone('xSection_inclusive_LE_Lu')
+  xSection_inclusive_LE_Lu.Multiply(xSection_inclusive_LE_Lu,xSection_lowNu_LE_Lu)
 
-#############################################################################################################
-### Extract ME high-nu Flux #################################################################################
-#############################################################################################################
+  writeHist(flux_lowNu_LE_Lu,histOutputDir_flux)
+  writeHist(xSection_inclusive_LE_Lu,histOutputDir_xSections)
 
-flux_highNu_ME = dataRateHist_highNu_ME.Clone('flux_highNu_ME')
-flux_highNu_ME.Divide(flux_highNu_ME,eff_highNu_ME)
+  #############################################################################################################
+  ### Extract ME high-nu Flux #################################################################################
+  #############################################################################################################
 
-## Temp until the LE hists are updated with the full suite of error bands
-xSection_highNu_LE.AddMissingErrorBandsAndFillWithCV(flux_highNu_ME)
-##
+  flux_highNu_ME = dataRateHist_highNu_ME.Clone('flux_highNu_ME')
+  flux_highNu_ME.Divide(flux_highNu_ME,eff_highNu_ME)
 
-flux_highNu_ME.Divide(flux_highNu_ME,xSection_highNu_LE)
-flux_highNu_ME.Scale(1./(nTargets*totalDataPOT_ME))
-writeHist(flux_highNu_ME,histOutputDir_flux)
+  ## Temp until the LE hists are updated with the full suite of error bands
+  xSection_highNu_LE.AddMissingErrorBandsAndFillWithCV(flux_highNu_ME)
+  ##
+
+  flux_highNu_ME.Divide(flux_highNu_ME,xSection_highNu_LE)
+  flux_highNu_ME.Scale(1./(nTargets*totalDataPOT_ME))
+  writeHist(flux_highNu_ME,histOutputDir_flux)
 
 #############################################################################################################
 ### Close output file; other business #######################################################################
