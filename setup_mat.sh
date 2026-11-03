@@ -15,9 +15,14 @@ spack load py-numpy@1.24.3%gcc@12.2.0
 htgettoken -a htvaultprod.fnal.gov -i minerva
 export BEARER_TOKEN_FILE=/run/user/`id -u`/bt_u`id -u`
 
-export TOPDIR=/exp/minerva/app/users/$USER/MATAna/
-WORKINGDIR=/exp/minerva/app/users/$USER/MATAna/LowNuHighNu
-cd $WORKINGDIR
+# The checkout this script lives in, and its parent as TOPDIR (loadLibs.C
+# compiles $TOPDIR/LowNuHighNu/includes).  For the main checkout these are
+# /exp/minerva/app/users/$USER/MATAna/{LowNuHighNu,} as before; a second
+# checkout (e.g. MATAna-wk45/LowNuHighNu, with MATAna-wk45/opt -> ../MATAna/opt)
+# gets its own TOPDIR, so it never compiles another checkout's includes.
+WORKINGDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export TOPDIR="$(dirname "$WORKINGDIR")/"
+cd "$WORKINGDIR"
 
 source ../opt/bin/setup.sh
 source ../opt/buildGENIEXSecExtract/setup_GENIEXSecExtract.sh 

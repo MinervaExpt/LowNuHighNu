@@ -66,6 +66,11 @@ if [ -z "${TOPDIR:-}" ] || ! command -v root >/dev/null 2>&1; then
   echo "ERROR: environment not set up -- run 'source setup_mat.sh' in this shell first." >&2
   exit 1
 fi
+if [ "$(cd "${TOPDIR%/}/LowNuHighNu" 2>/dev/null && pwd)" != "$REPO" ]; then
+  echo "ERROR: TOPDIR=$TOPDIR does not contain this checkout ($REPO); loadLibs.C would" >&2
+  echo "       compile another checkout's includes.  Source this checkout's setup_mat.sh." >&2
+  exit 1
+fi
 if ! pgrep -u "$USER" -f renew_token.py >/dev/null 2>&1; then
   echo "WARNING: renew_token.py is not running; long jobs may lose their token." >&2
 fi
@@ -92,7 +97,8 @@ launch_job() {
   cat > "$JOB" <<JOBEOF
 #!/bin/bash
 cd "$REPO"
-root -l -q -b loadLibs.C+ 'xsec/makeCrossSectionMCInputs.C+(1,"$PL",true,true,false,"$MCL","$DATAL",$TESTFLAG,"$OUT_TAG")' > "$LOG" 2>&1
+echo "=== start \$(date -u)  (TOPDIR=\$TOPDIR)" > "$LOG"
+root -l -q -b loadLibs.C+ 'xsec/makeCrossSectionMCInputs.C+(1,"$PL",true,true,false,"$MCL","$DATAL",$TESTFLAG,"$OUT_TAG")' >> "$LOG" 2>&1
 rc=\$?
 echo "=== root exit code \$rc, \$(date -u)" >> "$LOG"
 JOBEOF
