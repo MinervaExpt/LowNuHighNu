@@ -132,10 +132,25 @@ std::vector<Variable2D*> GetLowNuHighNu2DVariables(
       "ehad_boundary", "ehad_boundary",
       ConvertTArrayDToStdVector(CCPi::GetBinning("ehad_boundary")),
       &CVUniverse::GetEhad_GeV, &CVUniverse::GetEhadTrue_GeV);
-  Var2D* enu_ehad_boundary =
-      new Var2D(*vmat_enu_boundary, *vmat_ehad_boundary);
+  // Explicit name: the auto-joined default would be
+  // "enu_boundary_ehad_boundary" (component names joined with "_").
+  Var2D* enu_ehad_boundary = new Var2D(std::string("enu_ehad_boundary"),
+                                       *vmat_enu_boundary, *vmat_ehad_boundary);
 
-  return std::vector<Var2D*>{enu_ehad, enu_ehad_fine, enu_ehad_boundary};
+  // Native (E_nu, Delta-nu) map.  x = nominal analysis E_nu binning (edges at
+  // the 3/7/12 GeV staircase corners and at 20 GeV, the top of the NOMAD
+  // normalization integral); y = fine Delta-nu on [-2, 3] GeV.  Delta-nu is
+  // filled directly per universe, so the plotter no longer has to rebuild it
+  // from enu_ehad_boundary by a column shift (that map stops at nu = 2.5 GeV
+  // and E_nu = 15 GeV).  Auto-joined name: "enu_delta_nu".
+  VarMAT* vmat_delta_nu_2d = new VarMAT(
+      "delta_nu", "delta_nu",
+      ConvertTArrayDToStdVector(CCPi::GetBinning("delta_nu_2d")),
+      &CVUniverse::GetDeltaNu_GeV, &CVUniverse::GetDeltaNuTrue_GeV);
+  Var2D* enu_delta_nu = new Var2D(*vmat_enu, *vmat_delta_nu_2d);
+
+  return std::vector<Var2D*>{enu_ehad, enu_ehad_fine, enu_ehad_boundary,
+                             enu_delta_nu};
 }
 
 std::vector<Variable*> GetInclusiveVariables(bool include_truth_vars = true) {
@@ -257,6 +272,42 @@ void SyncAllHists(Variable2D& v) {
 }
 
 //==============================================================================
+// Low-nu misclassification of selected signal MC (reco call vs truth call)
+//==============================================================================
+// x = E_nu (nominal analysis binning, GeV); y = category, one unit-wide bin each:
+//   y bin 1 [0,1) LL : reco low-nu,  truth low-nu
+//   y bin 2 [1,2) LH : reco low-nu,  truth high-nu
+//   y bin 3 [2,3) HL : reco high-nu, truth low-nu
+//   y bin 4 [3,4) HH : reco high-nu, truth high-nu
+// Same population and weights as migration_delta_nu (selected signal MC, reco
+// loop, every universe), so summed over E_nu (incl. under/overflow) the four
+// categories reproduce its sign quadrants.  Two versions:
+//   misclass_lownu_enu_reco -- x = reco E_nu: composition of each analysis bin
+//                              (what the reco-binned efficiency numerator sees)
+//   misclass_lownu_enu_true -- x = true E_nu (what the truth-binned denominator sees)
+// No axis labels on purpose: labelled axes change how ROOT adds/merges hists.
+// (A typedef rather than a struct: ACLiC would try to build a dictionary for a
+// class defined in this file, and Hist2DWrapper<CVUniverse> has none.)
+typedef PlotUtils::Hist2DWrapper<CVUniverse> MisclassHist;
+
+MisclassHist MakeMisclassHist(const char* name, const char* title,
+                              UniverseMap& error_bands) {
+  const TArrayD enu_bins = CCPi::GetBinning("enu");
+  const double cat_bins[5] = {0., 1., 2., 3., 4.};
+  PlotUtils::MnvH2D* temp = new PlotUtils::MnvH2D(
+      name, title, enu_bins.GetSize() - 1, enu_bins.GetArray(), 4, cat_bins);
+  const bool clear_bands = true;  // we want empty histograms
+  MisclassHist hw(temp, error_bands, clear_bands);
+  delete temp;  // the wrapper holds its own copy (as in VariableMAT)
+  return hw;
+}
+
+// y-bin centre for the category of one selected signal MC event
+double MisclassCategory(const bool reco_low, const bool true_low) {
+  return (reco_low ? 0. : 2.) + (true_low ? 0. : 1.) + 0.5;
+}
+
+//==============================================================================
 // Loop and Fill
 //==============================================================================
 void LoopAndFillData(const CCPi::MacroUtil& util,
@@ -295,7 +346,9 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
                              std::vector<Variable*>& variables,
                              std::vector<VariableMAT*>& variables_MAT,
                              std::vector<Variable2D*>& variables2D,
-                             bool truncate_run) {
+                             bool truncate_run,
+                             MisclassHist* misclass_enu_reco = nullptr,
+                             MisclassHist* misclass_enu_true = nullptr) {
   bool is_mc, is_truth;
   Long64_t n_entries;
   SetupLoop(type, util, is_mc, is_truth, n_entries);
@@ -367,6 +420,21 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         //===============
         lownuhighnu_event::FillRecoEvent(event, variables, variables_MAT, variables2D);
         // inclusive_event::FillRecoEvent(event, variables);
+
+        //===============
+        // FILL LOW-NU MISCLASSIFICATION (selected signal MC; same population
+        // as migration_delta_nu)
+        //===============
+        if (misclass_enu_reco && misclass_enu_true && event.m_is_mc &&
+            event.m_is_signal && event.m_passes_cuts) {
+          // m_is_lowNu is the reco call for THIS universe (lateral shifts move it)
+          const double cat =
+              MisclassCategory(event.m_is_lowNu, IsLowNuTruth(*universe));
+          misclass_enu_reco->FillUniverse(*universe, universe->GetEnu_GeV(),
+                                          cat, event.m_weight);
+          misclass_enu_true->FillUniverse(*universe, universe->GetEnuTrue_GeV(),
+                                          cat, event.m_weight);
+        }
       }  // universes
     }    // error bands
   }      // events
@@ -428,6 +496,14 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
   for (auto v : variables_MAT) v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
   for (auto v : variables2D) v->InitializeAllHists(util.m_error_bands, util.m_error_bands_truth);
 
+  // Low-nu misclassification hists (filled in the MC reco loop only)
+  MisclassHist misclass_enu_reco = MakeMisclassHist(
+      "misclass_lownu_enu_reco",
+      "low-nu reco/truth call (LL,LH,HL,HH) vs reco E_nu", util.m_error_bands);
+  MisclassHist misclass_enu_true = MakeMisclassHist(
+      "misclass_lownu_enu_true",
+      "low-nu reco/truth call (LL,LH,HL,HH) vs true E_nu", util.m_error_bands);
+
   // LOOP DATA
   // Uses the full `variables` (incl. truth vars); FillSelected skips truth vars
   // per-variable on data (the `continue` in LowNuHighNuEvent.cxx), so the 1D
@@ -441,7 +517,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
     std::vector<CVUniverse*> universes = band.second;
     for (auto universe : universes) universe->SetTruth(false);
   }
-  LoopAndFillMCXSecInputs(util, kMC, variables, variables_MAT, variables2D, test_run);
+  LoopAndFillMCXSecInputs(util, kMC, variables, variables_MAT, variables2D, test_run,
+                          &misclass_enu_reco, &misclass_enu_true);
 
   // LOOP TRUTH
   if (util.m_do_truth) {
@@ -469,6 +546,11 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
     SyncAllHists(*v);
     v->WriteAllHistogramsToFile(fout, true);
   }
+  fout.cd();
+  misclass_enu_reco.SyncCVHistos();
+  misclass_enu_reco.hist->Write();
+  misclass_enu_true.SyncCVHistos();
+  misclass_enu_true.hist->Write();
 }
 
 #endif  // makeXsecMCInputs_C
