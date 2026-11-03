@@ -23,4 +23,13 @@ inline double GetLowNuCutValue_GeV(double Enu_GeV) {
   return 2.0;
 }
 
+// The four nu0 plateaus of the staircase above, in order (GeV): the per-nu0
+// samples.  Must match GetLowNuCutValue_GeV's return values (and the "ehad"
+// bin edges in Binning.h, which processHists.py uses for the per-nu0 samples).
+const int kNLowNuPlateaus = 4;
+inline double GetLowNuPlateau_GeV(int i) {
+  static const double plateaus[kNLowNuPlateaus] = {0.3, 0.5, 1.0, 2.0};
+  return plateaus[i];
+}
+
 #endif  // LowNuBoundary_h

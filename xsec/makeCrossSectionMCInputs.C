@@ -150,8 +150,16 @@ std::vector<Variable2D*> GetLowNuHighNu2DVariables(
       &CVUniverse::GetDeltaNu_GeV, &CVUniverse::GetDeltaNuTrue_GeV);
   Var2D* enu_delta_nu = new Var2D(*vmat_enu, *vmat_delta_nu_2d);
 
+  // nu vs E_mu (Kevin, 2026-10-08): x = E_mu on the analysis E_nu binning,
+  // y = nu on the 0.1 GeV ehad_fine binning (0-5 GeV).
+  VarMAT* vmat_emu = new VarMAT(
+      "emu", "emu", ConvertTArrayDToStdVector(CCPi::GetBinning("enu")),
+      &CVUniverse::GetEmu_GeV, &CVUniverse::GetEmuTrue_GeV);
+  Var2D* emu_ehad_fine = new Var2D(std::string("emu_ehad_fine"), *vmat_emu,
+                                   *vmat_ehad_fine);
+
   return std::vector<Var2D*>{enu_ehad, enu_ehad_fine, enu_ehad_boundary,
-                             enu_delta_nu};
+                             enu_delta_nu, emu_ehad_fine};
 }
 
 }  // namespace make_xsec_mc_inputs
@@ -237,6 +245,80 @@ double MisclassCategory(const bool reco_low, const bool true_low) {
 }
 
 //==============================================================================
+// E_nu migration diagnostics (unfolding studies; Rob's notes 2024-03..08)
+//==============================================================================
+// Selected signal MC, reco loop, every universe; x = reco E_nu, y = true E_nu
+// (GeV).  Same population and weights as misclass_lownu_enu_*.
+//   migration_enu_lowNu / _highNu : split by the reco staircase call
+//   migration_enu_nucut<c>, c=1..4: reco nu < nu0_c = 0.3, 0.5, 1.0, 2.0 GeV
+//                                   (the per-nu0 samples; LowNuBoundary.h)
+//   migration_enu_fine            : all selected signal, each analysis E_nu
+//                                   bin split into 4 on both axes
+// The analysis-binning inclusive matrix is the existing migration_enu.
+enum EMigrationDiag {
+  kMigLowNu, kMigHighNu, kMigNuCut1, kMigNuCut2, kMigNuCut3, kMigNuCut4,
+  kMigFine, kNMigrationDiag
+};
+
+TArrayD SubdivideBinning(const TArrayD& edges, const int n_sub) {
+  const int n_bins = edges.GetSize() - 1;
+  TArrayD out(n_bins * n_sub + 1);
+  for (int i = 0; i < n_bins; ++i)
+    for (int k = 0; k < n_sub; ++k)
+      out[i * n_sub + k] = edges[i] + (edges[i + 1] - edges[i]) * k / n_sub;
+  out[n_bins * n_sub] = edges[n_bins];
+  return out;
+}
+
+MisclassHist* MakeHW2D(const std::string& name, const std::string& title,
+                       const TArrayD& xbins, const TArrayD& ybins,
+                       UniverseMap& error_bands) {
+  PlotUtils::MnvH2D* temp = new PlotUtils::MnvH2D(
+      name.c_str(), title.c_str(), xbins.GetSize() - 1, xbins.GetArray(),
+      ybins.GetSize() - 1, ybins.GetArray());
+  const bool clear_bands = true;  // we want empty histograms
+  MisclassHist* hw = new MisclassHist(temp, error_bands, clear_bands);
+  delete temp;  // the wrapper holds its own copy
+  return hw;
+}
+
+std::vector<MisclassHist*> MakeMigrationDiagnostics(UniverseMap& error_bands) {
+  const TArrayD enu = CCPi::GetBinning("enu");
+  const TArrayD enu_fine = SubdivideBinning(enu, 4);
+  std::vector<MisclassHist*> h(kNMigrationDiag, nullptr);
+  h[kMigLowNu] = MakeHW2D("migration_enu_lowNu",
+                          "E_{#nu} reco vs true, selected signal, reco low-#nu",
+                          enu, enu, error_bands);
+  h[kMigHighNu] = MakeHW2D("migration_enu_highNu",
+                           "E_{#nu} reco vs true, selected signal, reco high-#nu",
+                           enu, enu, error_bands);
+  for (int c = 0; c < kNLowNuPlateaus; ++c)
+    h[kMigNuCut1 + c] = MakeHW2D(
+        Form("migration_enu_nucut%d", c + 1),
+        Form("E_{#nu} reco vs true, selected signal, reco #nu < %.1f GeV",
+             GetLowNuPlateau_GeV(c)),
+        enu, enu, error_bands);
+  h[kMigFine] = MakeHW2D("migration_enu_fine",
+                         "E_{#nu} reco vs true, selected signal, 4x finer bins",
+                         enu_fine, enu_fine, error_bands);
+  return h;
+}
+
+void FillMigrationDiagnostics(std::vector<MisclassHist*>& h,
+                              const CVUniverse& universe, const double weight,
+                              const bool reco_low) {
+  const double enu = universe.GetEnu_GeV();
+  const double enu_true = universe.GetEnuTrue_GeV();
+  const double nu = universe.GetEhad_GeV();
+  h[reco_low ? kMigLowNu : kMigHighNu]->FillUniverse(universe, enu, enu_true,
+                                                     weight);
+  for (int c = 0; c < kNLowNuPlateaus; ++c)
+    if (nu < GetLowNuPlateau_GeV(c))
+      h[kMigNuCut1 + c]->FillUniverse(universe, enu, enu_true, weight);
+  h[kMigFine]->FillUniverse(universe, enu, enu_true, weight);
+}
+
+//==============================================================================
 // Loop and Fill
 //==============================================================================
 void LoopAndFillData(const CCPi::MacroUtil& util,
@@ -277,7 +359,8 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
                              std::vector<Variable2D*>& variables2D,
                              bool truncate_run,
                              MisclassHist* misclass_enu_reco = nullptr,
-                             MisclassHist* misclass_enu_true = nullptr) {
+                             MisclassHist* misclass_enu_true = nullptr,
+                             std::vector<MisclassHist*>* migration_diag = nullptr) {
   bool is_mc, is_truth;
   Long64_t n_entries;
   SetupLoop(type, util, is_mc, is_truth, n_entries);
@@ -364,6 +447,10 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
           misclass_enu_true->FillUniverse(*universe, universe->GetEnuTrue_GeV(),
                                           cat, event.m_weight);
         }
+        if (migration_diag && event.m_is_mc && event.m_is_signal &&
+            event.m_passes_cuts)
+          FillMigrationDiagnostics(*migration_diag, *universe, event.m_weight,
+                                   event.m_is_lowNu);
       }  // universes
     }    // error bands
   }      // events
@@ -480,6 +567,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
   MisclassHist misclass_enu_true = MakeMisclassHist(
       "misclass_lownu_enu_true",
       "low-nu reco/truth call (LL,LH,HL,HH) vs true E_nu", util.m_error_bands);
+  std::vector<MisclassHist*> migration_diag =
+      MakeMigrationDiagnostics(util.m_error_bands);
 
   // LOOP DATA
   // Uses the full `variables` (incl. truth vars); FillSelected skips truth vars
@@ -495,7 +584,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
     for (auto universe : universes) universe->SetTruth(false);
   }
   LoopAndFillMCXSecInputs(util, kMC, variables, variables_MAT, variables2D, test_run,
-                          &misclass_enu_reco, &misclass_enu_true);
+                          &misclass_enu_reco, &misclass_enu_true,
+                          &migration_diag);
 
   // LOOP TRUTH
   if (util.m_do_truth) {
@@ -528,6 +618,10 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
   misclass_enu_reco.hist->Write();
   misclass_enu_true.SyncCVHistos();
   misclass_enu_true.hist->Write();
+  for (auto h : migration_diag) {
+    h->SyncCVHistos();
+    h->hist->Write();
+  }
 }
 
 #endif  // makeXsecMCInputs_C
