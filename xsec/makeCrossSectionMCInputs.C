@@ -310,7 +310,7 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         //    universe->ShortName() == "cv")
         //  universe->PrintArachneLink();
 
-        // calls GetWeight
+        // MC weight is set below, once, only where it is needed
         LowNuHighNuEvent event(is_mc, is_truth, util.m_signal_definition,
                                universe);
 
@@ -318,6 +318,8 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         // FILL TRUTH
         //===============
         if (type == kTruth) {
+          // Truth fills use the weight only for signal events
+          if (event.m_is_signal) event.m_weight = universe->GetWeight();
           lownuhighnu_event::FillTruthEvent(event, variables, variables_MAT, variables2D);
           continue;
         }
@@ -344,10 +346,12 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
           event.m_passes_cuts = cuts_info.GetAll();
         }
 
-        // RDF: Still need this in its current location? Or can be moved
-        // upstream? Need to re-call this because the node cut efficiency
-        // systematic needs a pion candidate to calculate its weight.
-        event.m_weight = universe->GetWeight();
+        // Weight: computed once per (event, universe), and only for events
+        // that pass the cuts -- every reco fill below requires m_passes_cuts.
+        // (This used to be a second GetWeight() call on top of the one in the
+        // LowNuHighNuEvent constructor, for the CCPi analysis's pion-dependent
+        // node-cut systematic; not used here.)
+        if (event.m_passes_cuts) event.m_weight = universe->GetWeight();
 
         //===============
         // FILL RECO

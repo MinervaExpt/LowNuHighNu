@@ -3,6 +3,8 @@
 
 #include "LowNuHighNuEvent.h"
 
+#include <limits>  // quiet_NaN
+
 #include "Cuts.h"              // kCutsVector
 #include "common_functions.h"  // GetVar, HasVar
 
@@ -19,7 +21,10 @@ LowNuHighNuEvent::LowNuHighNuEvent(const bool is_mc, const bool is_truth,
   m_is_signal = is_mc ? IsSignal(*universe, signal_definition) : false;
   m_is_lowNu = is_truth ? false : IsLowNu(*universe);
   m_is_lowNu_truth = is_truth ? IsLowNuTruth(*universe) : false;
-  m_weight = is_mc ? universe->GetWeight() : 1.;
+  // MC weight is NOT computed here: the event loop sets it once, and only for
+  // events that will be filled (reco: passes cuts; truth: signal).  NaN until
+  // then, so any premature use shows up as NaN histogram contents.
+  m_weight = is_mc ? std::numeric_limits<double>::quiet_NaN() : 1.;
   m_w_type = is_mc ? GetWSidebandType(*universe, signal_definition,
                                       sidebands::kNWFitCategories)
                    : kNWSidebandTypes;
