@@ -32,12 +32,6 @@ PassesCutsInfo PassesCuts(CVUniverse& universe, const bool is_mc,
     passes_this_cut = PassesCut(universe, c, is_mc, signal_definition);
     passes_all_cuts = passes_all_cuts && passes_this_cut;
   }
-  // Ben Stuff 
-  //  typedef reco::HasMINOSMatch<CVUniverse> HasMM;
-  // HasMM::checkHasMINOSMatchCut(universe);
-
-  typedef reco::HasMINOSMatch<CVUniverse> HasMINOSMatch;
-  HasMINOSMatch::checkHasMINOSMatchCut(universe);//, PlotUtils::detail::empty);
   return PassesCutsInfo{passes_all_cuts};
 }
 
