@@ -11,7 +11,7 @@ set is a shell glob, e.g. .../2025-12_development/root/XSecInputs_1110_ME1*.root
 The output is refused if it exists, unless --force.  What the script computes:
 CODE-GUIDE.md section 5 (Claude project docs).
 """
-import argparse,os,re,sys
+import argparse,hashlib,os,re,subprocess,sys
 
 def parseArguments():
   parser = argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -93,6 +93,18 @@ def AddNOMADErrorBand( inHist , applyWgts = False ):
   if not applyWgts: inHist.AddVertErrorBandAndFillWithCV("NOMAD_normalization",2)
   inHist.GetVertErrorBand("NOMAD_normalization").GetHist(0).Scale(uncertaintyWgts[0])
   inHist.GetVertErrorBand("NOMAD_normalization").GetHist(1).Scale(uncertaintyWgts[1])
+
+def codeVersion():
+  """(git describe --always --dirty, md5 of `git diff HEAD` to 12 hex digits) for this script's checkout,
+  the same two stamps the event loop writes into its outputs (git_describe, git_diff_md5)."""
+  repo = os.path.dirname(os.path.abspath(__file__))
+  try:
+    describe = subprocess.run(['git','-C',repo,'--no-optional-locks','describe','--always','--dirty'],
+                              capture_output=True,text=True,check=True).stdout.strip()
+    diff = subprocess.run(['git','-C',repo,'--no-optional-locks','diff','HEAD'],capture_output=True,check=True).stdout
+    return describe,hashlib.md5(diff).hexdigest()[:12]
+  except (OSError,subprocess.CalledProcessError):
+    return 'unknown','unknown'
 
 ################################################################ Define functions above
 
@@ -182,6 +194,14 @@ FLUX_COMPONENTS = [
 histOutputFile = ROOT.TFile(histOutputFilePath,"recreate")
 histOutputFile.cd()
 
+## Provenance: the inputs and the version of this script that made this file.  Each playlist directory
+## also gets its input's POT hists and event-loop stamps (git_describe, git_diff_md5, tune), below.
+codeDescribe,codeDiffMd5 = codeVersion()
+print('Code version: {0}  (diff md5 {1})'.format(codeDescribe,codeDiffMd5))
+ROOT.TNamed('processHists_git_describe',codeDescribe).Write()
+ROOT.TNamed('processHists_git_diff_md5',codeDiffMd5).Write()
+ROOT.TNamed('processHists_inputs','\n'.join('{0} {1}'.format(pl,INPUT_FILES[pl]) for pl in PLAYLISTS_ME)).Write()
+
 histOutputDir_xSections = histOutputFile.mkdir('xSections')
 histOutputDir_flux = histOutputFile.mkdir('flux')
 histOutputDir_allLE = histOutputFile.mkdir('all-LE')
@@ -252,6 +272,17 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
     if isME:  totalDataPOT_ME += dataPOT
     else:     totalDataPOT_LE += dataPOT
     scaleFactor = dataPOT/mcPOT
+
+    # Provenance: this playlist's POT and the event-loop stamps of its input file
+    writeHist(mcPOT_hist,histOutputDir_playlist)
+    writeHist(dataPOT_hist,histOutputDir_playlist)
+    for stampName in ['git_describe','git_diff_md5','tune']:
+      stamp = histsFile.Get(stampName)
+      if stamp:
+        histOutputDir_playlist.cd()
+        stamp.Write()
+      else:
+        print('{0}: no {1} stamp in the input (it predates that stamp)'.format(playlist,stampName))
  
     # Extract flux components for each signal definition
     for sigDef in SIGNAL_DEFINITIONS:
