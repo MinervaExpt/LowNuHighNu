@@ -387,7 +387,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
                               bool do_truth = false, bool is_grid = false,
                               std::string mc_input_file = "",
                               std::string data_input_file = "",
-                              bool test_run = false) {
+                              bool test_run = false,
+                              std::string out_tag = "") {
   // Only signal definition 1 (kLowNuHighNu) is supported; it writes the
   // inclusive, lowNu and highNu samples.  Definition 0 (kInclusive: Anne's
   // DIS/sideband variant, InclusiveEvent) was removed 2026-11-03.
@@ -420,10 +421,15 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
   char tchar[100];
   std::strftime(tchar, sizeof(tchar), "%F", std::gmtime(&time));  // YYYY-MM-dd
   const std::string tag = tchar;
-  std::string outfile_name(Form("%s_%d%d%d%d_%s_%s.root", macro.c_str(),
+  // Optional out_tag (e.g. "wk45" or "wk45_p1of2" from run_playlists.sh) is
+  // appended so tagged or split runs of the same playlist never collide.  The
+  // playlist name itself must stay real: MAT uses it for playlist-dependent
+  // weights.
+  const std::string out_sfx = out_tag.empty() ? "" : "_" + out_tag;
+  std::string outfile_name(Form("%s_%d%d%d%d_%s_%s%s.root", macro.c_str(),
                                 signal_definition_int, int(do_systematics),
-                                int(do_truth), int(is_grid), plist.c_str(), 
-                                tag.c_str()));
+                                int(do_truth), int(is_grid), plist.c_str(),
+                                tag.c_str(), out_sfx.c_str()));
   std::cout << "Saving output to " << outfile_name << "\n\n";
   TFile fout(outfile_name.c_str(), "RECREATE");
 
