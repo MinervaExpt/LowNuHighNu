@@ -12,3 +12,12 @@ cache/
 .pre-commit-config.yaml
 *.out
 *.log
+# run_playlists.sh logs, job scripts and split part lists
+logs/
+# Python bytecode
+__pycache__/
+# plotter output directories (boundary_diagnostic.py and ad-hoc plot dirs)
+boundary-plots*/
+plotting/boundary_plots*/
+# macOS
+.DS_Store
