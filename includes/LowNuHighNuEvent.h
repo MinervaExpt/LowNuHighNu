@@ -4,7 +4,6 @@
 #include "CVUniverse.h"
 #include "Constants.h"  // typedef RecoPionIdx, EventCount, PassesCutsInfo
 #include "SignalDefinition.h"
-#include "TruthCategories/Sidebands.h"         // WSidebandType
 #include "TruthCategories/SignalBackground.h"  // SignalBackgroundType
 #include "Variable.h"
 #include "Variable2D.h"
@@ -42,16 +41,12 @@ struct LowNuHighNuEvent {
   bool m_is_lowNu;
   bool m_is_lowNu_truth;
   double m_weight;
-  WSidebandType m_w_type;
 
   // Fixed (directly) outside of constructor -- with time-intensive functions
   bool m_passes_cuts;
-  bool m_is_w_sideband;
-  bool m_passes_all_cuts_except_w;
 };
 
 // Helper Functions
-// bool IsWSideband(LowNuHighNuEvent&);
 PassesCutsInfo PassesCuts(const LowNuHighNuEvent&);
 SignalBackgroundType GetSignalBackgroundType(const LowNuHighNuEvent&);
 
@@ -64,7 +59,6 @@ void FillSelected(const LowNuHighNuEvent&, const std::vector<Variable*>&,
 void FillRecoEvent(const LowNuHighNuEvent&, const std::vector<Variable*>&,
                    const std::vector<VariableMAT*>&, 
                    const std::vector<Variable2D*>&);
-void FillWSideband(const LowNuHighNuEvent&, const std::vector<Variable*>&);
 void FillTruthEvent(const LowNuHighNuEvent&, const std::vector<Variable*>&,
                     const std::vector<VariableMAT*>&,
                     const std::vector<Variable2D*>&);

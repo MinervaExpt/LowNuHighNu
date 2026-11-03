@@ -53,8 +53,6 @@ class Variable {
   // Histogram Initialization
   template <typename T>
   void InitializeAllHists(T systematic_univs, T systematic_univs_truth);
-  template <typename T>
-  void InitializeSidebandHists(T systematic_univs);
   void InitializeStackedHists();
   void InitializeDataHists();
 

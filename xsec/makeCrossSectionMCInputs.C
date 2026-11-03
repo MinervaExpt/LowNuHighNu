@@ -15,7 +15,6 @@
 #include "includes/LowNuHighNuEvent.h"
 #include "includes/MacroUtil.h"
 #include "includes/SignalDefinition.h"
-#include "includes/TruthCategories/Sidebands.h"  // sidebands::kFitVarString, IsWSideband
 #include "includes/Variable.h"
 #include "includes/Variable2D.h"
 #include "includes/common_functions.h"  // GetVar, WritePOT
@@ -176,13 +175,6 @@ std::vector<Variable*> GetAnalysisVariables(SignalDefinition signal_definition,
 void SyncAllHists(Variable& v) {
   v.m_hists.m_selection_mc.SyncCVHistos();
   v.m_hists.m_bg.SyncCVHistos();
-  v.m_hists.m_bg_loW.SyncCVHistos();
-  v.m_hists.m_bg_midW.SyncCVHistos();
-  v.m_hists.m_bg_hiW.SyncCVHistos();
-  v.m_hists.m_wsidebandfit_sig.SyncCVHistos();
-  v.m_hists.m_wsidebandfit_loW.SyncCVHistos();
-  v.m_hists.m_wsidebandfit_midW.SyncCVHistos();
-  v.m_hists.m_wsidebandfit_hiW.SyncCVHistos();
   v.m_hists.m_effnum.SyncCVHistos();
   v.m_hists.m_effden.SyncCVHistos();
 }

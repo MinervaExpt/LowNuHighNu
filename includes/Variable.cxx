@@ -48,11 +48,6 @@ void Variable::InitializeAllHists(T systematic_univs,
   m_hists.InitializeAllHists(systematic_univs, systematic_univs_truth);
 }
 
-template <typename T>
-void Variable::InitializeSidebandHists(T systematic_univs) {
-  m_hists.InitializeSidebandHists(systematic_univs);
-}
-
 void Variable::InitializeStackedHists() { m_hists.InitializeStackedHists(); }
 
 void Variable::InitializeDataHists() { m_hists.InitializeDataHists(); }
@@ -70,24 +65,9 @@ void Variable::WriteAllHistogramsToFile(TFile& fout) const {
   m_hists.m_selection_data->Write();
   m_hists.m_selection_mc.hist->Write();
   m_hists.m_bg.hist->Write();
-  m_hists.m_bg_loW.hist->Write();
-  m_hists.m_bg_midW.hist->Write();
-  m_hists.m_bg_hiW.hist->Write();
   m_hists.m_effnum.hist->Write();
   m_hists.m_effden.hist->Write();
-  if (Name() == sidebands::kFitVarString) {
-    m_hists.m_wsidebandfit_sig.hist->Write();
-    m_hists.m_wsidebandfit_loW.hist->Write();
-    m_hists.m_wsidebandfit_midW.hist->Write();
-    m_hists.m_wsidebandfit_hiW.hist->Write();
-    for (auto i : m_hists.m_stacked_wsideband.m_hist_map) {
-      std::string legend_name = GetTruthClassification_LegendLabel(i.first);
-      std::string short_name = GetTruthClassification_Name(i.first);
-      std::cout << Form("%s_%s", m_label.c_str(), short_name.c_str()) << "\n";
-      i.second->Write(Form("%s_%s", m_label.c_str(), short_name.c_str()));
-    }
-  }
-  if (!m_is_true && Name() != sidebands::kFitVarString)
+  if (!m_is_true)
     m_hists.m_migration.hist->Write();
 }
 
@@ -111,8 +91,6 @@ TObjArray Variable::GetStackArray(T type) const {
     return m_hists.m_stacked_fspart.m_hist_array;
   else if (std::is_same<T, ChannelType>::value)
     return m_hists.m_stacked_channel.m_hist_array;
-  else if (std::is_same<T, WSidebandType>::value)
-    return m_hists.m_stacked_wsideband.m_hist_array;
   else {
     std::cerr << "GetStackArray: Unknown truth type.\n";
     std::exit(1);

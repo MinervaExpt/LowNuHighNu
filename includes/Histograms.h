@@ -39,9 +39,6 @@ class Histograms {
 
   // Cross Section Pipeline
   CVHW m_bg;
-  CVHW m_bg_hiW;
-  CVHW m_bg_loW;
-  CVHW m_bg_midW;
   MH1D* m_bg_subbed_data;
   MH1D* m_cross_section;
   CVHW m_effden;
@@ -52,12 +49,6 @@ class Histograms {
   CVHW m_selection_mc;
   MH1D* m_tuned_bg;
   MH1D* m_unfolded;
-  MH1D* m_wsideband_data;
-  MH1D* m_wsidebandfit_data;
-  CVHW m_wsidebandfit_hiW;
-  CVHW m_wsidebandfit_loW;
-  CVHW m_wsidebandfit_midW;
-  CVHW m_wsidebandfit_sig;
 
   // Stacked Histograms
   StackedHistogram<ChannelType> m_stacked_channel;
@@ -65,7 +56,6 @@ class Histograms {
   StackedHistogram<MesonBackgroundType> m_stacked_mesonbg;
   StackedHistogram<SignalBackgroundType> m_stacked_sigbg;
   StackedHistogram<WBackgroundType> m_stacked_wbg;
-  StackedHistogram<WSidebandType> m_stacked_wsideband;
 
   //==========================================================================
   // Functions
@@ -84,8 +74,6 @@ class Histograms {
   template <typename T>
   void InitializeSelectionHists(T systematic_univs, T systematic_univs_truth);
   template <typename T>
-  void InitializeSidebandHists(T systematic_univs);
-  template <typename T>
   void InitializeMigrationHists(T systematic_univs);
   void InitializeDataHists();
   void InitializeStackedHists();
@@ -98,7 +86,6 @@ class Histograms {
       MesonBackgroundType type) const;
   std::map<FSParticleType, MH1D*> GetStackMap(FSParticleType type) const;
   std::map<ChannelType, MH1D*> GetStackMap(ChannelType type) const;
-  std::map<WSidebandType, MH1D*> GetStackMap(WSidebandType type) const;
 
   // Load MC hists from file
   void LoadDataHistsFromFile(TFile& fin);

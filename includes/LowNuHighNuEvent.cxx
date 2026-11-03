@@ -25,15 +25,12 @@ LowNuHighNuEvent::LowNuHighNuEvent(const bool is_mc, const bool is_truth,
   // events that will be filled (reco: passes cuts; truth: signal).  NaN until
   // then, so any premature use shows up as NaN histogram contents.
   m_weight = is_mc ? std::numeric_limits<double>::quiet_NaN() : 1.;
-  m_w_type = is_mc ? GetWSidebandType(*universe, signal_definition,
-                                      sidebands::kNWFitCategories)
-                   : kNWSidebandTypes;
 }
 
 //==============================================================================
 // Helper Functions
 //==============================================================================
-// PassesCutsInfo {passes_all_cuts, is_w_sideband, passes_all_except_w}
+// PassesCutsInfo {passes_all_cuts}
 PassesCutsInfo PassesCuts(const LowNuHighNuEvent& e) {
   return PassesCuts(*e.m_universe, e.m_is_mc, e.m_signal_definition);
 }
@@ -53,10 +50,6 @@ void lownuhighnu_event::FillRecoEvent(
   if (event.m_passes_cuts) {
     lownuhighnu_event::FillSelected(event, variables, variables_MAT, variables2D);
   }
-  // // Fill W Sideband
-  // if (event.m_is_w_sideband) {
-  //   lownuhighnu_event::FillWSideband(event, variables);
-  // }
 
   // Fill Migration
   if (event.m_is_mc && event.m_is_signal && event.m_passes_cuts) {
@@ -114,27 +107,6 @@ void lownuhighnu_event::FillSelected(
     } else {
       var->m_hists.m_bg.FillUniverse(*event.m_universe, fill_val,
                                      event.m_weight);
-
-      // Fill bg by W sideband category
-      switch (event.m_w_type) {
-        case kWSideband_Signal:
-          break;
-        case kWSideband_Low:
-          var->m_hists.m_bg_loW.FillUniverse(*event.m_universe, fill_val,
-                                             event.m_weight);
-          break;
-        case kWSideband_Mid:
-          var->m_hists.m_bg_midW.FillUniverse(*event.m_universe, fill_val,
-                                              event.m_weight);
-          break;
-        case kWSideband_High:
-          var->m_hists.m_bg_hiW.FillUniverse(*event.m_universe, fill_val,
-                                             event.m_weight);
-          break;
-        default:
-          std::cerr << "FillBackgrounds: no such W category\n";
-          std::exit(2);
-      }
     }
   }  // end variables
   for (auto var: variables_MAT) {
@@ -200,51 +172,6 @@ void lownuhighnu_event::FillSelected(
       }
     }
   }  // end variables2D
-}
-
-// Fill histograms of all variables with events in the sideband region
-void lownuhighnu_event::FillWSideband(const LowNuHighNuEvent& event,
-                                      const std::vector<Variable*>& variables) {
-  if (!event.m_is_w_sideband) {
-    std::cerr << "FillWSideband Warning: This event is not in the wsideband "
-                 "region, are you sure you want to be filling?\n";
-  }
-  if (!HasVar(variables, sidebands::kFitVarString)) {
-    std::cerr << "FillWSideband: variables container is missing fit var\n";
-    std::exit(1);
-  }
-
-  for (auto var : variables) {
-    // if (var->m_is_true && !event.m_is_mc) continue; // truth, but not MC?
-    if (var->m_is_true) continue;  // truth pion variables don't generally work
-    const double fill_val = var->GetValue(*event.m_universe);
-
-    if (event.m_is_mc) {
-      switch (event.m_w_type) {
-        case kWSideband_Signal:
-          var->m_hists.m_wsidebandfit_sig.FillUniverse(
-              *event.m_universe, fill_val, event.m_weight);
-          break;
-        case kWSideband_Low:
-          var->m_hists.m_wsidebandfit_loW.FillUniverse(
-              *event.m_universe, fill_val, event.m_weight);
-          break;
-        case kWSideband_Mid:
-          var->m_hists.m_wsidebandfit_midW.FillUniverse(
-              *event.m_universe, fill_val, event.m_weight);
-          break;
-        case kWSideband_High:
-          var->m_hists.m_wsidebandfit_hiW.FillUniverse(
-              *event.m_universe, fill_val, event.m_weight);
-          break;
-        default:
-          std::cerr << "FillWSideband: invalid W category\n";
-          std::exit(2);
-      }
-    } else {
-      var->m_hists.m_wsidebandfit_data->Fill(fill_val);
-    }
-  }  // end variables
 }
 
 void lownuhighnu_event::FillMigration(const LowNuHighNuEvent& event,
@@ -437,10 +364,6 @@ void lownuhighnu_event::FillStackedHists(const LowNuHighNuEvent& event,
 
   v->GetStackComponentHist(
        GetSignalBackgroundType(*event.m_universe, event.m_signal_definition))
-      ->Fill(fill_val, event.m_weight);
-
-  v->GetStackComponentHist(
-       GetWSidebandType(*event.m_universe, event.m_signal_definition))
       ->Fill(fill_val, event.m_weight);
 
   v->GetStackComponentHist(
