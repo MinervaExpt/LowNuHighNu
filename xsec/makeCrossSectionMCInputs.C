@@ -4,6 +4,10 @@
 #include <cassert>
 #include <ctime>
 
+#include "TNamed.h"
+#include "TString.h"
+#include "TSystem.h"
+
 #include "includes/Binning.h"
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h"
@@ -481,6 +485,28 @@ void makeCrossSectionMCInputs(int signal_definition_int = 0,
                                 tag.c_str()));
   std::cout << "Saving output to " << outfile_name << "\n\n";
   TFile fout(outfile_name.c_str(), "RECREATE");
+
+  // PROVENANCE: record which code built this file, read at launch (the
+  // checkout may change while a long run is going).  git_describe names the
+  // commit and ends in "-dirty" if there were uncommitted edits; git_diff_md5
+  // fingerprints those edits (the md5 of an empty diff, d41d8cd98f00, means a
+  // clean tree).  --no-optional-locks: parallel jobs must not race on
+  // .git/index.lock.
+  {
+    const TString repo =
+        TString::Format("%s/LowNuHighNu", gSystem->Getenv("TOPDIR"));
+    const TString describe = gSystem->GetFromPipe(TString::Format(
+        "git -C %s --no-optional-locks describe --always --dirty 2>&1",
+        repo.Data()));
+    const TString diff_md5 = gSystem->GetFromPipe(TString::Format(
+        "git -C %s --no-optional-locks diff HEAD 2>/dev/null | md5sum | cut -c1-12",
+        repo.Data()));
+    std::cout << "Code version: " << describe << "  (diff md5 " << diff_md5
+              << ")\n\n";
+    fout.cd();
+    TNamed("git_describe", describe.Data()).Write();
+    TNamed("git_diff_md5", diff_md5.Data()).Write();
+  }
 
   // INIT VARS, HISTOS, AND EVENT COUNTERS
   const bool do_truth_vars = true;
