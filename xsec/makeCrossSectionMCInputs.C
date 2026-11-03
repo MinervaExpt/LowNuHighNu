@@ -19,7 +19,6 @@
 #include "includes/Variable.h"
 #include "includes/Variable2D.h"
 #include "includes/common_functions.h"  // GetVar, WritePOT
-#include "playlist_methods.h"           // GetPlaylistFile
 
 class Variable;
 
@@ -395,16 +394,16 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
 
   // INPUT TUPLES
   const bool is_mc = true;
-  std::string mc_file_list, data_file_list;
-  assert(!(is_grid && (mc_input_file.empty() || data_input_file.empty())) &&
-         "On the grid, both mc_input_file and data_input_file must be specified.");
-  // const bool use_xrootd = false;
-  mc_file_list = mc_input_file.empty()
-                     ? GetPlaylistFile(plist, true /*, use_xrootd*/)
-                     : mc_input_file;
-  data_file_list = data_input_file.empty()
-                     ? GetPlaylistFile(plist, false /*, use_xrootd*/)
-                     : data_input_file;
+  // Playlist files must be given explicitly (run_playlists.sh does this).  The
+  // old fallback, GetPlaylistFile() in playlist_methods.h, points at
+  // pre-open-data MAD playlists that no longer exist.
+  if (mc_input_file.empty() || data_input_file.empty()) {
+    std::cerr << "ERROR: pass both mc_input_file and data_input_file "
+                 "(full paths to the playlist .txt files).\n";
+    std::exit(1);
+  }
+  const std::string mc_file_list = mc_input_file;
+  const std::string data_file_list = data_input_file;
 
   // INIT MACRO UTILITY
   const std::string macro("XSecInputs");
