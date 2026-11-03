@@ -147,8 +147,8 @@ bool XYVtxIsSignal(const CVUniverse& univ) {
 
 // ---> IMPORTANT FINAL FUNCTION  <----
 bool IsSignal(const CVUniverse& univ, SignalDefinition sig_def = kInclusive) {
-  const std::map<std::string, int> particles = GetParticleTopology(
-      univ.GetVec<int>("mc_FSPartPDG"), univ.GetVec<double>("mc_FSPartE"));
+  // (The CCPi version built a final-state particle-topology map here for its
+  // pion cuts, which are commented out below; it is no longer computed.)
   if (univ.GetInt("mc_current") == 1 && univ.GetBool("truth_is_fiducial") &&
       ZVtxIsSignal(univ) && XYVtxIsSignal(univ) &&
       univ.GetInt("mc_incoming") == 14 // && ## Adjusting signal def to align with thesis-era def ## RDF 2025-04-30
