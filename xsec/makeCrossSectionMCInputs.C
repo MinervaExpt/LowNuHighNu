@@ -12,7 +12,6 @@
 #include "includes/CVUniverse.h"
 #include "includes/Constants.h"
 #include "includes/Cuts.h"
-#include "includes/InclusiveEvent.h"
 #include "includes/LowNuHighNuEvent.h"
 #include "includes/MacroUtil.h"
 #include "includes/SignalDefinition.h"
@@ -157,67 +156,6 @@ std::vector<Variable2D*> GetLowNuHighNu2DVariables(
                              enu_delta_nu};
 }
 
-std::vector<Variable*> GetInclusiveVariables(bool include_truth_vars = true) {
-  Var* pmu = new Var("pmu", "p_{#mu}", "MeV", CCPi::GetBinning("pmu"),
-                     &CVUniverse::GetPmu);
-
-  Var* thetamu_deg =
-      new Var("thetamu_deg", "#theta_{#mu}", "deg",
-              CCPi::GetBinning("thetamu_deg"), &CVUniverse::GetThetamuDeg);
-
-  Var* enu = new Var("enu", "E_{#nu}", "MeV", CCPi::GetBinning("enu"),
-                     &CVUniverse::GetEnu);
-
-  Var* q2 = new Var("q2", "Q^{2}", "MeV^{2}", CCPi::GetBinning("q2"),
-                    &CVUniverse::GetQ2);
-
-  Var* wexp = new Var("wexp", "W_{exp}", "MeV", CCPi::GetBinning("wexp"),
-                      &CVUniverse::GetWexp);
-
-  // Ehad variables
-  Var* ehad = new Var("ehad", "ehad", "MeV", CCPi::GetBinning("ehad"),
-                      &CVUniverse::GetEhad);
-
-  bool is_true = true;
-  Var* ehad_true =
-      new Var("ehad_true", "ehad True", "MeV", ehad->m_hists.m_bins_array,
-              &CVUniverse::GetEhadTrue);
-  ehad_true->m_is_true = true;
-
-  Var* thetamu_deg_true =
-      new Var("thetamu_deg_true", "#theta_{#mu} True", thetamu_deg->m_units,
-              thetamu_deg->m_hists.m_bins_array, &CVUniverse::GetThetamuTrueDeg,
-              is_true);
-
-  Var* enu_true =
-      new Var("enu_true", "E_{#nu} True", enu->m_units,
-              enu->m_hists.m_bins_array, &CVUniverse::GetEnuTrue, is_true);
-
-  Var* q2_true =
-      new Var("q2_true", "Q^{2} True", q2->m_units, q2->m_hists.m_bins_array,
-              &CVUniverse::GetQ2True, is_true);
-  Var* pmu_true =
-      new Var("pmu_true", "p_{#mu} True", pmu->m_units,
-              pmu->m_hists.m_bins_array, &CVUniverse::GetPmuTrue, is_true);
-
-  Var* wexp_true =
-      new Var("wexp_true", "W_{exp} True", wexp->m_units,
-              wexp->m_hists.m_bins_array, &CVUniverse::GetWexpTrue, is_true);
-
-  std::vector<Var*> variables = {pmu, thetamu_deg, enu, q2, wexp, ehad};
-
-  if (include_truth_vars) {
-    variables.push_back(pmu_true);
-    variables.push_back(thetamu_deg_true);
-    variables.push_back(enu_true);
-    variables.push_back(q2_true);
-    variables.push_back(wexp_true);
-    variables.push_back(ehad_true);
-  }
-
-  return variables;
-}
-
 }  // namespace make_xsec_mc_inputs
 
 std::vector<Variable*> GetAnalysisVariables(SignalDefinition signal_definition,
@@ -228,10 +166,6 @@ std::vector<Variable*> GetAnalysisVariables(SignalDefinition signal_definition,
     case kLowNuHighNu:
       variables =
           make_xsec_mc_inputs::GetLowNuHighNuVariables(include_truth_vars);
-      break;
-    case kInclusive:
-      variables =
-          make_xsec_mc_inputs::GetInclusiveVariables(include_truth_vars);
       break;
     default:
       std::cerr << "Variables for other SDs not yet implemented.\n";
@@ -380,15 +314,12 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         // calls GetWeight
         LowNuHighNuEvent event(is_mc, is_truth, util.m_signal_definition,
                                universe);
-        // InclusiveEvent event(is_mc, is_truth, util.m_signal_definition,
-        // universe);
 
         //===============
         // FILL TRUTH
         //===============
         if (type == kTruth) {
           lownuhighnu_event::FillTruthEvent(event, variables, variables_MAT, variables2D);
-          // inclusive_event::FillTruthEvent(event, variables);
           continue;
         }
 
@@ -423,7 +354,6 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
         // FILL RECO
         //===============
         lownuhighnu_event::FillRecoEvent(event, variables, variables_MAT, variables2D);
-        // inclusive_event::FillRecoEvent(event, variables);
 
         //===============
         // FILL LOW-NU MISCLASSIFICATION (selected signal MC; same population
@@ -448,13 +378,21 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
 //==============================================================================
 // Main
 //==============================================================================
-void makeCrossSectionMCInputs(int signal_definition_int = 0,
+void makeCrossSectionMCInputs(int signal_definition_int = 1,
                               std::string plist = "ME1A",
                               bool do_systematics = false,
                               bool do_truth = false, bool is_grid = false,
                               std::string mc_input_file = "",
                               std::string data_input_file = "",
                               bool test_run = false) {
+  // Only signal definition 1 (kLowNuHighNu) is supported; it writes the
+  // inclusive, lowNu and highNu samples.  Definition 0 (kInclusive: Anne's
+  // DIS/sideband variant, InclusiveEvent) was removed 2026-11-03.
+  if (signal_definition_int != kLowNuHighNu) {
+    std::cerr << "ERROR: only signal definition 1 (kLowNuHighNu) is supported.\n";
+    std::exit(1);
+  }
+
   // INPUT TUPLES
   const bool is_mc = true;
   std::string mc_file_list, data_file_list;

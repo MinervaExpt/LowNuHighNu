@@ -22,7 +22,6 @@ void loadIncludes(bool verbose_cvu) {
   gSystem->CompileMacro("Variable.cxx", "k");
   gSystem->CompileMacro("MacroUtil.cxx", "k");
   gSystem->CompileMacro("LowNuHighNuEvent.cxx", cvu_flags);
-  gSystem->CompileMacro("InclusiveEvent.cxx", cvu_flags);
 }
 
 void loadLibs(bool verbose_cvu = true) {
