@@ -8,6 +8,7 @@
 #   TEST=1 ./run_playlists.sh 1A              # truncated smoke test (test_run = true)
 #   TAG=wk45 ./run_playlists.sh 1D            # tagged run: coexists with untagged/other-tag runs
 #   TAG=wk45 SPLIT=2 ./run_playlists.sh 1D    # split each playlist's file lists in 2 parallel jobs
+#   TUPLES=p9 TAG=wk45-p9 ./run_playlists.sh 1D   # same, on the P9 data-preservation tuples
 #
 # Playlists may be given as 1B or ME1B.  For each job (P = ME1B, plus _<TAG>,
 # plus _p<i>of<N> when split, plus _TEST in test mode):
@@ -38,12 +39,24 @@
 # Overnight runs need the token renewer alive in its own screen:
 #   screen -S renew_token ;  nohup python renew_token.py ;  Ctrl-a d
 #
+# Input tuples (TUPLES, default opendata) -- the playlist files are, for <N> = 1A ... 1P:
+#   opendata  $OPENDATA_DIR/MC/StandardMC/MediumEnergy_FHC_StandardMC_Playlist<N>.txt
+#             $OPENDATA_DIR/Data/MediumEnergy_FHC_Data_Playlist<N>.txt
+#             (OPENDATA_DIR default /pnfs/minerva/persistent/OpenData/MediumEnergy_FHC)
+#   p9        $P9_DIR/FullDetector/P9_Playlist<N>_MC.txt
+#             $P9_DIR/Data/P9_Playlist<N>_Data.txt
+#             (P9_DIR default /pnfs/minerva/persistent/DataPreservation/p9)
+# The playlist name passed to the event loop is ME<N> either way (MAT uses it
+# for playlist-dependent weights); use TAG to keep the outputs apart.
+#
 # Env overrides: WAIT_MAX (s, default 2700) = longest wait for a job to reach
-# its data loop; OPENDATA_DIR = playlist-file root (default below).
+# its data loop; OPENDATA_DIR, P9_DIR = tuple-list roots (defaults above).
 
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OD="${OPENDATA_DIR:-/pnfs/minerva/persistent/OpenData/MediumEnergy_FHC}"
+P9D="${P9_DIR:-/pnfs/minerva/persistent/DataPreservation/p9}"
+TUPLES="${TUPLES:-opendata}"
 TEST="${TEST:-0}"
 TAG="${TAG:-}"
 SPLIT="${SPLIT:-1}"
@@ -54,6 +67,10 @@ if [ $# -eq 0 ]; then
   sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'
   exit 1
 fi
+case "$TUPLES" in
+  opendata|p9) ;;
+  *) echo "ERROR: TUPLES must be 'opendata' or 'p9' (got '$TUPLES')." >&2; exit 1 ;;
+esac
 if [ -n "$TAG" ] && ! [[ "$TAG" =~ ^[A-Za-z0-9-]+$ ]]; then
   echo "ERROR: TAG may contain only letters, digits and '-' (got '$TAG')." >&2
   exit 1
@@ -97,7 +114,9 @@ launch_job() {
   cat > "$JOB" <<JOBEOF
 #!/bin/bash
 cd "$REPO"
-echo "=== start \$(date -u)  (TOPDIR=\$TOPDIR)" > "$LOG"
+echo "=== start \$(date -u)  (TOPDIR=\$TOPDIR, TUPLES=$TUPLES)" > "$LOG"
+echo "=== MC list: $MCL" >> "$LOG"
+echo "=== data list: $DATAL" >> "$LOG"
 root -l -q -b loadLibs.C+ 'xsec/makeCrossSectionMCInputs.C+(1,"$PL",true,true,false,"$MCL","$DATAL",$TESTFLAG,"$OUT_TAG")' >> "$LOG" 2>&1
 rc=\$?
 echo "=== root exit code \$rc, \$(date -u)" >> "$LOG"
@@ -127,8 +146,13 @@ MERGE_HINTS=()
 for arg in "$@"; do
   PL="ME${arg#ME}"
   NUM="${PL#ME}"
-  MC="$OD/MC/StandardMC/MediumEnergy_FHC_StandardMC_Playlist${NUM}.txt"
-  DATA="$OD/Data/MediumEnergy_FHC_Data_Playlist${NUM}.txt"
+  if [ "$TUPLES" = "p9" ]; then
+    MC="$P9D/FullDetector/P9_Playlist${NUM}_MC.txt"
+    DATA="$P9D/Data/P9_Playlist${NUM}_Data.txt"
+  else
+    MC="$OD/MC/StandardMC/MediumEnergy_FHC_StandardMC_Playlist${NUM}.txt"
+    DATA="$OD/Data/MediumEnergy_FHC_Data_Playlist${NUM}.txt"
+  fi
   for f in "$MC" "$DATA"; do
     if [ ! -f "$f" ]; then
       echo "ERROR: $PL: missing $f -- skipping" >&2
