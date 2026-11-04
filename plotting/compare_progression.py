@@ -28,8 +28,11 @@ The combined quantities cover every playlist the file was made from: the
 legend says "[N playlists]" when that is more than one (the thesis file is
 likely all of ME).  Where to find each quantity is the NAMES table below.
 
-The thesis names marked UNCONFIRMED are guesses from the code lineage; run
---list on the thesis file and edit NAMES if they differ.  A quantity that is
+The thesis names were confirmed on 2026-11-04 (--list on the thesis file, and a
+per-POT check against the thesis mergedHists files).  In the thesis file each
+playlist's reco histogram h_ENu_VS_nu_<sample>_reco exists in two cycles under
+the same name: ;1 is the data rate and ;2 the MC efficiency numerator (a plain
+Get returns ;2), so NAMES gives the cycle explicitly.  A quantity that is
 missing from an input is skipped for that input, with a note.
 
 Outputs in <plotdir>:
@@ -70,15 +73,14 @@ SAMPLES = ['inclusive', 'lowNu', 'highNu']
 #   kind:       'rate' (event counts; per GeV, POT-normalizable), 'eff', 'flux', 'xsec'
 NAMES = [
     # key              title                         per_sample kind    current                                 thesis
-    ('dataRate',       'Data event rate',            True,  'rate', ['{pl}/selection_data_enu_ehad_{sd}'],  ['{pl}/h_ENu_VS_nu_{sd}_data',        # UNCONFIRMED
-                                                                                                             '{pl}/dataRateHist2D_{sd}_{pl}']),    # UNCONFIRMED
-    ('effNumerator',   'Efficiency numerator',       True,  'rate', ['{pl}/effnum_enu_ehad_{sd}'],          ['{pl}/h_ENu_VS_nu_{sd}_reco']),     # confirmed (study_thesisComparison.py)
+    ('dataRate',       'Data event rate',            True,  'rate', ['{pl}/selection_data_enu_ehad_{sd}'],  ['{pl}/h_ENu_VS_nu_{sd}_reco;1']),   # confirmed: cycle 1 = data
+    ('effNumerator',   'Efficiency numerator',       True,  'rate', ['{pl}/effnum_enu_ehad_{sd}'],          ['{pl}/h_ENu_VS_nu_{sd}_reco;2']),   # confirmed: cycle 2 = MC
     ('effDenominator', 'Efficiency denominator',     True,  'rate', ['{pl}/effdenom_enu_ehad_{sd}'],        ['{pl}/h_ENu_VS_nu_{sd}_truth']),    # confirmed
     ('eff',            'Efficiency',                 True,  'eff',  ['{pl}/eff_{sd}_{pl}'],                 ['{pl}/eff_{sd}_{pl}']),             # confirmed
-    ('fluxLowNu',      'Low-#nu flux',               False, 'flux', ['flux/flux_lowNu_ME'],                 ['flux/flux_lowNu_ME']),             # UNCONFIRMED
-    ('xSectionLowNu',  '#sigma*_{low-#nu}',          False, 'xsec', ['xSections/xSection_lowNu_ME'],        ['xSections/xSection_lowNu_ME']),    # UNCONFIRMED
-    ('xSectionIncl',   'CC-inclusive #sigma',        False, 'xsec', ['xSections/xSection_inclusive_ME'],    ['xSections/xSection_inclusive_ME']),  # UNCONFIRMED
-    ('xSectionHighNu', '#sigma_{high-#nu}',          False, 'xsec', ['xSections/xSection_highNu_ME'],       ['xSections/xSection_highNu_ME']),   # UNCONFIRMED
+    ('fluxLowNu',      'Low-#nu flux',               False, 'flux', ['flux/flux_lowNu_ME'],                 ['flux/flux_lowNu_ME']),             # confirmed
+    ('xSectionLowNu',  '#sigma*_{low-#nu}',          False, 'xsec', ['xSections/xSection_lowNu_ME'],        ['xSections/xSection_lowNu_ME']),    # confirmed
+    ('xSectionIncl',   'CC-inclusive #sigma',        False, 'xsec', ['xSections/xSection_inclusive_ME'],    ['xSections/xSection_inclusive_ME']),  # confirmed
+    ('xSectionHighNu', '#sigma_{high-#nu}',          False, 'xsec', ['xSections/xSection_highNu_ME'],       ['xSections/xSection_highNu_ME']),   # confirmed
 ]
 
 Y_TITLES = {
