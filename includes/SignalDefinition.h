@@ -188,12 +188,11 @@ bool IsLowNuTruth(const CVUniverse& univ) {
   return univ.GetEhadTrue_GeV() < GetLowNuCutValue_GeV(univ.GetEnuTrue_GeV());
 }
 
+// Flat low-nu cut, reco nu < 0.8 GeV, in place of the staircase in
+// LowNuBoundary.h: a tether to Amit's similar analysis (Rob, 2026-11-04).
+// Not called anywhere yet.
 bool isLowNu_Amit(const CVUniverse& univ) {
-  double Enu = univ.GetEmu();
-  double nu = univ.GetEhad();
-
-  if (nu < 0.8)   return true;
-  else            return false;
+  return univ.GetEhad_GeV() < 0.8;  // GetEhad() is in MeV
 }
 // ---> IMPORTANT FINAL FUNCTION  <----
 
