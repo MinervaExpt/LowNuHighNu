@@ -470,7 +470,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
                               std::string out_tag = "",
                               std::string tune = "v4.4.1",
                               std::string out_dir = "",
-                              std::string selection = "current") {
+                              std::string selection = "current",
+                              std::string muon_shift = "none") {
   // Only signal definition 1 (kLowNuHighNu) is supported; it writes the
   // inclusive, lowNu and highNu samples.  Definition 0 (kInclusive: Anne's
   // DIS/sideband variant, InclusiveEvent) was removed 2026-11-03.
@@ -497,6 +498,25 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
     std::exit(1);
   }
   std::cout << "Selection: " << GetSelectionName(GetSelection()) << "\n";
+
+  // MUON SHIFT (data only): "thesis" scales the data MINOS muon momentum by
+  // (1 - 0.036), as Rob's 2020 thesis code did (makeHists.py --muonCVShift:
+  // SetCVMuonMomentumOffset(-0.036) in its data jobs only).  MC is never
+  // shifted.  This reproduces the thesis code for the comparison; it is not
+  // the analysis treatment.  OPEN (Rob, 2026-11-04): the thesis-era tuples
+  // were "MuonKludged", the same shift baked in, so the thesis may have
+  // shifted data twice; MINERvA now handles the shift through FluxReweighter,
+  // as a weight.
+  double data_minos_offset = 0.;
+  if (muon_shift == "thesis") {
+    data_minos_offset = -0.036;
+  } else if (muon_shift != "none") {
+    std::cerr << "ERROR: unknown muon shift '" << muon_shift
+              << "' (use \"none\" or \"thesis\").\n";
+    std::exit(1);
+  }
+  std::cout << "Data MINOS muon momentum offset: " << data_minos_offset
+            << " (MC: none)\n";
 
   // INPUT TUPLES
   const bool is_mc = true;
@@ -568,6 +588,10 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
     TNamed("tune", CVUniverse::GetTuneName(CVUniverse::GetTune()).c_str())
         .Write();
     TNamed("selection", GetSelectionName(GetSelection()).c_str()).Write();
+    TNamed("muon_shift",
+           Form("%s (data MINOS momentum offset %g, MC none)",
+                muon_shift.c_str(), data_minos_offset))
+        .Write();
   }
 
   // INIT VARS, HISTOS, AND EVENT COUNTERS
@@ -600,7 +624,15 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
   // selection_data histos fill into the same objects the write loop below emits.
   // (Previously a separate truth-free `variables_lessTruth` was looped here but
   // never written, leaving selection_data_<var> empty in the output.)
+  // The data MINOS momentum offset is on for the data loop only.
+  CVUniverse::SetMinosMomentumOffset(data_minos_offset);
   LoopAndFillData(util, variables, variables_MAT, variables2D, test_run);
+  CVUniverse::SetMinosMomentumOffset(0.);
+  if (CVUniverse::GetMinosMomentumOffset() != 0.) {
+    std::cerr << "ERROR: the MINOS momentum offset is still set after the "
+                 "data loop; the MC would be shifted.\n";
+    std::exit(1);
+  }
 
   // LOOP MC RECO
   for (auto band : util.m_error_bands) {

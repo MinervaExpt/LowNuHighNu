@@ -29,6 +29,16 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
   static std::string GetTuneName(ETune tune);
   static bool SetTuneByName(const std::string& name);  // "legacy" | "v4.4.1"
 
+  // Fractional shift of the reconstructed MINOS muon momentum: GetPmuMinos()
+  // returns p_MINOS x (1 + offset).  It writes MAT's CV offset
+  // (MinervaUniverse::m_muon_momentum_cv_offset) directly, because MAT's own
+  // SetCVMuonMomentumOffset can be called only once per job, and the event
+  // loop needs the shift on for its data loop and off for the MC loops that
+  // follow in the same job (MUONSHIFT=thesis: the macro sets -0.036 just
+  // before the data loop and 0 just after).  Static: every universe sees it.
+  static void SetMinosMomentumOffset(double offset);
+  static double GetMinosMomentumOffset();
+
   // CTOR
   CVUniverse(PlotUtils::ChainWrapper* chw, double nsigma = 0);
 

@@ -12,6 +12,8 @@
 #   TUNE=legacy TAG=legacy ./run_playlists.sh 1D  # CV tune: v4.4.1 (default) or legacy
 #   SELECTION=thesis TAG=thesis-sel ./run_playlists.sh 1D  # reco cuts: current (default)
 #                                             # or thesis (the 2020 thesis cuts)
+#   MUONSHIFT=thesis ...                      # data MINOS muon momentum x (1 - 0.036),
+#                                             # as the thesis did; default none
 #
 # Playlists may be given as 1B or ME1B.
 #
@@ -74,6 +76,7 @@ P9D="${P9_DIR:-/pnfs/minerva/persistent/DataPreservation/p9}"
 TUPLES="${TUPLES:-opendata}"
 TUNE="${TUNE:-v4.4.1}"
 SELECTION="${SELECTION:-current}"
+MUONSHIFT="${MUONSHIFT:-none}"
 TEST="${TEST:-0}"
 TAG="${TAG:-}"
 SPLIT="${SPLIT:-1}"
@@ -92,6 +95,10 @@ esac
 case "$SELECTION" in
   current|thesis) ;;
   *) echo "ERROR: SELECTION must be 'current' or 'thesis' (got '$SELECTION')." >&2; exit 1 ;;
+esac
+case "$MUONSHIFT" in
+  none|thesis) ;;
+  *) echo "ERROR: MUONSHIFT must be 'none' or 'thesis' (got '$MUONSHIFT')." >&2; exit 1 ;;
 esac
 case "$TUPLES" in
   opendata|p9) ;;
@@ -141,12 +148,13 @@ mkdir -p "$RUN_DIR/logs" || { echo "ERROR: cannot create $RUN_DIR" >&2; exit 1; 
   echo "git         $($GIT describe --always --dirty)  (diff md5 $($GIT diff HEAD | md5sum | cut -c1-12))"
   echo "tune        $TUNE"
   echo "selection   $SELECTION"
+  echo "muon shift  $MUONSHIFT (data only)"
   echo "tuples      $TUPLES"
   echo "tag         ${TAG:-<none>}"
   echo "split       $SPLIT"
   echo "test        $TESTFLAG"
   echo "playlists   $*"
-  echo "command     TUNE=$TUNE SELECTION=$SELECTION TUPLES=$TUPLES TAG=$TAG SPLIT=$SPLIT TEST=$TEST $0 $*"
+  echo "command     TUNE=$TUNE SELECTION=$SELECTION MUONSHIFT=$MUONSHIFT TUPLES=$TUPLES TAG=$TAG SPLIT=$SPLIT TEST=$TEST $0 $*"
   echo "--- jobs (start / exit lines are appended by each job)"
 } > "$RUN_DIR/RUN.txt"
 echo "Run directory: $RUN_DIR"
@@ -171,11 +179,11 @@ launch_job() {
   cat > "$JOB" <<JOBEOF
 #!/bin/bash
 cd "$REPO"
-echo "=== start \$(date -u)  (TOPDIR=\$TOPDIR, TUPLES=$TUPLES, TUNE=$TUNE, SELECTION=$SELECTION, RUN_DIR=$RUN_DIR)" > "$LOG"
+echo "=== start \$(date -u)  (TOPDIR=\$TOPDIR, TUPLES=$TUPLES, TUNE=$TUNE, SELECTION=$SELECTION, MUONSHIFT=$MUONSHIFT, RUN_DIR=$RUN_DIR)" > "$LOG"
 echo "=== MC list: $MCL" >> "$LOG"
 echo "=== data list: $DATAL" >> "$LOG"
 echo "job \$(printf '%-16s' "$PL$PSFX") start \$(date -u +%Y-%m-%dT%H:%M:%SZ)  host \$(hostname -s)  screen $SESSION" >> "$RUN_DIR/RUN.txt"
-root -l -q -b loadLibs.C+ 'xsec/makeCrossSectionMCInputs.C+(1,"$PL",true,true,false,"$MCL","$DATAL",$TESTFLAG,"$OUT_TAG","$TUNE","$OUTDIR","$SELECTION")' >> "$LOG" 2>&1
+root -l -q -b loadLibs.C+ 'xsec/makeCrossSectionMCInputs.C+(1,"$PL",true,true,false,"$MCL","$DATAL",$TESTFLAG,"$OUT_TAG","$TUNE","$OUTDIR","$SELECTION","$MUONSHIFT")' >> "$LOG" 2>&1
 rc=\$?
 echo "=== root exit code \$rc, \$(date -u)" >> "$LOG"
 echo "job \$(printf '%-16s' "$PL$PSFX") exit  \$(date -u +%Y-%m-%dT%H:%M:%SZ)  code \$rc" >> "$RUN_DIR/RUN.txt"

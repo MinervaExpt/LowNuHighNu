@@ -62,6 +62,16 @@ bool CVUniverse::SetTuneByName(const std::string& name) {
 }
 
 //==============================================================================
+// MINOS muon momentum offset (see CVUniverse.h)
+//==============================================================================
+void CVUniverse::SetMinosMomentumOffset(double offset) {
+  m_muon_momentum_cv_offset = offset;
+}
+double CVUniverse::GetMinosMomentumOffset() {
+  return m_muon_momentum_cv_offset;
+}
+
+//==============================================================================
 // Constructor
 //==============================================================================
 CVUniverse::CVUniverse(PlotUtils::ChainWrapper* chw, double nsigma)
