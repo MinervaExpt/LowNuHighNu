@@ -63,4 +63,23 @@ bool zVertexCut(const CVUniverse& univ, const double upZ, const double downZ);
 bool XYVertexCut(const CVUniverse& univ, const double a);
 bool PmuCut(const CVUniverse& univ, bool apply_upper_bound_cut = true);
 
+// The thesis selection (SELECTION=thesis; CutUtils.h kCutsVectorThesis)
+bool ThesisMinosCurvatureCut(const CVUniverse& univ);
+bool ThesisDeadDiscriminatorsCut(const CVUniverse& univ);
+bool ThesisThetamuCut(const CVUniverse& univ);
+bool ThesisEmuCut(const CVUniverse& univ);
+
+//==============================================================================
+// Selection mode: which cut vector the event loop applies, through
+// PassesCuts(const LowNuHighNuEvent&).  Set once per job by the event-loop
+// macro, before its loops.  Default: current.
+//   kSelectionCurrent  kCutsVector
+//   kSelectionThesis   kCutsVectorThesis (the 2020 thesis cuts)
+//==============================================================================
+enum ESelection { kSelectionCurrent = 0, kSelectionThesis = 1 };
+ESelection GetSelection();
+std::string GetSelectionName(ESelection selection);
+bool SetSelectionByName(const std::string& name);  // "current" | "thesis"
+const std::vector<ECuts>& GetSelectionCuts();
+
 #endif

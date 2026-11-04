@@ -15,8 +15,31 @@ includes/CutUtils.h
 
 #include "Cuts.h"
 
-#include "CutUtils.h"  // IsPrecut, kCutsVector
+#include "CutUtils.h"  // IsPrecut, kCutsVector, kCutsVectorThesis
 #include "PlotUtils/CCInclusiveCuts.h"
+
+//==============================================================================
+// Selection mode (Cuts.h).  Defined here only, so every library that calls
+// GetSelectionCuts() sees the one setting.
+//==============================================================================
+static ESelection g_selection = kSelectionCurrent;
+
+ESelection GetSelection() { return g_selection; }
+
+std::string GetSelectionName(ESelection selection) {
+  return selection == kSelectionThesis ? "thesis" : "current";
+}
+
+bool SetSelectionByName(const std::string& name) {
+  if (name == "current") { g_selection = kSelectionCurrent; return true; }
+  if (name == "thesis") { g_selection = kSelectionThesis; return true; }
+  return false;
+}
+
+const std::vector<ECuts>& GetSelectionCuts() {
+  return g_selection == kSelectionThesis ? kCutsVectorThesis : kCutsVector;
+}
+
 //==============================================================================
 // Passes ALL Cuts
 //==============================================================================
@@ -135,6 +158,22 @@ bool PassesCut(const CVUniverse& univ, const ECuts cut, const bool is_mc,
       pass = PmuCut(univ);
       break;
 
+    case kThesisMinosCurvature:
+      pass = ThesisMinosCurvatureCut(univ);
+      break;
+
+    case kThesisDeadDiscriminators:
+      pass = ThesisDeadDiscriminatorsCut(univ);
+      break;
+
+    case kThesisThetamu:
+      pass = ThesisThetamuCut(univ);
+      break;
+
+    case kThesisEmu:
+      pass = ThesisEmuCut(univ);
+      break;
+
     case kAllCuts:
       pass = true;
       break;
@@ -226,7 +265,36 @@ bool ThetamuCut(const CVUniverse& univ) {
 }
 bool RockMuonCut(const CVUniverse& univ){
   bool disc = univ.GetInt("phys_n_dead_discr_pair_upstream_prim_track_proj") <= 1;
-  return disc; 
+  return disc;
+}
+
+//==============================================================================
+// The thesis selection (SELECTION=thesis), as written in the 2020 thesis code
+// (highNu/py_classes/otherFunctions.py passesRecoPreCuts; highNu/makeHists/
+// makeHists.py).  Applied per universe like every reco cut, so lateral muon
+// shifts move events across the E_mu threshold, as in the thesis.
+//==============================================================================
+// MINOS curvature significance on every event.  Unlike MinosMuonCurveCut
+// above, the thesis did not skip muons whose momentum came from range.
+bool ThesisMinosCurvatureCut(const CVUniverse& univ) {
+  return univ.GetDouble("MasterAnaDev_minos_trk_eqp_qp") >
+         CCIncConsts::kThesisMinosEqpQpMinCutVal;
+}
+
+bool ThesisDeadDiscriminatorsCut(const CVUniverse& univ) {
+  return univ.GetInt("phys_n_dead_discr_pair_upstream_prim_track_proj") <=
+         CCIncConsts::kThesisDeadDiscrMaxCutVal;
+}
+
+// The thesis read the muon_theta branch; GetThetamu() is MAT's muon angle to
+// the beam, used everywhere else in this code.
+bool ThesisThetamuCut(const CVUniverse& univ) {
+  return univ.GetThetamu() < CCIncConsts::kThesisThetamuMaxCutVal;
+}
+
+// makeHists.py: `if EMu <= 1.8: continue` (GeV), in place of the p_mu window
+bool ThesisEmuCut(const CVUniverse& univ) {
+  return univ.GetEmu() > CCIncConsts::kThesisEmuMinCutVal;
 }
 
 

@@ -30,9 +30,11 @@ LowNuHighNuEvent::LowNuHighNuEvent(const bool is_mc, const bool is_truth,
 //==============================================================================
 // Helper Functions
 //==============================================================================
-// PassesCutsInfo {passes_all_cuts}
+// PassesCutsInfo {passes_all_cuts}.  The cut vector is the job's selection
+// (Cuts.h: kCutsVector by default, kCutsVectorThesis with SELECTION=thesis).
 PassesCutsInfo PassesCuts(const LowNuHighNuEvent& e) {
-  return PassesCuts(*e.m_universe, e.m_is_mc, e.m_signal_definition);
+  return PassesCuts(*e.m_universe, e.m_is_mc, e.m_signal_definition,
+                    GetSelectionCuts());
 }
 
 SignalBackgroundType GetSignalBackgroundType(const LowNuHighNuEvent& e) {

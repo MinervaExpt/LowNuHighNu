@@ -469,7 +469,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
                               bool test_run = false,
                               std::string out_tag = "",
                               std::string tune = "v4.4.1",
-                              std::string out_dir = "") {
+                              std::string out_dir = "",
+                              std::string selection = "current") {
   // Only signal definition 1 (kLowNuHighNu) is supported; it writes the
   // inclusive, lowNu and highNu samples.  Definition 0 (kInclusive: Anne's
   // DIS/sideband variant, InclusiveEvent) was removed 2026-11-03.
@@ -486,6 +487,16 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
   }
   std::cout << "CV tune: " << CVUniverse::GetTuneName(CVUniverse::GetTune())
             << "\n";
+
+  // SELECTION: which reco cuts every loop applies (Cuts.h).  "current" =
+  // kCutsVector; "thesis" = kCutsVectorThesis, the 2020 thesis cuts, for the
+  // thesis comparison (CutUtils.h lists the differences).
+  if (!SetSelectionByName(selection)) {
+    std::cerr << "ERROR: unknown selection '" << selection
+              << "' (use \"current\" or \"thesis\").\n";
+    std::exit(1);
+  }
+  std::cout << "Selection: " << GetSelectionName(GetSelection()) << "\n";
 
   // INPUT TUPLES
   const bool is_mc = true;
@@ -556,6 +567,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
     TNamed("git_diff_md5", diff_md5.Data()).Write();
     TNamed("tune", CVUniverse::GetTuneName(CVUniverse::GetTune()).c_str())
         .Write();
+    TNamed("selection", GetSelectionName(GetSelection()).c_str()).Write();
   }
 
   // INIT VARS, HISTOS, AND EVENT COUNTERS

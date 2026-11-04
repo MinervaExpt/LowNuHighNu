@@ -68,6 +68,12 @@ enum ECuts {
   kMinosMuon,
   kPmu,
   kAllCuts,
+  // The thesis selection (SELECTION=thesis; CutUtils.h kCutsVectorThesis).
+  // Appended after kAllCuts so that no existing value changes.
+  kThesisMinosCurvature,
+  kThesisDeadDiscriminators,
+  kThesisThetamu,
+  kThesisEmu,
 };
 
 enum EDataMCTruth { kData, kMC, kTruth, kNDataMCTruthTypes };
@@ -108,6 +114,14 @@ const double kPmuMaxCutVal = 20000.;      // MeV/c
 const double kZVtxMinCutVal = 5990.;      // cm
 const double kZVtxMaxCutVal = 8340.;      // cm
 const double kApothemCutVal = 850.;       // cm
+
+// The thesis selection (SELECTION=thesis), as written in the 2020 thesis code:
+// highNu/py_classes/otherFunctions.py (passesRecoPreCuts) and
+// highNu/makeHists/makeHists.py (the E_mu cut).
+const double kThesisMinosEqpQpMinCutVal = -0.3;  // MINOS eqp/qp, every event
+const int kThesisDeadDiscrMaxCutVal = 1;         // upstream dead discr. pairs
+const double kThesisThetamuMaxCutVal = 0.35;     // rad
+const double kThesisEmuMinCutVal = 1800.;        // MeV
 
 const bool kUseNueConstraint = true;
 const int kAnaNuPDG = 14;
