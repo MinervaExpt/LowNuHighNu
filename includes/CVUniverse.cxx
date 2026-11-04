@@ -35,9 +35,19 @@ util::CaloCorrection InclusiveSpline(splines_file.c_str(), "CCInclusive");
 static CVUniverse::ETune g_cv_tune = CVUniverse::kTuneMnvTunev441;
 
 // FSI weight variant for MnvTune v4.4.1 (argument of MAT-MINERvA's
-// GetFSIWeight): 1 = the elastic-FSI fix only (tune digit Z=1), 0 = elastic
-// fix x absorption reweight (the legacy CV).
-// TODO(Rob): confirm against the internal MnvTune v4.4.1 documentation.
+// GetFSIWeight): 1 = the elastic-FSI fix only; 0 = elastic fix x the pion-
+// absorption reweight (the legacy CV); 2 = absorption only. The absorption
+// reweight corrects the nucleon-pair charges GENIE hA assigns to absorbed
+// pi+ and pi0 (carbon: pi+ -> pp x4.52, pn x0.053, nn x0; pi0 -> nn x4.14,
+// pp x0.57); it keeps the total absorption rate and moves visible recoil.
+//
+// Decision (Rob, 2026-11-04), PROVISIONAL pending Kevin (2026-11-06):
+// 1, elastic only. The published tune definition has Z=1 = "Bug Fix of
+// elastic FSI for pions and protons (turning them to noFSI events)" and
+// nothing on absorption (MINERvA "Tunes", https://minerva.fnal.gov/?p=18706).
+// Dan's paper, arXiv:2203.08022, names MINERvA tune v4.4.1 but is silent on
+// both FSI fixes. Changing this to 0 is a physics change: re-run the v4.4.1
+// TEST pair and add a line to the expected-differences ledger (RUNS.md).
 static const int kFSIWeightIndexV441 = 1;
 
 CVUniverse::ETune CVUniverse::GetTune() { return g_cv_tune; }
