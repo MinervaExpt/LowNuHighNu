@@ -14,10 +14,13 @@ CODE-GUIDE.md section 5 (Claude project docs).
 
 --numerator chooses the efficiency numerator.  'signal' (the default) is the
 selected signal MC (effnum_*), as before.  'selected' adds the selected
-background MC (bg_*), so the numerator is every selected MC event: the thesis
-definition, eta = #[sim, selected](reco E_nu) / #[generated, signal](true E_nu),
-which corrects the data for background through the efficiency.  The choice is
-recorded in the output as processHists_numerator.
+background MC (bg_*), so the numerator is every selected MC event, which
+corrects the data for background through the efficiency.  This is close to the
+thesis, not the same: the thesis numerator was selected true CC nu_mu events
+with no true fiducial-volume requirement (highNu/makeHists/makeHists.py,
+passesMCPreCuts), so it took in out-of-FV CC nu_mu but not NC or other
+flavours, which its tighter cuts kept small.  The choice is recorded in the
+output as processHists_numerator.
 """
 import argparse,hashlib,os,re,subprocess,sys
 
@@ -27,7 +30,7 @@ def parseArguments():
   parser.add_argument('-o','--output',required=True,help='processedHists output file')
   parser.add_argument('--force',action='store_true',help='overwrite the output file if it exists')
   parser.add_argument('--numerator',choices=['signal','selected'],default='signal',
-                      help='efficiency numerator: selected signal MC (default) or every selected MC event, signal + background (the thesis definition)')
+                      help='efficiency numerator: selected signal MC (default) or every selected MC event, signal + background (background corrected through the efficiency; close to the thesis numerator, see above)')
   args = parser.parse_args()
 
   outputPath = os.path.abspath(args.output)
@@ -212,7 +215,7 @@ ROOT.TNamed('processHists_git_describe',codeDescribe).Write()
 ROOT.TNamed('processHists_git_diff_md5',codeDiffMd5).Write()
 ROOT.TNamed('processHists_inputs','\n'.join('{0} {1}'.format(pl,INPUT_FILES[pl]) for pl in PLAYLISTS_ME)).Write()
 ROOT.TNamed('processHists_numerator',NUMERATOR).Write()
-print('Efficiency numerator: {0}'.format({'signal':'selected signal MC (effnum)','selected':'every selected MC event, signal + background (effnum + bg; the thesis definition)'}[NUMERATOR]))
+print('Efficiency numerator: {0}'.format({'signal':'selected signal MC (effnum)','selected':'every selected MC event, signal + background (effnum + bg)'}[NUMERATOR]))
 
 histOutputDir_xSections = histOutputFile.mkdir('xSections')
 histOutputDir_flux = histOutputFile.mkdir('flux')
@@ -311,7 +314,7 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
       exec("effNumeratorHist2D_{0} = histsFile.Get('effnum_enu_ehad_{1}')".format(key,sigDef))
       exec("effNumeratorHist_{0} = histsFile.Get('effnum_enu_ehad_{1}').ProjectionX()".format(key,sigDef))
       if NUMERATOR == 'selected':
-        # The thesis efficiency numerator: every selected MC event.  bg_* is the selected non-signal MC,
+        # Every selected MC event in the numerator.  bg_* is the selected non-signal MC,
         # filled in the same universes as effnum_*, so effnum + bg = all selected MC in this sample.
         bgHist2D = histsFile.Get('bg_enu_ehad_{0}'.format(sigDef))
         if not bgHist2D:
