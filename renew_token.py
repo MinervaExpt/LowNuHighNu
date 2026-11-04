@@ -36,7 +36,7 @@ if __name__ == "__main__":
             sys.exit(0)
         step = sys.argv[1]
         step = int(step)
-    while alive < 3600*24: # run for 12 hours
+    while alive < 3600*24*4: # run for 4 days (a full ME playlist takes ~55 h); stops on its own, never runs indefinitely
         renew_token(log)
         time.sleep(step) # sleep for 600 seconds
         alive += step
