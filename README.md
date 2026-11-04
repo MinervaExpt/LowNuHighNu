@@ -27,11 +27,14 @@ nohup python renew_token.py              #   then Ctrl-a d
 TEST=1 ./run_playlists.sh 1D             # smoke test: 1,000 entries per loop, writes ..._TEST.root
 ./run_playlists.sh 1D                    # full run, one detached screen per job (lnhn_ME1D)
 TAG=wk45 SPLIT=2 ./run_playlists.sh 1D   # tagged run split in two parallel jobs ...
-./merge_parts.sh logs/<...>_parts.txt    # ... merged with MAT's madd when both finish
-python plotting/boundary_diagnostic.py XSecInputs_1110_ME1D_<date>.root [outdir]
+./merge_parts.sh <run dir>/logs/ME1D_parts.txt   # ... merged with MAT's madd when both finish
+python plotting/boundary_diagnostic.py <run dir>/XSecInputs_1110_ME1D_<date>.root [outdir]
 ```
 
-`run_playlists.sh` with no arguments prints its full usage. Every output file
+Each launch writes into its own run directory on the data area,
+`/exp/minerva/data/users/$USER/MATAna/runs/<date>_g<commit>[_<TAG>][_TEST]/`
+(outputs, `logs/`, and a `RUN.txt` recording what was launched); `RUNS_ROOT=`
+puts run directories elsewhere. `run_playlists.sh` with no arguments prints its full usage. Every output file
 records the code version it was built from (`git_describe`, `git_diff_md5`).
 
 ## Layout

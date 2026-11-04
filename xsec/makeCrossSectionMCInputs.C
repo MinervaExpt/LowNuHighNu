@@ -468,7 +468,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
                               std::string data_input_file = "",
                               bool test_run = false,
                               std::string out_tag = "",
-                              std::string tune = "v4.4.1") {
+                              std::string tune = "v4.4.1",
+                              std::string out_dir = "") {
   // Only signal definition 1 (kLowNuHighNu) is supported; it writes the
   // inclusive, lowNu and highNu samples.  Definition 0 (kInclusive: Anne's
   // DIS/sideband variant, InclusiveEvent) was removed 2026-11-03.
@@ -519,6 +520,17 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
                                 signal_definition_int, int(do_systematics),
                                 int(do_truth), int(is_grid), plist.c_str(),
                                 tag.c_str(), out_sfx.c_str()));
+  // Optional out_dir (run_playlists.sh passes the run directory on the data
+  // area): the output goes there instead of the current directory, which
+  // must stay the checkout (loadLibs.C and the includes are found from it).
+  if (!out_dir.empty()) {
+    if (gSystem->AccessPathName(out_dir.c_str(), kWritePermission)) {
+      std::cerr << "ERROR: output directory " << out_dir
+                << " does not exist or is not writable.\n";
+      std::exit(1);
+    }
+    outfile_name = out_dir + "/" + outfile_name;
+  }
   std::cout << "Saving output to " << outfile_name << "\n\n";
   TFile fout(outfile_name.c_str(), "RECREATE");
 

@@ -11,19 +11,29 @@
 #   TUPLES=p9 TAG=wk45-p9 ./run_playlists.sh 1D   # same, on the P9 data-preservation tuples
 #   TUNE=legacy TAG=legacy ./run_playlists.sh 1D  # CV tune: v4.4.1 (default) or legacy
 #
-# Playlists may be given as 1B or ME1B.  For each job (P = ME1B, plus _<TAG>,
-# plus _p<i>of<N> when split, plus _TEST in test mode):
-#   screen session  lnhn_<P>     (screen -r lnhn_<P> to watch; Ctrl-a d to detach)
-#   log             logs/<PL>_<UTC timestamp>[_<TAG>][_p<i>of<N>][_TEST].log
-#   output          XSecInputs_1110_<PL>_<UTC date>[_<TAG>][_p<i>of<N>][_TEST].root
-#                   in this directory.  TEST runs write their _TEST name from the
-#                   start, so a smoke test can never touch a full run's file.
+# Playlists may be given as 1B or ME1B.
+#
+# RUN DIRECTORY.  Each launch writes everything into one new directory on the
+# data area, $RUNS_ROOT/<ID>/, with
+#   ID = <UTC date>_g<commit>[-dirty][_<TAG>][_TEST]   e.g. 2026-11-04_g8e1c6f2_wk45
+# (-2, -3, ... appended if that directory already exists).  Inside it:
+#   RUN.txt         what was launched: code version, tune, tuples, host, command;
+#                   each job appends its start and its exit code
+#   XSecInputs_1110_<PL>_<UTC date>[_<TAG>][_TEST].root   one output per playlist
+#   parts/          split runs only: the part outputs (..._p<i>of<N>...root)
+#   logs/           <PL>[_p<i>of<N>].log, the .job.sh with the exact call, and for
+#                   split runs the part lists and <PL>_parts.txt
+# Screen sessions are lnhn_<PL>[_<TAG>][_p<i>of<N>][_TEST] (screen -r <name> to
+# watch; Ctrl-a d to detach).  TEST runs get their own run directory and _TEST
+# names, so a smoke test can never touch a full run's files.  Jobs still run in
+# this checkout (loadLibs.C compiles its includes); only the outputs go to the
+# run directory.
 #
 # SPLIT=N (default 1) deals each playlist's MC and data file lists round-robin
-# into N part lists (written to logs/) and runs one job per part.  POT is
-# counted per part, so the merged file's POT is the sum.  When every part has
-# finished, merge them with the command printed at the end:
-#   ./merge_parts.sh logs/<PL>_<timestamp>[_<TAG>]_parts.txt
+# into N part lists and runs one job per part.  POT is counted per part, so the
+# merged file's POT is the sum.  When every part has finished, merge them with
+# the command printed at the end:
+#   ./merge_parts.sh <run dir>/logs/<PL>_parts.txt
 # Keep SPLIT small on the shared GPVMs (2 = two cores); the grid is the proper
 # route for wide splits.
 #
@@ -50,8 +60,10 @@
 # The playlist name passed to the event loop is ME<N> either way (MAT uses it
 # for playlist-dependent weights); use TAG to keep the outputs apart.
 #
-# Env overrides: WAIT_MAX (s, default 2700) = longest wait for a job to reach
-# its data loop; OPENDATA_DIR, P9_DIR = tuple-list roots (defaults above).
+# Env overrides: RUNS_ROOT (default /exp/minerva/data/users/$USER/MATAna/runs)
+# = where run directories are made; WAIT_MAX (s, default 2700) = longest wait
+# for a job to reach its data loop; OPENDATA_DIR, P9_DIR = tuple-list roots
+# (defaults above).
 
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -63,6 +75,7 @@ TEST="${TEST:-0}"
 TAG="${TAG:-}"
 SPLIT="${SPLIT:-1}"
 WAIT_MAX="${WAIT_MAX:-2700}"
+RUNS_ROOT="${RUNS_ROOT:-/exp/minerva/data/users/$USER/MATAna/runs}"
 POLL="${POLL:-15}"
 
 if [ $# -eq 0 ]; then
@@ -99,20 +112,50 @@ if ! pgrep -u "$USER" -f renew_token.py >/dev/null 2>&1; then
 fi
 if [ "$TEST" = "1" ]; then TESTFLAG=true; SUFFIX=_TEST; else TESTFLAG=false; SUFFIX=; fi
 TAGSFX="${TAG:+_$TAG}"
-mkdir -p "$REPO/logs"
+
+# The run directory: one per launch, named for the date, commit and tag.
+GIT="git -C $REPO --no-optional-locks"
+COMMIT=$($GIT rev-parse --short=7 HEAD) || { echo "ERROR: $REPO is not a git checkout." >&2; exit 1; }
+$GIT diff --quiet HEAD || COMMIT="${COMMIT}-dirty"
+RUN_ID="$(date -u +%Y-%m-%d)_g${COMMIT}${TAGSFX}${SUFFIX}"
+if ! mkdir -p "$RUNS_ROOT" 2>/dev/null || [ ! -w "$RUNS_ROOT" ]; then
+  echo "ERROR: cannot write to RUNS_ROOT=$RUNS_ROOT" >&2
+  exit 1
+fi
+RUN_DIR="$RUNS_ROOT/$RUN_ID"
+n=1
+while [ -e "$RUN_DIR" ]; do n=$((n + 1)); RUN_DIR="$RUNS_ROOT/${RUN_ID}-$n"; done
+RUN_ID="$(basename "$RUN_DIR")"
+mkdir -p "$RUN_DIR/logs" || { echo "ERROR: cannot create $RUN_DIR" >&2; exit 1; }
+{
+  echo "run_id      $RUN_ID"
+  echo "created     $(date -u +%Y-%m-%dT%H:%M:%SZ)  host $(hostname -s)  user $USER"
+  echo "checkout    $REPO"
+  echo "git         $($GIT describe --always --dirty)  (diff md5 $($GIT diff HEAD | md5sum | cut -c1-12))"
+  echo "tune        $TUNE"
+  echo "tuples      $TUPLES"
+  echo "tag         ${TAG:-<none>}"
+  echo "split       $SPLIT"
+  echo "test        $TESTFLAG"
+  echo "playlists   $*"
+  echo "command     TUNE=$TUNE TUPLES=$TUPLES TAG=$TAG SPLIT=$SPLIT TEST=$TEST $0 $*"
+  echo "--- jobs (start / exit lines are appended by each job)"
+} > "$RUN_DIR/RUN.txt"
+echo "Run directory: $RUN_DIR"
+df -h "$RUNS_ROOT" | tail -n 1 | awk '{print "Free space there: " $4 " of " $2}'
 
 session_alive() { screen -ls | grep -q "[.]$1[[:space:]]"; }
 
-# launch_job <PL> <mc list> <data list> <out_tag> <name suffix> <stamp>
+# launch_job <PL> <mc list> <data list> <out_tag> <part suffix> <output dir>
 # Starts one job in a detached screen and waits until it reaches its data loop.
 # Returns 2 if its screen session already exists (not started), 1 if it died or
 # stalled before the data loop.
 launch_job() {
-  local PL="$1" MCL="$2" DATAL="$3" OUT_TAG="$4" NSFX="$5" STAMP="$6"
-  local SESSION="lnhn_${PL}${NSFX}${SUFFIX}"
+  local PL="$1" MCL="$2" DATAL="$3" OUT_TAG="$4" PSFX="$5" OUTDIR="$6"
+  local SESSION="lnhn_${PL}${TAGSFX}${PSFX}${SUFFIX}"
   [ "$TESTFLAG" = "true" ] && OUT_TAG="${OUT_TAG:+${OUT_TAG}_}TEST"
-  local LOG="$REPO/logs/${PL}_${STAMP}${NSFX}${SUFFIX}.log"
-  local JOB="$REPO/logs/${PL}_${STAMP}${NSFX}${SUFFIX}.job.sh"
+  local LOG="$RUN_DIR/logs/${PL}${PSFX}.log"
+  local JOB="$RUN_DIR/logs/${PL}${PSFX}.job.sh"
   if session_alive "$SESSION"; then
     echo "ERROR: screen session $SESSION is already running -- not starting it (use a different TAG)" >&2
     return 2
@@ -120,32 +163,34 @@ launch_job() {
   cat > "$JOB" <<JOBEOF
 #!/bin/bash
 cd "$REPO"
-echo "=== start \$(date -u)  (TOPDIR=\$TOPDIR, TUPLES=$TUPLES, TUNE=$TUNE)" > "$LOG"
+echo "=== start \$(date -u)  (TOPDIR=\$TOPDIR, TUPLES=$TUPLES, TUNE=$TUNE, RUN_DIR=$RUN_DIR)" > "$LOG"
 echo "=== MC list: $MCL" >> "$LOG"
 echo "=== data list: $DATAL" >> "$LOG"
-root -l -q -b loadLibs.C+ 'xsec/makeCrossSectionMCInputs.C+(1,"$PL",true,true,false,"$MCL","$DATAL",$TESTFLAG,"$OUT_TAG","$TUNE")' >> "$LOG" 2>&1
+echo "job \$(printf '%-16s' "$PL$PSFX") start \$(date -u +%Y-%m-%dT%H:%M:%SZ)  host \$(hostname -s)  screen $SESSION" >> "$RUN_DIR/RUN.txt"
+root -l -q -b loadLibs.C+ 'xsec/makeCrossSectionMCInputs.C+(1,"$PL",true,true,false,"$MCL","$DATAL",$TESTFLAG,"$OUT_TAG","$TUNE","$OUTDIR")' >> "$LOG" 2>&1
 rc=\$?
 echo "=== root exit code \$rc, \$(date -u)" >> "$LOG"
+echo "job \$(printf '%-16s' "$PL$PSFX") exit  \$(date -u +%Y-%m-%dT%H:%M:%SZ)  code \$rc" >> "$RUN_DIR/RUN.txt"
 JOBEOF
   screen -dmS "$SESSION" bash "$JOB"
-  echo "$PL$NSFX: started (screen $SESSION, log logs/$(basename "$LOG"))"
+  echo "$PL$PSFX: started (screen $SESSION, log $LOG)"
   [ -n "${PARTS_FILE:-}" ] && echo "$LOG" >> "$PARTS_FILE"
 
   # Wait until this job is past compilation before starting the next one.
   local waited=0
   while ! grep -q "Starting Data Loop" "$LOG" 2>/dev/null; do
     if ! session_alive "$SESSION"; then
-      echo "ERROR: $PL$NSFX ended before reaching its data loop -- see $LOG. Not starting any more jobs." >&2
+      echo "ERROR: $PL$PSFX ended before reaching its data loop -- see $LOG. Not starting any more jobs." >&2
       return 1
     fi
     if [ "$waited" -ge "$WAIT_MAX" ]; then
-      echo "ERROR: $PL$NSFX has not reached its data loop after ${WAIT_MAX}s -- check $LOG. Not starting any more jobs." >&2
+      echo "ERROR: $PL$PSFX has not reached its data loop after ${WAIT_MAX}s -- check $LOG. Not starting any more jobs." >&2
       return 1
     fi
     sleep "$POLL"
     waited=$((waited + POLL))
   done
-  echo "$PL$NSFX: compiled; data loop started after ~${waited}s"
+  echo "$PL$PSFX: compiled; data loop started after ~${waited}s"
 }
 
 MERGE_HINTS=()
@@ -165,28 +210,30 @@ for arg in "$@"; do
       continue 2
     fi
   done
-  STAMP=$(date -u +%Y-%m-%dT%H%M%SZ)
   if [ "$SPLIT" -eq 1 ]; then
-    PARTS_FILE= launch_job "$PL" "$MC" "$DATA" "$TAG" "$TAGSFX" "$STAMP"
+    PARTS_FILE= launch_job "$PL" "$MC" "$DATA" "$TAG" "" "$RUN_DIR"
     rc=$?
     [ "$rc" -eq 2 ] && continue   # already running: skip this playlist
     [ "$rc" -ne 0 ] && exit 1
   else
-    export PARTS_FILE="$REPO/logs/${PL}_${STAMP}${TAGSFX}${SUFFIX}_parts.txt"
+    mkdir -p "$RUN_DIR/parts"
+    export PARTS_FILE="$RUN_DIR/logs/${PL}_parts.txt"
     : > "$PARTS_FILE"
     for i in $(seq 1 "$SPLIT"); do
-      PSFX="${TAGSFX}_p${i}of${SPLIT}"
-      MCL="$REPO/logs/${PL}_${STAMP}${PSFX}_mc.txt"
-      DATAL="$REPO/logs/${PL}_${STAMP}${PSFX}_data.txt"
+      PSFX="_p${i}of${SPLIT}"
+      MCL="$RUN_DIR/logs/${PL}${PSFX}_mc.txt"
+      DATAL="$RUN_DIR/logs/${PL}${PSFX}_data.txt"
       # Round-robin over non-empty lines, so each part gets a similar mix of runs.
       awk -v n="$SPLIT" -v i="$i" 'NF { k++; if ((k - 1) % n == i - 1) print }' "$MC" > "$MCL"
       awk -v n="$SPLIT" -v i="$i" 'NF { k++; if ((k - 1) % n == i - 1) print }' "$DATA" > "$DATAL"
       echo "$PL${PSFX}: $(wc -l < "$MCL") MC files, $(wc -l < "$DATAL") data files"
-      launch_job "$PL" "$MCL" "$DATAL" "${TAG:+${TAG}_}p${i}of${SPLIT}" "$PSFX" "$STAMP" || exit 1
+      launch_job "$PL" "$MCL" "$DATAL" "${TAG:+${TAG}_}p${i}of${SPLIT}" "$PSFX" "$RUN_DIR/parts" || exit 1
     done
-    MERGE_HINTS+=("./merge_parts.sh logs/$(basename "$PARTS_FILE")")
+    MERGE_HINTS+=("./merge_parts.sh $PARTS_FILE")
     unset PARTS_FILE
   fi
 done
-echo "Done launching.  Watch with:  screen -ls ;  tail -f logs/<playlist>_*.log"
+echo "Done launching.  Run directory: $RUN_DIR"
+echo "Watch with:  screen -ls ;  tail -f $RUN_DIR/logs/<playlist>*.log ;  cat $RUN_DIR/RUN.txt"
 for h in ${MERGE_HINTS[@]+"${MERGE_HINTS[@]}"}; do echo "When all parts have finished:  $h"; done
+echo "Register the run in RUNS.md as $RUN_ID."

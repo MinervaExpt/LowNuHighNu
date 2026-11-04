@@ -2,17 +2,19 @@
 # merge_parts.sh -- merge the part outputs of a SPLIT run of run_playlists.sh.
 #
 # Usage (GPVM, after `source setup_mat.sh`, once every part has finished):
-#   ./merge_parts.sh logs/<PL>_<timestamp>[_<TAG>][_TEST]_parts.txt
+#   ./merge_parts.sh <run dir>/logs/<PL>_parts.txt      (the command run_playlists.sh printed)
 #
 # Reads the part logs listed in the parts file, checks that each ended with
 # "=== root exit code 0", and merges their output files with MAT's `madd`
 # (adds MnvH1D/MnvH2D universe by universe; the 1-bin mc_pot / data_pot hists
 # therefore sum to the total POT; other objects such as git_describe are copied
 # from the first part).  The merged file drops the _p<i>of<N> part of the name:
-#   XSecInputs_1110_ME1D_<date>_wk45_p1of2.root + ..._p2of2.root
-#     -> XSecInputs_1110_ME1D_<date>_wk45.root
-# The part files are left in place.  Refuses to overwrite an existing target
-# unless FORCE=1.
+#   <run dir>/parts/XSecInputs_1110_ME1D_<date>_wk45_p1of2.root + ..._p2of2.root
+#     -> <run dir>/XSecInputs_1110_ME1D_<date>_wk45.root
+# (parts outside a parts/ directory, from before run directories, merge next
+# to the parts).  A "merged" line is appended to the run's RUN.txt.  The part
+# files are left in place.  Refuses to overwrite an existing target unless
+# FORCE=1.
 
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,8 +46,15 @@ while read -r log; do
 done < "$PARTS"
 [ "${#outs[@]}" -ge 2 ] || { echo "ERROR: fewer than 2 part outputs listed in $PARTS." >&2; exit 1; }
 
-target=$(echo "${outs[0]}" | sed 's/_p1of[0-9][0-9]*//')
-if [ "$target" = "${outs[0]}" ]; then
+target_name=$(basename "${outs[0]}" | sed 's/_p1of[0-9][0-9]*//')
+part_dir=$(dirname "${outs[0]}")
+if [ "$(basename "$part_dir")" = "parts" ]; then
+  target_dir=$(dirname "$part_dir")      # run directory layout: merge into the run directory
+else
+  target_dir="$part_dir"                 # older layout: next to the parts
+fi
+target="$target_dir/$target_name"
+if [ "$target_name" = "$(basename "${outs[0]}")" ]; then
   echo "ERROR: could not derive the merged name from ${outs[0]} (no _p1of<N>)." >&2
   exit 1
 fi
@@ -76,4 +85,7 @@ print("POT  parts sum: mc=%.4e data=%.4e   merged: mc=%.4e data=%.4e   %s"
       % (mc, data, tmc, tdata, "OK" if ok else "MISMATCH"))
 sys.exit(0 if ok else 1)
 PY
+if [ -f "$target_dir/RUN.txt" ]; then
+  echo "merged $(date -u +%Y-%m-%dT%H:%M:%SZ)  $(basename "$target")  from ${#outs[@]} parts" >> "$target_dir/RUN.txt"
+fi
 echo "Done: $target"
