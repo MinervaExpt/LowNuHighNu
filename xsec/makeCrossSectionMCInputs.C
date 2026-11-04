@@ -319,6 +319,50 @@ void FillMigrationDiagnostics(std::vector<MisclassHist*>& h,
 }
 
 //==============================================================================
+// The thesis efficiency numerator (THESIS-MAP.md, "The thesis selection")
+//==============================================================================
+// The thesis numerator was every selected true CC nu_mu event, at any vertex
+// (makeHists.py, passesMCPreCuts).  Our signal is true CC nu_mu in the fiducial
+// volume, so the thesis numerator = effnum_enu_ehad_<s> + the selected
+// background that is true CC nu_mu (outside the signal volume).  These hists
+// hold that piece, on the enu_ehad binning and split by the reco low-nu call
+// like effnum_enu_ehad_<s>, with the same universes; processHists.py
+// --numerator thesis adds them to effnum.  Filled in every run.
+//   bg_ccnumu_enu_ehad_{inclusive,lowNu,highNu}
+enum EThesisNumerator { kThNumInclusive, kThNumLowNu, kThNumHighNu,
+                        kNThesisNumerator };
+
+std::vector<MisclassHist*> MakeThesisNumeratorHists(UniverseMap& error_bands) {
+  const TArrayD enu = CCPi::GetBinning("enu");
+  const TArrayD ehad = CCPi::GetBinning("ehad");
+  const char* title = "selected background, true CC #nu_{#mu}";
+  std::vector<MisclassHist*> h(kNThesisNumerator, nullptr);
+  h[kThNumInclusive] = MakeHW2D("bg_ccnumu_enu_ehad_inclusive", title, enu,
+                                ehad, error_bands);
+  h[kThNumLowNu] = MakeHW2D("bg_ccnumu_enu_ehad_lowNu", title, enu, ehad,
+                            error_bands);
+  h[kThNumHighNu] = MakeHW2D("bg_ccnumu_enu_ehad_highNu", title, enu, ehad,
+                             error_bands);
+  return h;
+}
+
+bool IsTrueCCNuMu(const CVUniverse& universe) {
+  return universe.GetInt("mc_current") == 1 &&
+         universe.GetInt("mc_incoming") == 14;
+}
+
+// x, y as the enu_ehad Variable2D fills them (reco E_nu, reco nu; GeV)
+void FillThesisNumerator(std::vector<MisclassHist*>& h,
+                         const CVUniverse& universe, const double weight,
+                         const bool reco_low) {
+  const double enu = universe.GetEnu_GeV();
+  const double nu = universe.GetEhad_GeV();
+  h[kThNumInclusive]->FillUniverse(universe, enu, nu, weight);
+  h[reco_low ? kThNumLowNu : kThNumHighNu]->FillUniverse(universe, enu, nu,
+                                                        weight);
+}
+
+//==============================================================================
 // Loop and Fill
 //==============================================================================
 void LoopAndFillData(const CCPi::MacroUtil& util,
@@ -360,7 +404,8 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
                              bool truncate_run,
                              MisclassHist* misclass_enu_reco = nullptr,
                              MisclassHist* misclass_enu_true = nullptr,
-                             std::vector<MisclassHist*>* migration_diag = nullptr) {
+                             std::vector<MisclassHist*>* migration_diag = nullptr,
+                             std::vector<MisclassHist*>* thesis_numerator = nullptr) {
   bool is_mc, is_truth;
   Long64_t n_entries;
   SetupLoop(type, util, is_mc, is_truth, n_entries);
@@ -451,6 +496,15 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
             event.m_passes_cuts)
           FillMigrationDiagnostics(*migration_diag, *universe, event.m_weight,
                                    event.m_is_lowNu);
+
+        //===============
+        // FILL THE THESIS-NUMERATOR PIECE (selected background that is true
+        // CC nu_mu; effnum + this = the thesis numerator)
+        //===============
+        if (thesis_numerator && event.m_is_mc && !event.m_is_signal &&
+            event.m_passes_cuts && IsTrueCCNuMu(*universe))
+          FillThesisNumerator(*thesis_numerator, *universe, event.m_weight,
+                              event.m_is_lowNu);
       }  // universes
     }    // error bands
   }      // events
@@ -617,6 +671,9 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
       "low-nu reco/truth call (LL,LH,HL,HH) vs true E_nu", util.m_error_bands);
   std::vector<MisclassHist*> migration_diag =
       MakeMigrationDiagnostics(util.m_error_bands);
+  // The thesis-numerator piece (filled in the MC reco loop only)
+  std::vector<MisclassHist*> thesis_numerator =
+      MakeThesisNumeratorHists(util.m_error_bands);
 
   // LOOP DATA
   // Uses the full `variables` (incl. truth vars); FillSelected skips truth vars
@@ -641,7 +698,7 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
   }
   LoopAndFillMCXSecInputs(util, kMC, variables, variables_MAT, variables2D, test_run,
                           &misclass_enu_reco, &misclass_enu_true,
-                          &migration_diag);
+                          &migration_diag, &thesis_numerator);
 
   // LOOP TRUTH
   if (util.m_do_truth) {
@@ -675,6 +732,10 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
   misclass_enu_true.SyncCVHistos();
   misclass_enu_true.hist->Write();
   for (auto h : migration_diag) {
+    h->SyncCVHistos();
+    h->hist->Write();
+  }
+  for (auto h : thesis_numerator) {
     h->SyncCVHistos();
     h->hist->Write();
   }
