@@ -2,7 +2,7 @@
 
 Usage (GPVM, after `source setup_mat.sh`):
   python processHists.py -o <output.root> <XSecInputs.root> [<XSecInputs.root> ...] [--force]
-                         [--numerator signal|selected]
+                         [--numerator signal|selected|thesis]
 
 Each input is one playlist's event-loop output, XSecInputs_1110_<PL>_<...>.root.
 The playlist is read from the file name, or given as <PL>=<path> (for example
@@ -19,7 +19,9 @@ corrects the data for background through the efficiency.  This is close to the
 thesis, not the same: the thesis numerator was selected true CC nu_mu events
 with no true fiducial-volume requirement (highNu/makeHists/makeHists.py,
 passesMCPreCuts), so it took in out-of-FV CC nu_mu but not NC or other
-flavours, which its tighter cuts kept small.  The choice is recorded in the
+flavours, which its tighter cuts kept small.  'thesis' is that numerator:
+effnum_* plus bg_ccnumu_*, the selected background that is true CC nu_mu
+(event loops from 2026-11-04 on write it).  The choice is recorded in the
 output as processHists_numerator.
 """
 import argparse,hashlib,os,re,subprocess,sys
@@ -29,8 +31,8 @@ def parseArguments():
   parser.add_argument('inputs',nargs='+',metavar='[PL=]XSecInputs.root',help='event-loop output files, one per playlist')
   parser.add_argument('-o','--output',required=True,help='processedHists output file')
   parser.add_argument('--force',action='store_true',help='overwrite the output file if it exists')
-  parser.add_argument('--numerator',choices=['signal','selected'],default='signal',
-                      help='efficiency numerator: selected signal MC (default) or every selected MC event, signal + background (background corrected through the efficiency; close to the thesis numerator, see above)')
+  parser.add_argument('--numerator',choices=['signal','selected','thesis'],default='signal',
+                      help='efficiency numerator: selected signal MC (default); every selected MC event, signal + background (background corrected through the efficiency; close to the thesis numerator, see above); or the thesis numerator, every selected true CC nu_mu event at any vertex (signal + bg_ccnumu)')
   args = parser.parse_args()
 
   outputPath = os.path.abspath(args.output)
@@ -208,14 +210,15 @@ histOutputFile = ROOT.TFile(histOutputFilePath,"recreate")
 histOutputFile.cd()
 
 ## Provenance: the inputs and the version of this script that made this file.  Each playlist directory
-## also gets its input's POT hists and event-loop stamps (git_describe, git_diff_md5, tune), below.
+## also gets its input's POT hists and event-loop stamps (git_describe, git_diff_md5, tune, selection,
+## muon_shift), below.
 codeDescribe,codeDiffMd5 = codeVersion()
 print('Code version: {0}  (diff md5 {1})'.format(codeDescribe,codeDiffMd5))
 ROOT.TNamed('processHists_git_describe',codeDescribe).Write()
 ROOT.TNamed('processHists_git_diff_md5',codeDiffMd5).Write()
 ROOT.TNamed('processHists_inputs','\n'.join('{0} {1}'.format(pl,INPUT_FILES[pl]) for pl in PLAYLISTS_ME)).Write()
 ROOT.TNamed('processHists_numerator',NUMERATOR).Write()
-print('Efficiency numerator: {0}'.format({'signal':'selected signal MC (effnum)','selected':'every selected MC event, signal + background (effnum + bg)'}[NUMERATOR]))
+print('Efficiency numerator: {0}'.format({'signal':'selected signal MC (effnum)','selected':'every selected MC event, signal + background (effnum + bg)','thesis':'every selected true CC nu_mu event, any vertex (effnum + bg_ccnumu)'}[NUMERATOR]))
 
 histOutputDir_xSections = histOutputFile.mkdir('xSections')
 histOutputDir_flux = histOutputFile.mkdir('flux')
@@ -291,7 +294,7 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
     # Provenance: this playlist's POT and the event-loop stamps of its input file
     writeHist(mcPOT_hist,histOutputDir_playlist)
     writeHist(dataPOT_hist,histOutputDir_playlist)
-    for stampName in ['git_describe','git_diff_md5','tune']:
+    for stampName in ['git_describe','git_diff_md5','tune','selection','muon_shift']:
       stamp = histsFile.Get(stampName)
       if stamp:
         histOutputDir_playlist.cd()
@@ -321,6 +324,15 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
           sys.exit('ERROR: --numerator selected needs bg_enu_ehad_{0} in {1}'.format(sigDef,histsFileLocation))
         exec("effNumeratorHist2D_{0}.Add(bgHist2D)".format(key))
         exec("effNumeratorHist_{0}.Add(bgHist2D.ProjectionX('bgProjX_{0}'))".format(key))
+      elif NUMERATOR == 'thesis':
+        # The thesis numerator: every selected true CC nu_mu event at any vertex.  bg_ccnumu_* is the
+        # selected non-signal MC that is true CC nu_mu (outside the signal volume), filled in the same
+        # universes as effnum_*, so effnum + bg_ccnumu = the thesis numerator in this sample.
+        bgHist2D = histsFile.Get('bg_ccnumu_enu_ehad_{0}'.format(sigDef))
+        if not bgHist2D:
+          sys.exit('ERROR: --numerator thesis needs bg_ccnumu_enu_ehad_{0} in {1} (event loops from 2026-11-04 on write it)'.format(sigDef,histsFileLocation))
+        exec("effNumeratorHist2D_{0}.Add(bgHist2D)".format(key))
+        exec("effNumeratorHist_{0}.Add(bgHist2D.ProjectionX('bgccnumuProjX_{0}'))".format(key))
       exec("effDenominatorHist2D_{0} = histsFile.Get('effdenom_enu_ehad_{1}')".format(key,sigDef))
       exec("effDenominatorHist_{0} = histsFile.Get('effdenom_enu_ehad_{1}').ProjectionX()".format(key,sigDef))
       ##exec("effDenominatorHist2D_addKinematicCuts_{0} = histsFile.Get('h_ENu_VS_nu_{1}_truth_addKinematicCuts')".format(key,sigDef))
