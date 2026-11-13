@@ -363,6 +363,123 @@ void FillThesisNumerator(std::vector<MisclassHist*>& h,
 }
 
 //==============================================================================
+// Central-value diagnostics: what the selected MC is made of (2026-11-13)
+//==============================================================================
+// Selected MC, MC reco loop, the CV universe only (no error bands): plain
+// MnvH2Ds, so madd adds them across the parts of a split run (it skips plain
+// TH2Ds).  Filled in every run; no existing histogram changes.
+//
+// (a) The selected background by true category, on the enu_ehad binning (reco
+//     E_nu, reco nu) and split by the reco low-nu call like bg_enu_ehad_<s>:
+//       diag_bg_<cat>_enu_ehad_{inclusive,lowNu,highNu}
+//     cat = nc      neutral current
+//           numubar CC anti-nu_mu (wrong sign)
+//           nue     CC nu_e or anti-nu_e
+//           ccnumu  CC nu_mu outside the signal volume (= the CV of
+//                   bg_ccnumu_enu_ehad_<s>)
+//           other   anything else (expected empty)
+//     The five sum to the CV of bg_enu_ehad_<s>.  For the background-
+//     subtraction page (card A11): each background's size by E_nu region.
+// (b) The selected MC by GENIE channel, on the emu_ehad_fine binning (reco E_mu
+//     on the analysis E_nu binning, reco nu in 0.1 GeV bins to 5 GeV),
+//     inclusive sample only:
+//       diag_chan_<ch>_emu_ehad_fine
+//     ch = qe, 2p2h, res, dis, coh, other: signal, by mc_intType 1, 8, 2, 3, 4
+//          and anything else
+//          bg: all selected background
+//     The seven sum to the CV of selection_mc_emu_ehad_fine_inclusive.  What
+//     fills the lowest recoil bins, where data sit above the MC (card A15;
+//     Kevin, 2026-11-13).
+enum EDiagSample { kDiagInclusive, kDiagLowNu, kDiagHighNu, kNDiagSamples };
+const char* const kDiagSampleName[kNDiagSamples] = {"inclusive", "lowNu",
+                                                    "highNu"};
+
+enum EDiagBgCategory { kDiagBgNC, kDiagBgNuMuBar, kDiagBgNuE, kDiagBgCCNuMu,
+                       kDiagBgOther, kNDiagBgCategories };
+const char* const kDiagBgName[kNDiagBgCategories] = {"nc", "numubar", "nue",
+                                                     "ccnumu", "other"};
+
+enum EDiagChannel { kDiagChQE, kDiagCh2p2h, kDiagChRES, kDiagChDIS,
+                    kDiagChCOH, kDiagChOther, kDiagChBg, kNDiagChannels };
+const char* const kDiagChName[kNDiagChannels] = {"qe",  "2p2h",  "res", "dis",
+                                                 "coh", "other", "bg"};
+
+int DiagBgCategory(const CVUniverse& universe) {
+  const int current = universe.GetInt("mc_current");
+  const int incoming = universe.GetInt("mc_incoming");
+  if (current == 2) return kDiagBgNC;
+  if (current == 1 && incoming == -14) return kDiagBgNuMuBar;
+  if (current == 1 && (incoming == 12 || incoming == -12)) return kDiagBgNuE;
+  if (current == 1 && incoming == 14) return kDiagBgCCNuMu;
+  return kDiagBgOther;
+}
+
+int DiagChannel(const CVUniverse& universe, const bool is_signal) {
+  if (!is_signal) return kDiagChBg;
+  switch (universe.GetInt("mc_intType")) {
+    case 1: return kDiagChQE;
+    case 8: return kDiagCh2p2h;
+    case 2: return kDiagChRES;
+    case 3: return kDiagChDIS;
+    case 4: return kDiagChCOH;
+    default: return kDiagChOther;
+  }
+}
+
+PlotUtils::MnvH2D* MakeDiagHist(const std::string& name,
+                                const std::string& title, const TArrayD& xbins,
+                                const TArrayD& ybins) {
+  PlotUtils::MnvH2D* h = new PlotUtils::MnvH2D(
+      name.c_str(), title.c_str(), xbins.GetSize() - 1, xbins.GetArray(),
+      ybins.GetSize() - 1, ybins.GetArray());
+  h->SetDirectory(nullptr);  // written explicitly below
+  if (h->GetSumw2N() == 0) h->Sumw2();
+  return h;
+}
+
+// index = category * kNDiagSamples + sample
+std::vector<PlotUtils::MnvH2D*> MakeDiagBgHists() {
+  const TArrayD enu = CCPi::GetBinning("enu");
+  const TArrayD ehad = CCPi::GetBinning("ehad");
+  std::vector<PlotUtils::MnvH2D*> h(kNDiagBgCategories * kNDiagSamples,
+                                    nullptr);
+  for (int c = 0; c < kNDiagBgCategories; ++c)
+    for (int s = 0; s < kNDiagSamples; ++s)
+      h[c * kNDiagSamples + s] = MakeDiagHist(
+          Form("diag_bg_%s_enu_ehad_%s", kDiagBgName[c], kDiagSampleName[s]),
+          Form("selected background, %s (CV)", kDiagBgName[c]), enu, ehad);
+  return h;
+}
+
+std::vector<PlotUtils::MnvH2D*> MakeDiagChannelHists() {
+  const TArrayD emu = CCPi::GetBinning("enu");  // as emu_ehad_fine
+  const TArrayD ehad_fine = CCPi::GetBinning("ehad_fine");
+  std::vector<PlotUtils::MnvH2D*> h(kNDiagChannels, nullptr);
+  for (int c = 0; c < kNDiagChannels; ++c)
+    h[c] = MakeDiagHist(Form("diag_chan_%s_emu_ehad_fine", kDiagChName[c]),
+                        Form("selected MC, %s (CV)", kDiagChName[c]), emu,
+                        ehad_fine);
+  return h;
+}
+
+// x, y as enu_ehad and emu_ehad_fine fill them (GeV)
+void FillCVDiagnostics(std::vector<PlotUtils::MnvH2D*>& bg,
+                       std::vector<PlotUtils::MnvH2D*>& chan,
+                       const CVUniverse& universe, const double weight,
+                       const bool is_signal, const bool reco_low) {
+  const double nu = universe.GetEhad_GeV();
+  if (!is_signal) {
+    const int c = DiagBgCategory(universe);
+    const double enu = universe.GetEnu_GeV();
+    bg[c * kNDiagSamples + kDiagInclusive]->Fill(enu, nu, weight);
+    bg[c * kNDiagSamples + (reco_low ? kDiagLowNu : kDiagHighNu)]->Fill(
+        enu, nu, weight);
+  }
+  chan[DiagChannel(universe, is_signal)]->Fill(universe.GetEmu_GeV(), nu,
+                                               weight);
+}
+
+//==============================================================================
 // Loop and Fill
 //==============================================================================
 void LoopAndFillData(const CCPi::MacroUtil& util,
@@ -405,7 +522,9 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
                              MisclassHist* misclass_enu_reco = nullptr,
                              MisclassHist* misclass_enu_true = nullptr,
                              std::vector<MisclassHist*>* migration_diag = nullptr,
-                             std::vector<MisclassHist*>* thesis_numerator = nullptr) {
+                             std::vector<MisclassHist*>* thesis_numerator = nullptr,
+                             std::vector<PlotUtils::MnvH2D*>* cv_diag_bg = nullptr,
+                             std::vector<PlotUtils::MnvH2D*>* cv_diag_chan = nullptr) {
   bool is_mc, is_truth;
   Long64_t n_entries;
   SetupLoop(type, util, is_mc, is_truth, n_entries);
@@ -505,6 +624,15 @@ void LoopAndFillMCXSecInputs(const CCPi::MacroUtil& util,
             event.m_passes_cuts && IsTrueCCNuMu(*universe))
           FillThesisNumerator(*thesis_numerator, *universe, event.m_weight,
                               event.m_is_lowNu);
+
+        //===============
+        // FILL THE CV DIAGNOSTICS (selected MC, central value only)
+        //===============
+        if (cv_diag_bg && cv_diag_chan && event.m_is_mc &&
+            event.m_passes_cuts && universe->ShortName() == "cv")
+          FillCVDiagnostics(*cv_diag_bg, *cv_diag_chan, *universe,
+                            event.m_weight, event.m_is_signal,
+                            event.m_is_lowNu);
       }  // universes
     }    // error bands
   }      // events
@@ -674,6 +802,9 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
   // The thesis-numerator piece (filled in the MC reco loop only)
   std::vector<MisclassHist*> thesis_numerator =
       MakeThesisNumeratorHists(util.m_error_bands);
+  // CV diagnostics: background categories, channels (MC reco loop only)
+  std::vector<PlotUtils::MnvH2D*> cv_diag_bg = MakeDiagBgHists();
+  std::vector<PlotUtils::MnvH2D*> cv_diag_chan = MakeDiagChannelHists();
 
   // LOOP DATA
   // Uses the full `variables` (incl. truth vars); FillSelected skips truth vars
@@ -698,7 +829,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
   }
   LoopAndFillMCXSecInputs(util, kMC, variables, variables_MAT, variables2D, test_run,
                           &misclass_enu_reco, &misclass_enu_true,
-                          &migration_diag, &thesis_numerator);
+                          &migration_diag, &thesis_numerator, &cv_diag_bg,
+                          &cv_diag_chan);
 
   // LOOP TRUTH
   if (util.m_do_truth) {
@@ -739,6 +871,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
     h->SyncCVHistos();
     h->hist->Write();
   }
+  for (auto h : cv_diag_bg) h->Write();
+  for (auto h : cv_diag_chan) h->Write();
 }
 
 #endif  // makeXsecMCInputs_C
