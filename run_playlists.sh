@@ -8,7 +8,8 @@
 #   TEST=1 ./run_playlists.sh 1A              # truncated smoke test (test_run = true)
 #   TAG=wk45 ./run_playlists.sh 1D            # tagged run: coexists with untagged/other-tag runs
 #   TAG=wk45 SPLIT=2 ./run_playlists.sh 1D    # split each playlist's file lists in 2 parallel jobs
-#   TUPLES=p9 TAG=wk45-p9 ./run_playlists.sh 1D   # same, on the P9 data-preservation tuples
+#   TUPLES=opendata TAG=wk45-od ./run_playlists.sh 1D  # same, on the open-data tuples
+#                                             # (default: the P9 data-preservation tuples)
 #   TUNE=legacy TAG=legacy ./run_playlists.sh 1D  # CV tune: v4.4.1 (default) or legacy
 #   SELECTION=thesis TAG=thesis-sel ./run_playlists.sh 1D  # reco cuts: current (default)
 #                                             # or thesis (the 2020 thesis cuts)
@@ -54,7 +55,8 @@
 # Overnight runs need the token renewer alive in its own screen:
 #   screen -S renew_token ;  nohup python renew_token.py ;  Ctrl-a d
 #
-# Input tuples (TUPLES, default opendata) -- the playlist files are, for <N> = 1A ... 1P:
+# Input tuples (TUPLES, default p9 since 2026-11-13: P9 from now on, Rob and Kevin
+# 2026-11-06) -- the playlist files are, for <N> = 1A ... 1P:
 #   opendata  $OPENDATA_DIR/MC/StandardMC/MediumEnergy_FHC_StandardMC_Playlist<N>.txt
 #             $OPENDATA_DIR/Data/MediumEnergy_FHC_Data_Playlist<N>.txt
 #             (OPENDATA_DIR default /pnfs/minerva/persistent/OpenData/MediumEnergy_FHC)
@@ -73,7 +75,7 @@ set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OD="${OPENDATA_DIR:-/pnfs/minerva/persistent/OpenData/MediumEnergy_FHC}"
 P9D="${P9_DIR:-/pnfs/minerva/persistent/DataPreservation/p9}"
-TUPLES="${TUPLES:-opendata}"
+TUPLES="${TUPLES:-p9}"
 TUNE="${TUNE:-v4.4.1}"
 SELECTION="${SELECTION:-current}"
 MUONSHIFT="${MUONSHIFT:-none}"
