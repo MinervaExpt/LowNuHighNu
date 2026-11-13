@@ -1,5 +1,5 @@
 """
-recoil_emu_slices.py   (v1.0 -- 2026-11-13)
+recoil_emu_slices.py   (v1.1 -- 2026-11-13)
 
 Recoil (nu) distributions in slices of muon energy, from the raw event-loop
 output (XSecInputs_*.root).  Kevin's first study (2026-11-06): recoil
@@ -25,6 +25,12 @@ Per E_mu slice it writes:
 and over all slices:
   recoil_ratio_grid.png            data/MC per slice with the systematic band
   recoil_ratio_grid_areanorm.png   the same, area-normalized, shape-only band
+  recoil_map_data.png              the (E_mu, nu) data map with the staircase cut,
+                                   tilted in E_mu (each step at E_mu + nu = 3, 7, 12)
+  recoil_map_ratio.png             data/MC per (E_mu, nu) bin, POT-normalized
+  recoil_map_ratio_areanorm.png    the same with each E_mu column area-normalized
+                                   (the two grids carry the data map and the
+                                   matching ratio map in their last two pads)
   recoil_Emu_slices.root           the projections (data TH1D, MC and
                                    background MnvH1D with their bands, POT-scaled)
                                    for overlays across runs later
@@ -166,7 +172,7 @@ def nu0_lines(lo, hi):
     """Staircase nu_0 values that are the cut somewhere in E_mu in [lo, hi]."""
     out = []
     for nu0, elo, ehi in STAIRCASE:
-        if lo + nu0 < ehi and hi + nu0 >= elo:
+        if lo + nu0 < ehi and hi + nu0 > elo:
             out.append(nu0)
     return out
 
@@ -378,13 +384,106 @@ def plot_errsum(mc_mnv, lo, hi, out_path, area_norm):
     print("  wrote {0}".format(out_path))
 
 
-def plot_ratio_grid(ratios, out_path, title):
-    """All slices' data/MC panels on one page (the band: sys, or shape-only)."""
+
+# (E_mu, nu) corners of the staircase: each step sits at E_mu + nu = 3, 7, 12 GeV,
+# so in E_mu it is tilted back by its own nu_0.
+TILTED_STAIRCASE = [(0.0, 0.3), (2.7, 0.3), (2.5, 0.5), (6.5, 0.5), (6.0, 1.0),
+                    (11.0, 1.0), (10.0, 2.0), (20.0, 2.0)]
+EMU_MAP_MAX = 20.0      # displayed E_mu range of the maps (GeV)
+MAP_MIN_DATA = 25.0     # ratio-map bins with fewer data events are left blank
+RATIO_RANGE = (0.7, 1.3)
+
+
+def cv2(h, name):
+    c = h.GetCVHistoWithStatError() if hasattr(h, "GetCVHistoWithStatError") else h.Clone()
+    c.SetName(name)
+    c.SetDirectory(0)
+    return c
+
+
+def ratio_map(h_data, h_mc, mc_scale, area_norm):
+    """data/MC per (E_mu, nu) bin; POT-normalized, or each E_mu column to unit area."""
+    d = cv2(h_data, "map_data" + ("_an" if area_norm else ""))
+    m = cv2(h_mc, "map_mc" + ("_an" if area_norm else ""))
+    m.Scale(mc_scale)
+    r = d.Clone("map_ratio" + ("_an" if area_norm else ""))
+    r.Reset()
+    ny = d.GetNbinsY()
+    for ix in range(1, d.GetNbinsX() + 1):
+        dsum = sum(d.GetBinContent(ix, iy) for iy in range(1, ny + 1))
+        msum = sum(m.GetBinContent(ix, iy) for iy in range(1, ny + 1))
+        for iy in range(1, ny + 1):
+            dv, mv = d.GetBinContent(ix, iy), m.GetBinContent(ix, iy)
+            if dv < MAP_MIN_DATA or mv <= 0:
+                continue
+            if area_norm:
+                if dsum <= 0 or msum <= 0:
+                    continue
+                val = (dv / dsum) / (mv / msum)
+            else:
+                val = dv / mv
+            # clip into the colour range so a valid bin is never left blank
+            val = min(max(val, RATIO_RANGE[0] + 1e-4), RATIO_RANGE[1] - 1e-4)
+            r.SetBinContent(ix, iy, val)
+    return d, r
+
+
+def draw_map(h, kind, title, small=False):
+    """COLZ map in the current pad, with the tilted staircase. kind: 'data' or 'ratio'."""
+    pal = "kBird" if kind == "data" else "kLightTemperature"
+    ex = ROOT.TExec("ex_" + h.GetName(), "gStyle->SetPalette({0});".format(pal))
+    ex.Draw()
+    ROOT.gPad.SetRightMargin(0.16)
+    ROOT.gPad.SetLeftMargin(0.14)
+    ROOT.gPad.SetBottomMargin(0.14)
+    if kind == "data":
+        ROOT.gPad.SetLogz()
+        h.SetMinimum(0.5)
+    else:
+        h.SetMinimum(RATIO_RANGE[0])
+        h.SetMaximum(RATIO_RANGE[1])
+    h.SetTitle("")
+    h.GetXaxis().SetRangeUser(0.0, EMU_MAP_MAX - 1e-6)
+    h.GetXaxis().SetTitle("E_{#mu}  [GeV]")
+    h.GetYaxis().SetTitle("#nu = E_{had} (reco)  [GeV]")
+    h.GetZaxis().SetTitle("" if small else ("data events" if kind == "data" else "data / MC"))
+    if small:
+        for ax in (h.GetXaxis(), h.GetYaxis(), h.GetZaxis()):
+            ax.SetLabelSize(0.05)
+            ax.SetTitleSize(0.055)
+        h.GetZaxis().SetTitleOffset(1.2)
+    h.Draw("COLZ")
+    ex.Draw()          # re-assert this pad's palette after the frame is painted
+    h.Draw("COLZ SAME")
+    line = ROOT.TPolyLine(len(TILTED_STAIRCASE))
+    for i, (x, y) in enumerate(TILTED_STAIRCASE):
+        line.SetPoint(i, x, y)
+    line.SetLineColor(ROOT.kRed + 2 if kind == "data" else ROOT.kBlack)
+    line.SetLineWidth(3 if not small else 2)
+    line.SetLineStyle(2)
+    line.Draw("SAME")
+    lab = ROOT.TLatex()
+    lab.SetNDC()
+    lab.SetTextSize(0.06 if small else 0.035)
+    lab.DrawLatex(0.15, 0.92, title)
+    _keep.extend([h, ex, line, lab])
+
+
+def plot_map(h, kind, title, out_path):
+    c = ROOT.TCanvas("c_" + os.path.basename(out_path), "", 1000, 750)
+    draw_map(h, kind, title)
+    c.SaveAs(out_path)
+    print("  wrote {0}".format(out_path))
+
+def plot_ratio_grid(ratios, out_path, title, maps=None):
+    """All slices' data/MC panels on one page (the band: sys, or shape-only),
+    then the (E_mu, nu) maps in the last two pads: [(hist, kind, title), ...]."""
     n = len(ratios)
     if n == 0:
         return
+    maps = maps or []
     ncol = 4
-    nrow = (n + ncol - 1) // ncol
+    nrow = (n + len(maps) + ncol - 1) // ncol
     c = ROOT.TCanvas("c_grid_" + os.path.basename(out_path), "", 1600, 400 * nrow)
     c.Divide(ncol, nrow, 0.002, 0.002)
     for i, (lo, hi, r, rb) in enumerate(ratios):
@@ -411,6 +510,9 @@ def plot_ratio_grid(ratios, out_path, title):
         lab.SetTextSize(0.06)
         lab.DrawLatex(0.17, 0.92, "{0:g} < E_{{#mu}} < {1:g} GeV".format(lo, hi))
         _keep.extend([rb2, r2, one, lab])
+    for j, (h, kind, mtitle) in enumerate(maps):
+        c.cd(n + j + 1)
+        draw_map(h.Clone(h.GetName() + "_g"), kind, mtitle, small=True)
     c.SaveAs(out_path)
     print("  wrote {0}  ({1})".format(out_path, title))
 
@@ -420,7 +522,7 @@ def main():
     a = parse_args()
     if not os.path.isdir(a.outdir):
         os.makedirs(a.outdir)
-    print("recoil_emu_slices.py v1.0: {0}".format(a.infile))
+    print("recoil_emu_slices.py v1.1: {0}".format(a.infile))
     f = ROOT.TFile.Open(a.infile)
     if not f or f.IsZombie():
         print("  ERROR: cannot open {0}".format(a.infile))
@@ -494,10 +596,19 @@ def main():
                         True)
         _keep.extend([d, m, b])
     fout.Close()
+    d2, r2 = ratio_map(h_data, h_mc, mc_scale, area_norm=False)
+    _, r2n = ratio_map(h_data, h_mc, mc_scale, area_norm=True)
+    t_d = "data, (E_{#mu}, #nu), with the staircase cut"
+    t_r = "data/MC (POT-normalized)"
+    t_rn = "data/MC, each E_{#mu} column area-normalized"
+    plot_map(d2, "data", t_d, os.path.join(a.outdir, "recoil_map_data.png"))
+    plot_map(r2, "ratio", t_r, os.path.join(a.outdir, "recoil_map_ratio.png"))
+    plot_map(r2n, "ratio", t_rn, os.path.join(a.outdir, "recoil_map_ratio_areanorm.png"))
     plot_ratio_grid(ratios_abs, os.path.join(a.outdir, "recoil_ratio_grid.png"),
-                    "data/MC, POT-normalized")
+                    "data/MC, POT-normalized", maps=[(d2, "data", "data"), (r2, "ratio", "data / MC")])
     plot_ratio_grid(ratios_shape, os.path.join(a.outdir, "recoil_ratio_grid_areanorm.png"),
-                    "data/MC, area-normalized")
+                    "data/MC, area-normalized",
+                    maps=[(d2, "data", "data"), (r2n, "ratio", "data / MC, columns area-norm.")])
 
     print("")
     print("  Per slice (nu in 0-{0:g} GeV; MC POT-scaled):".format(NU_MAX))
