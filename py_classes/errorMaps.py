@@ -54,11 +54,21 @@ error_bands["Model_Fits"]             = ["Low_Recoil_2p2h_Tune",
 #error_bands["3DFits_Region1"]   = ["CCQE_3D_Fit1"]
 #error_bands["3DFits_Region2"]   = ["CCQE_3D_Fit2"]
 #error_bands["3DFits_Region3"]   = ["CCQE_3D_Fit3"]
-error_bands["Detector"]               = ["Proton_Response",
+error_bands["Detector"]               = ["MINOS_Reconstruction_Efficiency"]
+# MAT names the recoil-response bands response_<particle> (ResponseUniverse::
+# ShortName); the older names below match nothing in MAT output, so these bands
+# were in every total but never drawn as a group (found 2026-11-13).
+error_bands["Response"]               = ["response_proton",
+                                         "response_meson",
+                                         "response_em",
+                                         "response_other",
+                                         "response_low_neutron",
+                                         "response_mid_neutron",
+                                         "response_high_neutron",
+                                         "Proton_Response",
                                          "Pion_Response",
                                          "EM_Response",
-                                         "Other_Response",
-                                         "MINOS_Reconstruction_Efficiency"]
+                                         "Other_Response"]
 #error_bands["Response"]               = ["Proton_Response",
 #                                         "Pion_Response",
 #                                         "EM_Response",
