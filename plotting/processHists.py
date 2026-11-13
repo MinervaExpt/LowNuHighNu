@@ -294,7 +294,7 @@ for PLAYLISTS,isME in zip([PLAYLISTS_LE,PLAYLISTS_ME],[False,True]):
     # Provenance: this playlist's POT and the event-loop stamps of its input file
     writeHist(mcPOT_hist,histOutputDir_playlist)
     writeHist(dataPOT_hist,histOutputDir_playlist)
-    for stampName in ['git_describe','git_diff_md5','tune','selection','muon_shift']:
+    for stampName in ['git_describe','git_diff_md5','tune','selection','muon_shift','geant_hadron']:
       stamp = histsFile.Get(stampName)
       if stamp:
         histOutputDir_playlist.cd()

@@ -72,6 +72,17 @@ double CVUniverse::GetMinosMomentumOffset() {
 }
 
 //==============================================================================
+// GEANT hadron systematics switch (see CVUniverse.h)
+//==============================================================================
+static bool g_geant_hadron_systematics = false;
+void CVUniverse::SetGeantHadronSystematics(bool on) {
+  g_geant_hadron_systematics = on;
+}
+bool CVUniverse::GetGeantHadronSystematics() {
+  return g_geant_hadron_systematics;
+}
+
+//==============================================================================
 // Constructor
 //==============================================================================
 CVUniverse::CVUniverse(PlotUtils::ChainWrapper* chw, double nsigma)

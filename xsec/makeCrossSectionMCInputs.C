@@ -664,7 +664,8 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
                               std::string tune = "v4.4.1",
                               std::string out_dir = "",
                               std::string selection = "current",
-                              std::string muon_shift = "none") {
+                              std::string muon_shift = "none",
+                              std::string geant = "off") {
   // Only signal definition 1 (kLowNuHighNu) is supported; it writes the
   // inclusive, lowNu and highNu samples.  Definition 0 (kInclusive: Anne's
   // DIS/sideband variant, InclusiveEvent) was removed 2026-11-03.
@@ -710,6 +711,19 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
   }
   std::cout << "Data MINOS muon momentum offset: " << data_minos_offset
             << " (MC: none)\n";
+
+  // GEANT HADRON SYSTEMATICS: "on" adds MAT's GEANT_Neutron / _Proton / _Pion
+  // bands (CVUniverse.h); must be set before MacroUtil builds the universes.
+  if (geant == "on") {
+    CVUniverse::SetGeantHadronSystematics(true);
+  } else if (geant != "off") {
+    std::cerr << "ERROR: unknown geant setting '" << geant
+              << "' (use \"off\" or \"on\").\n";
+    std::exit(1);
+  }
+  std::cout << "GEANT hadron systematics: "
+            << (CVUniverse::GetGeantHadronSystematics() ? "on" : "off")
+            << "\n";
 
   // INPUT TUPLES
   const bool is_mc = true;
@@ -784,6 +798,9 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
     TNamed("muon_shift",
            Form("%s (data MINOS momentum offset %g, MC none)",
                 muon_shift.c_str(), data_minos_offset))
+        .Write();
+    TNamed("geant_hadron",
+           CVUniverse::GetGeantHadronSystematics() ? "on" : "off")
         .Write();
   }
 

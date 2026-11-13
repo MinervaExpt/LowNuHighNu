@@ -39,6 +39,18 @@ class CVUniverse : public PlotUtils::MinervaUniverse {
   static void SetMinosMomentumOffset(double offset);
   static double GetMinosMomentumOffset();
 
+  // GEANT hadron (re)interaction systematics: MAT's GEANT_Neutron,
+  // GEANT_Proton and GEANT_Pion bands (+-1 sigma each, vertical, from
+  // MnvHadronReweight; the CV already carries its weight through
+  // GetGeantHadronWeight()).  Set once per job by the event-loop macro before
+  // MacroUtil builds the universes; read by
+  // systematics::GetSystematicUniversesMap.  Default off: the bands were
+  // commented out in the CC-pion fork.  MAT means these bands, not the
+  // neutron response universes (ResponseSystematics.h, use_neutron), to carry
+  // the neutron uncertainty: use one or the other, never both.
+  static void SetGeantHadronSystematics(bool on);
+  static bool GetGeantHadronSystematics();
+
   // CTOR
   CVUniverse(PlotUtils::ChainWrapper* chw, double nsigma = 0);
 

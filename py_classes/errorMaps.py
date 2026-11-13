@@ -87,6 +87,11 @@ error_bands["CCQENu Other"]           = ["MEU_Proton",
 #error_bands["CCQENu Reweight"]        = ["Reweight_Neutron",
                                          "Reweight_Pion",
                                          "Reweight_Proton"]
+# MAT's GEANT hadron (re)interaction bands (GeantHadronUniverse::ShortName);
+# in the output only from runs with GEANT=on (patch 0037).
+error_bands["GEANT"]                  = ["GEANT_Neutron",
+                                         "GEANT_Proton",
+                                         "GEANT_Pion"]
 error_bands["GENIE"]                  = ["GENIE_FrAbs_N",
                                          "GENIE_FrAbs_N",
                                          "GENIE_FrAbs_pi",

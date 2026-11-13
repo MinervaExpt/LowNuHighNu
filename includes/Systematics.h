@@ -90,9 +90,15 @@ UniverseMap GetSystematicUniversesMap(PlotUtils::ChainWrapper* chain,
           new BeamAngleShiftCVUniverse(chain, sigma));
     }
 
-    //      UniverseMap geant_bands =
-    //          PlotUtils::GetGeantHadronSystematicsMap<CVUniverse>( chain );
-    //      error_bands.insert(geant_bands.begin(), geant_bands.end());
+    // GEANT hadron (re)interaction bands: GEANT_Neutron, GEANT_Proton,
+    // GEANT_Pion.  Only with the switch on (launcher GEANT=on; CVUniverse.h).
+    // MAT means these to carry the neutron uncertainty, so the neutron
+    // response universes below stay off (use_neutron = false).
+    if (CVUniverse::GetGeantHadronSystematics()) {
+      UniverseMap geant_bands =
+          PlotUtils::GetGeantHadronSystematicsMap<CVUniverse>(chain);
+      error_bands.insert(geant_bands.begin(), geant_bands.end());
+    }
 
     //========================================================================
     // FLUX
