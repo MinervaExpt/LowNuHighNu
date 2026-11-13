@@ -1,5 +1,5 @@
 """
-recoil_emu_slices.py   (v1.1 -- 2026-11-13)
+recoil_emu_slices.py   (v1.2 -- 2026-11-13)
 
 Recoil (nu) distributions in slices of muon energy, from the raw event-loop
 output (XSecInputs_*.root).  Kevin's first study (2026-11-06): recoil
@@ -17,11 +17,15 @@ Per E_mu slice it writes:
                                    band; ratio panel data/MC with the band
                                    around 1.  Log y.
   recoil_<slice>_areanorm.png      the same, data and MC each normalized to unit
-                                   area over 0-5 GeV; the band is shape-only
+                                   area INCLUDING nu > 5 GeV (v1.2); the band is shape-only
                                    (the covariance of area-normalized universes).
                                    Linear y.
   recoil_<slice>_errsum.png        grouped fractional systematic breakdown
   recoil_<slice>_errsum_shape.png  the same, shape-only (area-normalized)
+  breakdowns/recoil_<slice>_<group>[_shape].png
+                                   the individual knobs inside GENIE, Model_Fits
+                                   and Response (knobs under 0.5 % everywhere
+                                   are not drawn), absolute and shape-only
 and over all slices:
   recoil_ratio_grid.png            data/MC per slice with the systematic band
   recoil_ratio_grid_areanorm.png   the same, area-normalized, shape-only band
@@ -35,6 +39,10 @@ and over all slices:
                                    background MnvH1D with their bands, POT-scaled)
                                    for overlays across runs later
   a printed table per slice: events, data/MC, the fraction above 5 GeV.
+
+The last bin, right of the dotted line at 5 GeV, is the overflow (every event
+with nu > 5 GeV), so normalizations and shape-only bands include it (v1.2;
+Kevin, 2026-11-13).
 
 Dashed lines mark the staircase nu_0 values that are a boundary somewhere in
 the slice: an event is low-nu when nu < nu_0(E_nu) with E_nu = E_mu + nu, so in
@@ -53,6 +61,7 @@ Usage (from plotting/, which holds myPlotStyle.h):
 """
 
 import argparse
+from array import array
 import os
 import sys
 
@@ -68,6 +77,16 @@ except Exception:
     pass
 ROOT.TH1.AddDirectory(False)
 ROOT.gStyle.SetOptStat(0)
+
+# MAT names the recoil-response bands response_<particle> (ResponseUniverse::
+# ShortName); errorMaps.py listed older names, so they were in the totals but
+# never drawn as a group.  Until errorMaps.py carries them, group them here.
+RESPONSE_BANDS = ["response_proton", "response_meson", "response_em", "response_other",
+                  "response_low_neutron", "response_mid_neutron", "response_high_neutron"]
+if not any(n in sum([list(v) for v in error_bands.values()], []) for n in RESPONSE_BANDS):
+    error_bands["Response"] = RESPONSE_BANDS
+BREAKDOWN_GROUPS = ["GENIE", "Model_Fits", "Response"]
+BREAKDOWN_THRESHOLD = 0.005   # knobs below 0.5 % in every bin are not drawn
 
 plotter = PlotUtils.MnvPlotter()
 plotter.error_summary_group_map.clear()
@@ -177,6 +196,62 @@ def nu0_lines(lo, hi):
     return out
 
 
+_univ_keep = []      # universe TH1Ds backing rebuilt MnvH1D bands (must outlive them)
+OVERFLOW_WIDTH = 0.5  # drawn width (GeV) of the overflow bin
+
+
+def with_overflow_bin(h, name):
+    """Copy of h with one extra visible bin holding its overflow (nu > NU_MAX).
+
+    Works on a TH1D or an MnvH1D; for an MnvH1D every vertical universe is moved
+    the same way, so the area-normalized (shape-only) covariance includes it.
+    """
+    ax = h.GetXaxis()
+    nb = h.GetNbinsX()
+    edges = [ax.GetBinLowEdge(b) for b in range(1, nb + 2)] + [ax.GetBinUpEdge(nb) + OVERFLOW_WIDTH]
+
+    def ext(src, nm):
+        out = ROOT.TH1D(nm, src.GetTitle(), len(edges) - 1, array('d', edges))
+        out.SetDirectory(0)
+        for b in range(0, nb + 2):
+            out.SetBinContent(b, src.GetBinContent(b))
+            out.SetBinError(b, src.GetBinError(b))
+        out.SetBinContent(nb + 2, 0.0)
+        return out
+
+    if not hasattr(h, "GetVertErrorBandNames"):
+        return ext(h, name)
+    out = PlotUtils.MnvH1D(ext(h.GetCVHistoWithStatError(), name + "_cv"))
+    out.SetName(name)
+    out.SetDirectory(0)
+    for bn in list(h.GetVertErrorBandNames()):
+        band = h.GetVertErrorBand(bn)
+        vec = ROOT.std.vector("TH1D*")()
+        for iu in range(band.GetNHists()):
+            uh = ext(band.GetHist(iu), "{0}_{1}_u{2}".format(name, bn, iu))
+            _univ_keep.append(uh)
+            vec.push_back(uh)
+        out.AddVertErrorBand(bn, vec)
+        try:
+            out.GetVertErrorBand(bn).SetUseSpreadError(band.GetUseSpreadError())
+        except Exception:
+            pass
+    return out
+
+
+def draw_overflow_marker(ymin, ymax, size=0.03):
+    ln = ROOT.TLine(NU_MAX, ymin, NU_MAX, ymax)
+    ln.SetLineColor(ROOT.kGray + 2)
+    ln.SetLineStyle(3)
+    ln.Draw("SAME")
+    t = ROOT.TLatex()
+    t.SetTextSize(size)
+    t.SetTextColor(ROOT.kGray + 2)
+    t.SetTextAngle(90)
+    t.DrawLatex(NU_MAX + 0.35 * OVERFLOW_WIDTH, ymin + 0.05 * (ymax - ymin), "#nu > 5")
+    _keep.extend([ln, t])
+
+
 # --------------------------------------------------------------------------- #
 # Drawing
 # --------------------------------------------------------------------------- #
@@ -277,7 +352,7 @@ def plot_slice(data, mc_mnv, bg_mnv, lo, hi, out_path, label, area_norm):
         top.SetLogy()
     frame = band if band is not None else mc
     title = "{0:g} < E_{{#mu}} < {1:g} GeV{2}".format(
-        lo, hi, ",  area-normalized (shape-only band)" if area_norm else "")
+        lo, hi, ",  area-normalized incl. #nu > 5 (shape-only band)" if area_norm else "")
     frame.SetTitle(title)
     frame.GetYaxis().SetTitle(ytitle)
     frame.GetYaxis().SetTitleOffset(1.25)
@@ -313,6 +388,7 @@ def plot_slice(data, mc_mnv, bg_mnv, lo, hi, out_path, label, area_norm):
     top.Update()
     lines = nu0_lines(lo, hi)
     ylo, yhi = frame.GetMinimum(), frame.GetMaximum()
+    draw_overflow_marker(ylo, yhi)
     draw_nu0(lines, ylo, yhi)
 
     leg = ROOT.TLegend(0.55, 0.66, 0.89, 0.88)
@@ -338,7 +414,7 @@ def plot_slice(data, mc_mnv, bg_mnv, lo, hi, out_path, label, area_norm):
         hdr.DrawLatex(0.895, 0.915, label)
     _keep.append(hdr)
     if not area_norm:
-        mi, di = mc.Integral(1, nb), d.Integral(1, nb)
+        mi, di = mc.Integral(1, nb - 1), d.Integral(1, nb - 1)
         tex.DrawLatex(0.16, 0.07,
                       "data/MC (0-{0:g} GeV) = {1:.3f}".format(NU_MAX, di / mi if mi > 0 else 0.0))
     _keep.extend([mc, d, bg, band, leg, tex])
@@ -358,6 +434,7 @@ def plot_slice(data, mc_mnv, bg_mnv, lo, hi, out_path, label, area_norm):
     one = ROOT.TLine(r.GetXaxis().GetXmin(), 1.0, r.GetXaxis().GetXmax(), 1.0)
     one.SetLineStyle(2)
     one.Draw("SAME")
+    draw_overflow_marker(0.5, 1.5, size=0.07)
     draw_nu0(lines, 0.5, 1.5)
     _keep.extend([r, rband, one])
     c.SaveAs(out_path)
@@ -365,20 +442,25 @@ def plot_slice(data, mc_mnv, bg_mnv, lo, hi, out_path, label, area_norm):
     return r, rband
 
 
-def plot_errsum(mc_mnv, lo, hi, out_path, area_norm):
+def plot_errsum(mc_mnv, lo, hi, out_path, area_norm, group=""):
+    """Grouped breakdown, or with `group` the individual knobs of that group."""
     c = ROOT.TCanvas("c_" + os.path.basename(out_path), "", 1000, 750)
     try:
-        mc_mnv.GetXaxis().SetTitle("#nu = E_{had} (reco)  [GeV]")
-        plotter.DrawErrorSummary(mc_mnv, "TR", True, True, 0.00001, area_norm,
-                                 "", True, "", True)
+        mc_mnv.GetXaxis().SetTitle("#nu = E_{had} (reco)  [GeV]  (last bin: #nu > 5)")
+        if group:
+            plotter.DrawErrorSummary(mc_mnv, "TR", False, True, BREAKDOWN_THRESHOLD, area_norm,
+                                     group, True, "", False)
+        else:
+            plotter.DrawErrorSummary(mc_mnv, "TR", True, True, 0.00001, area_norm,
+                                     "", True, "", True)
     except Exception as e:
         print("  WARN DrawErrorSummary failed ({0})".format(e))
         return
     tex = ROOT.TLatex()
     tex.SetNDC()
     tex.SetTextSize(0.03)
-    tex.DrawLatex(0.14, 0.92, "{0:g} < E_{{#mu}} < {1:g} GeV{2}".format(
-        lo, hi, ", shape-only" if area_norm else ""))
+    tex.DrawLatex(0.14, 0.92, "{0:g} < E_{{#mu}} < {1:g} GeV{2}{3}".format(
+        lo, hi, ", shape-only" if area_norm else "", ",  " + group + " knobs" if group else ""))
     _keep.append(tex)
     c.SaveAs(out_path)
     print("  wrote {0}".format(out_path))
@@ -410,8 +492,8 @@ def ratio_map(h_data, h_mc, mc_scale, area_norm):
     r.Reset()
     ny = d.GetNbinsY()
     for ix in range(1, d.GetNbinsX() + 1):
-        dsum = sum(d.GetBinContent(ix, iy) for iy in range(1, ny + 1))
-        msum = sum(m.GetBinContent(ix, iy) for iy in range(1, ny + 1))
+        dsum = sum(d.GetBinContent(ix, iy) for iy in range(1, ny + 2))   # incl. nu > 5
+        msum = sum(m.GetBinContent(ix, iy) for iy in range(1, ny + 2))
         for iy in range(1, ny + 1):
             dv, mv = d.GetBinContent(ix, iy), m.GetBinContent(ix, iy)
             if dv < MAP_MIN_DATA or mv <= 0:
@@ -504,6 +586,7 @@ def plot_ratio_grid(ratios, out_path, title, maps=None):
         one = ROOT.TLine(r2.GetXaxis().GetXmin(), 1.0, r2.GetXaxis().GetXmax(), 1.0)
         one.SetLineStyle(2)
         one.Draw("SAME")
+        draw_overflow_marker(0.5, 1.5, size=0.05)
         draw_nu0(nu0_lines(lo, hi), 0.5, 1.5)
         lab = ROOT.TLatex()
         lab.SetNDC()
@@ -522,7 +605,7 @@ def main():
     a = parse_args()
     if not os.path.isdir(a.outdir):
         os.makedirs(a.outdir)
-    print("recoil_emu_slices.py v1.1: {0}".format(a.infile))
+    print("recoil_emu_slices.py v1.2: {0}".format(a.infile))
     f = ROOT.TFile.Open(a.infile)
     if not f or f.IsZombie():
         print("  ERROR: cannot open {0}".format(a.infile))
@@ -547,6 +630,9 @@ def main():
         print("  WARN: the MC map has no error bands; plots are CV-only.")
 
     slices = slice_edges(h_mc.GetXaxis(), a.emu_edges)
+    bdir = os.path.join(a.outdir, "breakdowns")
+    if not os.path.isdir(bdir):
+        os.makedirs(bdir)
     fout = ROOT.TFile(os.path.join(a.outdir, "recoil_Emu_slices.root"), "RECREATE")
     ratios_abs, ratios_shape = [], []
     rows = []
@@ -568,11 +654,16 @@ def main():
             m.Rebin(a.rebin)          # in place; MnvH1D::Rebin carries the bands
             if b is not None:
                 b.Rebin(a.rebin)
-        nb = m.GetNbinsX()
-        dn, mn = d.Integral(1, nb), m.Integral(1, nb)
-        d_of = d.GetBinContent(nb + 1) / (dn + d.GetBinContent(nb + 1)) if dn > 0 else 0.0
-        m_of = m.GetBinContent(nb + 1) / (mn + m.GetBinContent(nb + 1)) if mn > 0 else 0.0
-        bgf = b.Integral(1, nb) / mn if (b is not None and mn > 0) else float("nan")
+        # the overflow (nu > 5 GeV) becomes a visible last bin (v1.2)
+        d = with_overflow_bin(d, "data_" + tag)
+        m = with_overflow_bin(m, "mc_" + tag)
+        if b is not None:
+            b = with_overflow_bin(b, "bg_" + tag)
+        nb = m.GetNbinsX()            # includes the overflow bin
+        dn, mn = d.Integral(1, nb - 1), m.Integral(1, nb - 1)
+        d_of = d.GetBinContent(nb) / (dn + d.GetBinContent(nb)) if dn > 0 else 0.0
+        m_of = m.GetBinContent(nb) / (mn + m.GetBinContent(nb)) if mn > 0 else 0.0
+        bgf = b.Integral(1, nb - 1) / mn if (b is not None and mn > 0) else float("nan")
         rows.append((lo, hi, dn, mn, dn / mn if mn > 0 else 0.0, bgf, d_of, m_of))
         if dn <= 0 and mn <= 0:
             print("  {0}: empty, skipped".format(tag))
@@ -594,13 +685,21 @@ def main():
             plot_errsum(m, lo, hi, os.path.join(a.outdir, "recoil_" + tag + "_errsum.png"), False)
             plot_errsum(m, lo, hi, os.path.join(a.outdir, "recoil_" + tag + "_errsum_shape.png"),
                         True)
+            present = set(m.GetVertErrorBandNames())
+            for g in BREAKDOWN_GROUPS:
+                if not any(n in present for n in error_bands.get(g, [])):
+                    continue
+                for shape in (False, True):
+                    plot_errsum(m, lo, hi, os.path.join(
+                        bdir, "recoil_{0}_{1}{2}.png".format(tag, g, "_shape" if shape else "")),
+                        shape, group=g)
         _keep.extend([d, m, b])
     fout.Close()
     d2, r2 = ratio_map(h_data, h_mc, mc_scale, area_norm=False)
     _, r2n = ratio_map(h_data, h_mc, mc_scale, area_norm=True)
     t_d = "data, (E_{#mu}, #nu), with the staircase cut"
     t_r = "data/MC (POT-normalized)"
-    t_rn = "data/MC, each E_{#mu} column area-normalized"
+    t_rn = "data/MC, each E_{#mu} column area-normalized (incl. #nu > 5)"
     plot_map(d2, "data", t_d, os.path.join(a.outdir, "recoil_map_data.png"))
     plot_map(r2, "ratio", t_r, os.path.join(a.outdir, "recoil_map_ratio.png"))
     plot_map(r2n, "ratio", t_rn, os.path.join(a.outdir, "recoil_map_ratio_areanorm.png"))
@@ -611,7 +710,7 @@ def main():
                     maps=[(d2, "data", "data"), (r2n, "ratio", "data / MC, columns area-norm.")])
 
     print("")
-    print("  Per slice (nu in 0-{0:g} GeV; MC POT-scaled):".format(NU_MAX))
+    print("  Per slice (data, MC: nu in 0-{0:g} GeV; MC POT-scaled):".format(NU_MAX))
     print("    {0:>12s} {1:>11s} {2:>11s} {3:>8s} {4:>8s} {5:>12s} {6:>12s}".format(
         "E_mu [GeV]", "data", "MC", "data/MC", "bg/MC", "data >5 GeV", "MC >5 GeV"))
     for lo, hi, dn, mn, r, bgf, dof, mof in rows:
