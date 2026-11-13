@@ -73,6 +73,14 @@ TArrayD GetBinning(const std::string var_name) {
                 3.,3.1,3.2,3.3,3.4,3.5,3.6,3.7,3.8,3.9,
                 4.,4.1,4.2,4.3,4.4,4.5,4.6,4.7,4.8,4.9,
                 5.};
+  } else if (var_name == "ehad_nucut") { // nu axis of emu_ehad_nucut, GeV
+    // Fine where the nu-cut study moves the threshold around nu_0 (Kevin,
+    // 2026-11-13): 0.01 GeV bins to 0.6 GeV (nu_0 = 0.3, 0.5), 0.05 GeV bins
+    // to 2.4 GeV (nu_0 = 1, 2), then one bin to 5 GeV; overflow above.  Edges
+    // as k/100 with integer k, so each lands on the nearest double.
+    for (int k = 0; k <= 60; ++k) bins_vec.push_back(k / 100.);
+    for (int k = 65; k <= 240; k += 5) bins_vec.push_back(k / 100.);
+    bins_vec.push_back(5.);
   } else if (var_name == "delta_nu") { // signed distance from low-nu staircase, GeV
     // 60 uniform bins on [-1.0, 2.0] GeV; asymmetric range because the
     // interesting leakage tail is on the high-nu side of the cut.

@@ -158,8 +158,19 @@ std::vector<Variable2D*> GetLowNuHighNu2DVariables(
   Var2D* emu_ehad_fine = new Var2D(std::string("emu_ehad_fine"), *vmat_emu,
                                    *vmat_ehad_fine);
 
-  return std::vector<Var2D*>{enu_ehad, enu_ehad_fine, enu_ehad_boundary,
-                             enu_delta_nu, emu_ehad_fine};
+  // nu vs E_mu for the nu-cut study (Kevin, 2026-11-13: the fraction below a
+  // threshold moved around each nu_0, in E_mu bins): x = E_mu as in
+  // emu_ehad_fine, y = nu on the ehad_nucut binning (0.01 GeV to 0.6 GeV,
+  // 0.05 GeV to 2.4 GeV, one bin to 5 GeV; Binning.h).
+  VarMAT* vmat_ehad_nucut = new VarMAT(
+      "ehad_nucut", "ehad_nucut",
+      ConvertTArrayDToStdVector(CCPi::GetBinning("ehad_nucut")),
+      &CVUniverse::GetEhad_GeV, &CVUniverse::GetEhadTrue_GeV);
+  Var2D* emu_ehad_nucut = new Var2D(std::string("emu_ehad_nucut"), *vmat_emu,
+                                    *vmat_ehad_nucut);
+
+  return std::vector<Var2D*>{enu_ehad,     enu_ehad_fine, enu_ehad_boundary,
+                             enu_delta_nu, emu_ehad_fine, emu_ehad_nucut};
 }
 
 }  // namespace make_xsec_mc_inputs
