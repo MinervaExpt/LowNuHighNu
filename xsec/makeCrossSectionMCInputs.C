@@ -744,6 +744,18 @@ void makeCrossSectionMCInputs(int signal_definition_int = 1,
                        plist, do_truth, is_grid, do_systematics);
   util.PrintMacroConfiguration(macro);
 
+  // Stop if no tuple file could be read: zero POT means the chains are empty
+  // (2026-11-13: an expired or missing token gave xrootd "Auth failed" on
+  // every file, and a TEST ran on nothing).  Exiting here, before the data
+  // loop, makes the launcher report the job and start no more.
+  if (!(util.m_mc_pot > 0.) || !(util.m_data_pot > 0.)) {
+    std::cerr << "ERROR: MC POT " << util.m_mc_pot << ", data POT "
+              << util.m_data_pot << ": no tuple file could be read.  Check "
+              << "the token (htgettoken; RUNBOOK section 3) and the file "
+              << "lists.\n";
+    std::exit(1);
+  }
+
   // INIT OUTPUT
   auto time = std::time(nullptr);
   char tchar[100];
