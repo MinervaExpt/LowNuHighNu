@@ -131,6 +131,27 @@ void CCPi::MacroUtil::InitSystematics() {
     plist = "minervame1a";
   }
   MinervaUniverse::SetPlaylist(plist);
+
+  // GEANT hadron (re)interaction bands, only with the switch on (launcher
+  // GEANT=on; CVUniverse.h).  Built here, after the playlist, readout volume
+  // and MHRW settings above, and not in GetSystematicUniversesMap: each
+  // GeantHadronUniverse sets up MAT's static MnvHadronReweight in its
+  // constructor, once per job, from those settings.  Built before them, it
+  // got playlist ME1A and no readout volume, so it looked for a
+  // renormalization file that does not exist and stopped the job before the
+  // data loop (2026-11-13 TEST).  The reco map first, so MHRW is set up on
+  // the MC reco chain with the settings the CV weight uses when the bands
+  // are off; its CV weight is then the same either way.
+  if (m_do_systematics && CVUniverse::GetGeantHadronSystematics()) {
+    UniverseMap geant_reco =
+        PlotUtils::GetGeantHadronSystematicsMap<CVUniverse>(m_mc);
+    m_error_bands.insert(geant_reco.begin(), geant_reco.end());
+    UniverseMap geant_truth =
+        PlotUtils::GetGeantHadronSystematicsMap<CVUniverse>(m_truth);
+    m_error_bands_truth.insert(geant_truth.begin(), geant_truth.end());
+    std::cout << "GEANT hadron bands added (playlist " << MinervaUniverse::GetPlaylist()
+              << ", readout volume Tracker)\n";
+  }
 }
 
 // Helper -- maybe this belongs somewhere else
