@@ -1,5 +1,5 @@
 """
-recoil_emu_slices.py   (v1.2 -- 2026-11-13)
+recoil_emu_slices.py   (v1.3 -- 2026-11-20)
 
 Recoil (nu) distributions in slices of muon energy, from the raw event-loop
 output (XSecInputs_*.root).  Kevin's first study (2026-11-06): recoil
@@ -23,9 +23,11 @@ Per E_mu slice it writes:
   recoil_<slice>_errsum.png        grouped fractional systematic breakdown
   recoil_<slice>_errsum_shape.png  the same, shape-only (area-normalized)
   breakdowns/recoil_<slice>_<group>[_shape].png
-                                   the individual knobs inside GENIE, Model_Fits
-                                   and Response (knobs under 0.5 % everywhere
-                                   are not drawn), absolute and shape-only
+                                   the individual knobs inside GENIE, Model_Fits,
+                                   Response and, in a run with GEANT=on, GEANT
+                                   (neutron, proton, pion; v1.3) (knobs under
+                                   0.5 % everywhere are not drawn), absolute and
+                                   shape-only
 and over all slices:
   recoil_ratio_grid.png            data/MC per slice with the systematic band
   recoil_ratio_grid_areanorm.png   the same, area-normalized, shape-only band
@@ -85,7 +87,7 @@ RESPONSE_BANDS = ["response_proton", "response_meson", "response_em", "response_
                   "response_low_neutron", "response_mid_neutron", "response_high_neutron"]
 if not any(n in sum([list(v) for v in error_bands.values()], []) for n in RESPONSE_BANDS):
     error_bands["Response"] = RESPONSE_BANDS
-BREAKDOWN_GROUPS = ["GENIE", "Model_Fits", "Response"]
+BREAKDOWN_GROUPS = ["GENIE", "Model_Fits", "Response", "GEANT"]   # a group is skipped when absent
 BREAKDOWN_THRESHOLD = 0.005   # knobs below 0.5 % in every bin are not drawn
 
 plotter = PlotUtils.MnvPlotter()
@@ -605,7 +607,7 @@ def main():
     a = parse_args()
     if not os.path.isdir(a.outdir):
         os.makedirs(a.outdir)
-    print("recoil_emu_slices.py v1.2: {0}".format(a.infile))
+    print("recoil_emu_slices.py v1.3: {0}".format(a.infile))
     f = ROOT.TFile.Open(a.infile)
     if not f or f.IsZombie():
         print("  ERROR: cannot open {0}".format(a.infile))
